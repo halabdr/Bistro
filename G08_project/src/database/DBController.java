@@ -36,5 +36,24 @@ public class DBController {
 
         return list;
     }
-}
+    // Update existing order
+    public void updateOrder(int orderNumber,
+                            java.time.LocalDate newDate,
+                            int newGuests) throws Exception {
+
+        String sql = "UPDATE `Order` " +
+                     "SET order_date = ?, number_of_guests = ? " +
+                     "WHERE order_number = ?";
+
+        try (Connection conn = getConnection();
+             java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setDate(1, java.sql.Date.valueOf(newDate));
+            ps.setInt(2, newGuests);
+            ps.setInt(3, orderNumber);
+
+            ps.executeUpdate();
+        }
+    }
+
 }
