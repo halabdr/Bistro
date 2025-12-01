@@ -15,4 +15,26 @@ public class DBController {
         return DriverManager.getConnection(URL, USER, PASS);
     }
 
+    public List<String> readOrders() throws Exception {
+        List<String> list = new ArrayList<>();
+
+        String sql = "SELECT order_number, number_of_guests FROM `Order`";
+
+        Connection conn = getConnection();
+        Statement st = conn.createStatement();
+        ResultSet rs = st.executeQuery(sql);
+
+        while (rs.next()) {
+            int num = rs.getInt("order_number");
+            int guests = rs.getInt("number_of_guests");
+            list.add("Order #" + num + " guests = " + guests);
+        }
+
+        rs.close();
+        st.close();
+        conn.close();
+
+        return list;
+    }
+}
 }
