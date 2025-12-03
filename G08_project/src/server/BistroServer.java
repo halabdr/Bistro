@@ -14,31 +14,32 @@ import java.util.List;
 public class BistroServer {
 
     private int port;
-    private DBController db;
 
     public BistroServer(int port) {
         this.port = port;
-        this.db = new DBController();
     }
 
     public void start() {
         System.out.println("Starting server on port " + port + "...");
         try (ServerSocket serverSocket = new ServerSocket(port)) {
-            while (true) {
+        	
+        	DBController.connect();//Added this - to connect to DB once at beginning
+            
+        	while (true) {
                 Socket clientSocket = serverSocket.accept();
                 handleClient(clientSocket);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+        	DBController.close();//Close connection to DB when server is closed
         }
     }
 
     private void handleClient(Socket clientSocket) {
-        try (
-                BufferedReader in = new BufferedReader(
+        try (BufferedReader in = new BufferedReader(
                         new InputStreamReader(clientSocket.getInputStream()));
-                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)
-        ) {
+                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
             String clientIp = clientSocket.getInetAddress().getHostAddress();
             String clientHost = clientSocket.getInetAddress().getHostName();
             System.out.println("Client connected: IP=" + clientIp + ", host=" + clientHost + ", status=Connected");
@@ -57,19 +58,24 @@ public class BistroServer {
                 }
             }
             System.out.println("Client disconnected: IP=" + clientIp + ", host=" + clientHost + ", status=Disconnected");
-            clientSocket.close();
-
+            
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+        	try {
+        		clientSocket.close();
+        	}
+        	catch(IOException ignorred) {}
         }
     }
+        	
     private void handleGetOrders(PrintWriter out) {
         try {
-            List<String> orders = db.readOrders();
+            List<String> orders = DBController.readOrders();
             for (String s : orders) {
                 out.println(s);
             }
-            out.println("END");
+            out.println("END"); //marking to client that it is the end of the list
         } catch (Exception e) {
             out.println("ERROR: " + e.getMessage());
         }
@@ -81,11 +87,12 @@ public class BistroServer {
                 out.println("ERROR: Bad UPDATE format");
                 return;
             }
+            
             int orderNumber = Integer.parseInt(parts[1]);
-            LocalDate newDate = LocalDate.parse(parts[2]);
+            LocalDate newDate = LocalDate.parse(parts[2]);//format: dd-mm-yyyy
             int guests = Integer.parseInt(parts[3]);
 
-            db.updateOrder(orderNumber, newDate, guests);
+            DBController.updateOrder(orderNumber, newDate, guests);
             out.println("OK");
         } catch (Exception e) {
             out.println("ERROR: " + e.getMessage());
