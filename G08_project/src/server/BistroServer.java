@@ -82,7 +82,7 @@ public class BistroServer {
     }
     private void handleUpdate(String line, PrintWriter out) {
         try {
-            String[] parts = line.split(";");
+            String[] parts = line.split(";",-1); //Update only the fields the user typed, ignore empty fields
             if (parts.length != 4) {
                 out.println("ERROR: Bad UPDATE format");
                 return;
