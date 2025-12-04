@@ -27,6 +27,17 @@ public class DBController {
         }
     }
     
+    public static void connectToDB() {
+        try {
+            conn = DriverManager.getConnection(URL, USER, PASS);
+            System.out.println("Connected to DB");
+            System.out.println("DB password: " + PASS);
+        } catch (SQLException e) {
+            System.out.println("connecting to DB is failed");
+            e.printStackTrace();
+        }
+    }
+    
     //I added this function
     public  static Connection getConnection() throws SQLException {
     	if (conn == null || conn.isClosed())
@@ -54,7 +65,7 @@ public class DBController {
     public static List<String> readOrders() {
         List<String> orders = new ArrayList<>();
 
-        String sql = "SELECT order_number, order_date, number_of_guests" + "confirmation_code, subscriber_id, date_of_placing_order" + "FROM `order`";
+        String sql = "SELECT order_number, order_date, number_of_guests, " + "confirmation_code, subscriber_id, date_of_placing_order " + "FROM matala2.`order`";
         
         try {
             Connection conn = getConnection();
