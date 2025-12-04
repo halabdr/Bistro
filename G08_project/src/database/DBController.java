@@ -96,25 +96,39 @@ public class DBController {
         return orders;
     }
     
-    //I changed in this - Update the date of the order and number of guests of existing order
-    public static void updateOrder(int orderNumber, LocalDate newDate, int newGuests) {
-        String sql = "UPDATE `order` " +
-                     "SET order_date = ?, number_of_guests = ? " +
-                     "WHERE order_number = ?";
+    //I changed this method 
+    public static void updateOrder(int orderNumber, LocalDate newDate, Integer newGuests) {
+        String sql;
+        if (newDate != null && newGuests != null) {
+            sql = "UPDATE `order` SET order_date = ?, number_of_guests = ? WHERE order_number = ?";
+        } else if (newDate != null) {
+            sql = "UPDATE `order` SET order_date = ? WHERE order_number = ?";
+        } else if (newGuests != null) {
+            sql = "UPDATE `order` SET number_of_guests = ? WHERE order_number = ?";
+        } else {
+            //If the fields is null and there is no to update
+            System.out.println("No fields to update");
+            return;
+        }
 
         try {
-        	Connection conn = getConnection();
+            Connection conn = getConnection();
             PreparedStatement ps = conn.prepareStatement(sql);
             
-            ps.setDate(1, Date.valueOf(newDate));
-            ps.setInt(2, newGuests);
-            ps.setInt(3, orderNumber);
+            int idx = 1;
+            if (newDate != null) {
+                ps.setDate(idx++, Date.valueOf(newDate));
+            }
+            if (newGuests != null) {
+                ps.setInt(idx++, newGuests);
+            }
+            ps.setInt(idx, orderNumber);
 
             int rows = ps.executeUpdate();
-            System.out.println("Order status: " + rows + "row(s) updated");
-            
+            System.out.println("Order status: " + rows + " row(s) updated");
+
             ps.close();
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }

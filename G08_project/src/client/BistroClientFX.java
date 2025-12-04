@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.time.LocalDate;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -108,9 +109,17 @@ public class BistroClientFX extends Application {
         String orderStr = orderNumberField.getText().trim();
         String dateStr = dateField.getText().trim();
         String guestsStr = guestsField.getText().trim();
+        
+        LocalDate date = dateStr.isEmpty() ? null : LocalDate.parse(dateStr);
+        Integer guests = guestsStr.isEmpty() ? null : Integer.parseInt(guestsStr);
 
-        if (orderStr.isEmpty() || dateStr.isEmpty() || guestsStr.isEmpty()) {
-            showError("Please fill all fields");
+        if (orderStr.isEmpty()) {
+            showError("Order number is required");
+            return;
+        }
+        
+        if (dateStr.isEmpty() && guestsStr.isEmpty()) {
+            showError("Please fill at least one field to update");
             return;
         }
 
@@ -157,7 +166,7 @@ public class BistroClientFX extends Application {
         String placingDate = parts[5];
 
         return String.format(
-                "Order #%s | Date: %s | Guests: %s | Conf: %s | Sub: %s | Placed: %s",
+                "Order #%s | Date: %s | Guests: %s | Confirmation code: %s | Subscriber ID: %s | Placed: %s",
                 orderNumber, orderDate, guests, confCode, subscriber, placingDate
         );
     }

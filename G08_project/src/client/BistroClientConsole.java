@@ -47,8 +47,8 @@ public class BistroClientConsole {
                                         "Order #" + orderNumber +
                                         " | Date: " + orderDate +
                                         " | Guests: " + guests +
-                                        " | Conf: " + confCode +
-                                        " | Subscriber: " + subscriberId +
+                                        " | Confirmation code: " + confCode +
+                                        " | Subscriber ID: " + subscriberId +
                                         " | Placed: " + placingDate
                                 );
                             } else {

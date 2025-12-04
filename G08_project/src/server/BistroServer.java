@@ -89,11 +89,23 @@ public class BistroServer {
             }
             
             int orderNumber = Integer.parseInt(parts[1]);
-            LocalDate newDate = LocalDate.parse(parts[2]);//format: dd-mm-yyyy
-            int guests = Integer.parseInt(parts[3]);
+            String dateStr = parts[2];
+            String guestsStr = parts[3];
+            
+            //Date can be null
+            LocalDate newDate = null;
+            if (!dateStr.isEmpty()) {
+                newDate = LocalDate.parse(dateStr);
+            }
 
-            DBController.updateOrder(orderNumber, newDate, guests);
+            //Guests number can be null
+            Integer newGuests = null;
+            if (!guestsStr.isEmpty()) {
+                newGuests = Integer.parseInt(guestsStr);
+                
+            DBController.updateOrder(orderNumber, newDate, newGuests);
             out.println("OK");
+            }
         } catch (Exception e) {
             out.println("ERROR: " + e.getMessage());
         }
