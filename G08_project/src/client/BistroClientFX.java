@@ -27,7 +27,8 @@ public class BistroClientFX extends Application {
     private TextField dateField;
     private TextField guestsField;
 
-    private static final String HOST = "localhost";
+    private TextField hostField;
+
     private static final int PORT = 5555;
 
     @Override
@@ -37,7 +38,6 @@ public class BistroClientFX extends Application {
         ordersArea.setEditable(false);
         ordersArea.setPrefRowCount(15);
 
-        // שדות קלט לעדכון
         orderNumberField = new TextField();
         dateField = new TextField();
         guestsField = new TextField();
@@ -46,19 +46,22 @@ public class BistroClientFX extends Application {
         dateField.setPromptText("YYYY-MM-DD");
         guestsField.setPromptText("Guests");
 
-        // כפתורים
-        Button loadBtn = new Button("Load orders");
-        Button updateBtn = new Button("Update order");
-        Button clearBtn = new Button("Clear");
 
-        loadBtn.setOnAction(e -> loadOrders());
-        updateBtn.setOnAction(e -> updateOrder());
-        clearBtn.setOnAction(e -> ordersArea.clear());
+        hostField = new TextField("localhost");
+        hostField.setPromptText("Server IP (e.g. 192.168.1.15)");
+        hostField.setPrefColumnCount(15);
 
-        // פאנל עליון עם הכפתורים
-        HBox topButtons = new HBox(10, loadBtn, updateBtn, clearBtn);
+         Button loadBtn = new Button("Load orders");
+         Button updateBtn = new Button("Update order");
+         Button clearBtn = new Button("Clear");
 
-        // טופס קלט לעדכון הזמנה
+         loadBtn.setOnAction(e -> loadOrders());
+         updateBtn.setOnAction(e -> updateOrder());
+         clearBtn.setOnAction(e -> ordersArea.clear());
+
+         HBox topButtons = new HBox(10, new Label("Server IP:"), hostField, loadBtn, updateBtn, clearBtn);
+         topButtons.setPadding(new Insets(10));
+
         GridPane form = new GridPane();
         form.setHgap(10);
         form.setVgap(10);
@@ -72,7 +75,6 @@ public class BistroClientFX extends Application {
         form.add(new Label("Guests:"), 0, 2);
         form.add(guestsField, 1, 2);
 
-        // סידור כללי של המסך
         VBox root = new VBox(10, topButtons, ordersArea, form);
         root.setPadding(new Insets(10));
 
@@ -82,16 +84,18 @@ public class BistroClientFX extends Application {
         primaryStage.show();
     }
 
-    // טעינת ההזמנות מהשרת
     private void loadOrders() {
         ordersArea.clear();
-        try (
-                Socket socket = new Socket(HOST, PORT);
-                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        ) {
-            out.println("GET_ORDERS");
-
+        try {
+        		String host = hostField.getText().trim();
+        		if (host.isEmpty()) {
+        		    host = "localhost"; 
+        		}
+        		    Socket socket = new Socket(host, PORT);
+        		    PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+        		    BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        		    out.println("GET_ORDERS");
+        		
             String line;
             while ((line = in.readLine()) != null && !line.equals("END")) {
                 String pretty = formatOrderLine(line);
@@ -104,7 +108,6 @@ public class BistroClientFX extends Application {
         }
     }
 
-    // שליחת עדכון הזמנה לשרת
     private void updateOrder() {
         String orderStr = orderNumberField.getText().trim();
         String dateStr = dateField.getText().trim();
@@ -115,7 +118,6 @@ public class BistroClientFX extends Application {
             return;
         }
 
-        // המרה ערכים רק אם יש טקסט
         LocalDate date = null;
         Integer guests = null;
 
@@ -133,9 +135,14 @@ public class BistroClientFX extends Application {
         }
 
         try {
-            Socket socket = new Socket(HOST, PORT);
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        	String host = hostField.getText().trim();
+        	if (host.isEmpty()) {
+        	    host = "localhost";
+        	}
+
+        	Socket socket = new Socket(host, PORT);
+        	PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+        	BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
             String command = "UPDATE;" + orderStr + ";" + dateStr + ";" + guestsStr;
 
@@ -156,7 +163,6 @@ public class BistroClientFX extends Application {
         }
     }
     
-    // הצגת שורת הזמנה בפורמט יפה
     private String formatOrderLine(String line) {
         String[] parts = line.split(",");
         if (parts.length < 6) {
