@@ -20,18 +20,10 @@ public class DBController {
     
     //I changed this function
     public static void connect() throws SQLException {
-        if (conn == null || conn.isClosed())
-        {
+        try {
         	conn = DriverManager.getConnection(URL, USER, PASS);
         	System.out.println("DB connection succeeded");
-        }
-    }
-    
-    public static void connectToDB() {
-        try {
-            conn = DriverManager.getConnection(URL, USER, PASS);
-            System.out.println("Connected to DB");
-            System.out.println("DB password: " + PASS);
+        	System.out.println("DB password: " + PASS);
         } catch (SQLException e) {
             System.out.println("connecting to DB is failed");
             e.printStackTrace();

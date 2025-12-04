@@ -109,49 +109,53 @@ public class BistroClientFX extends Application {
         String orderStr = orderNumberField.getText().trim();
         String dateStr = dateField.getText().trim();
         String guestsStr = guestsField.getText().trim();
-        
-        LocalDate date = dateStr.isEmpty() ? null : LocalDate.parse(dateStr);
-        Integer guests = guestsStr.isEmpty() ? null : Integer.parseInt(guestsStr);
 
         if (orderStr.isEmpty()) {
             showError("Order number is required");
             return;
         }
-        
-        if (dateStr.isEmpty() && guestsStr.isEmpty()) {
+
+        // המרה ערכים רק אם יש טקסט
+        LocalDate date = null;
+        Integer guests = null;
+
+        if (!dateStr.isEmpty() && !"null".equals(dateStr)) {
+            date = LocalDate.parse(dateStr);
+        }
+
+        if (!guestsStr.isEmpty() && !"null".equals(guestsStr)) {
+            guests = Integer.parseInt(guestsStr);
+        }
+
+        if (date == null && guests == null) {
             showError("Please fill at least one field to update");
             return;
         }
 
         try {
-            Integer.parseInt(orderStr);
-            Integer.parseInt(guestsStr);
-        } catch (NumberFormatException ex) {
-            showError("Order number and guests must be integers");
-            return;
-        }
+            Socket socket = new Socket(HOST, PORT);
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-        try (
-                Socket socket = new Socket(HOST, PORT);
-                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        ) {
             String command = "UPDATE;" + orderStr + ";" + dateStr + ";" + guestsStr;
+
             out.println(command);
 
             String response = in.readLine();
+
             if ("OK".equals(response)) {
-                showInfo("Order updated successfully");
+                showInfo("Order updated successfully!");
             } else {
                 showError("Server error: " + response);
             }
 
-            out.println("QUIT");
-        } catch (Exception e) {
-            showError("Failed to update order: " + e.getMessage());
+            socket.close();
+        }
+        catch (Exception e) {
+            showError("Failed to update: " + e.getMessage());
         }
     }
-
+    
     // הצגת שורת הזמנה בפורמט יפה
     private String formatOrderLine(String line) {
         String[] parts = line.split(",");
