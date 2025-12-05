@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="gui.ClientLoginController"
+      spacing="15" alignment="CENTER"
+      prefWidth="360" prefHeight="220"
+      stylesheets="@client.css"
+      styleClass="root-pane login-pane">
+
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+
+    <children>
+        <Label text="Bistro Client" styleClass="title-label"/>
+        <Label text="Enter server IP address"/>
+
+        <TextField fx:id="ipField"
+                   promptText="e.g. 192.168.1.15 or localhost"
+                   prefWidth="260"/>
+
+        <HBox spacing="10" alignment="CENTER">
+            <children>
+                <Button text="Connect"
+                        onAction="#handleConnect"
+                        defaultButton="true"
+                        styleClass="btn-primary"/>
+                <Button text="Exit"
+                        onAction="#handleExit"
+                        cancelButton="true"
+                        styleClass="btn-secondary"/>
+            </children>
+        </HBox>
+
+        <Label fx:id="errorLabel" styleClass="error-label"/>
+    </children>
+</VBox>

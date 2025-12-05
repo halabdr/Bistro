@@ -1,4 +1,4 @@
-package database;
+package server;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -88,37 +88,41 @@ public class DBController {
         return orders;
     }
     
-    //I changed this method 
     public static void updateOrder(int orderNumber, LocalDate newDate, Integer newGuests) {
-        String sql;
-        if (newDate != null && newGuests != null) {
-            sql = "UPDATE `order` SET order_date = ?, number_of_guests = ? WHERE order_number = ?";
-        } else if (newDate != null) {
-            sql = "UPDATE `order` SET order_date = ? WHERE order_number = ?";
-        } else if (newGuests != null) {
-            sql = "UPDATE `order` SET number_of_guests = ? WHERE order_number = ?";
-        } else {
-            //If the fields is null and there is no to update
-            System.out.println("No fields to update");
+        if (newDate == null && newGuests == null) {
+            // אין מה לעדכן
             return;
         }
 
+        StringBuilder sql = new StringBuilder("UPDATE `order` SET ");
+        List<Object> params = new ArrayList<>();
+
+        if (newDate != null) {
+            sql.append("order_date = ?");
+            params.add(Date.valueOf(newDate));
+        }
+
+        if (newGuests != null) {
+            if (!params.isEmpty()) {
+                sql.append(", ");
+            }
+            sql.append("number_of_guests = ?");
+            params.add(newGuests);
+        }
+
+        sql.append(" WHERE order_number = ?");
+        params.add(orderNumber);
+
         try {
             Connection conn = getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql);
-            
-            int idx = 1;
-            if (newDate != null) {
-                ps.setDate(idx++, Date.valueOf(newDate));
+            PreparedStatement ps = conn.prepareStatement(sql.toString());
+
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
             }
-            if (newGuests != null) {
-                ps.setInt(idx++, newGuests);
-            }
-            ps.setInt(idx, orderNumber);
 
             int rows = ps.executeUpdate();
             System.out.println("Order status: " + rows + " row(s) updated");
-
             ps.close();
         } catch (SQLException e) {
             e.printStackTrace();

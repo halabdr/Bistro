@@ -1,0 +1,115 @@
+/* ====== ROOT WINDOW ====== */
+
+.root-pane {
+    -fx-background-color: linear-gradient(to bottom, #f7f9fc, #e3ebf7);
+    -fx-padding: 15;
+    -fx-spacing: 10;
+}
+
+/* חלון הלוגין קצת יותר קטן ומרוכז */
+.login-pane {
+    -fx-background-radius: 18;
+    -fx-border-radius: 18;
+    -fx-border-color: rgba(0,0,0,0.08);
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 15, 0.1, 0, 4);
+}
+
+/* ====== TITLES & TEXT ====== */
+
+.title-label {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2d3e50;
+}
+
+.error-label {
+    -fx-text-fill: #d9534f;
+    -fx-font-size: 12px;
+}
+
+/* ====== TEXT INPUTS ====== */
+
+.text-field, .text-area {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: #c7d3e3;
+    -fx-border-width: 1;
+    -fx-padding: 6 8 6 8;
+    -fx-font-size: 13px;
+}
+
+.text-field:focused, .text-area:focused {
+    -fx-border-color: #4a90e2;
+    -fx-effect: dropshadow(gaussian, rgba(74,144,226,0.35), 10, 0.2, 0, 0);
+}
+
+.text-area {
+    -fx-control-inner-background: #ffffff;
+}
+
+/* ====== BUTTONS – בסיס ====== */
+
+.button {
+    -fx-background-radius: 999;
+    -fx-padding: 6 16;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-cursor: hand;
+    -fx-border-radius: 999;
+    -fx-border-width: 0;
+    -fx-background-insets: 0;
+    -fx-text-fill: #ffffff;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 6, 0.3, 0, 1);
+    -fx-background-color: #6c7a89;
+}
+
+.button:hover {
+    -fx-translate-y: -1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.20), 8, 0.3, 0, 2);
+}
+
+.button:pressed {
+    -fx-translate-y: 0;
+    -fx-effect: none;
+}
+
+/* ====== BUTTON TYPES ====== */
+
+.btn-primary {
+    -fx-background-color: linear-gradient(to right, #4a90e2, #357abf);
+}
+
+.btn-primary:hover {
+    -fx-background-color: linear-gradient(to right, #5aa2f1, #3e80c7);
+}
+
+.btn-secondary {
+    -fx-background-color: linear-gradient(to right, #7b8da0, #5c6a7a);
+}
+
+.btn-secondary:hover {
+    -fx-background-color: linear-gradient(to right, #8b9db0, #667688);
+}
+
+.btn-danger {
+    -fx-background-color: linear-gradient(to right, #e74c3c, #c0392b);
+}
+
+.btn-danger:hover {
+    -fx-background-color: linear-gradient(to right, #ff6650, #d24a36);
+}
+
+/* ====== LABELS ====== */
+
+.label {
+    -fx-text-fill: #34495e;
+    -fx-font-size: 13px;
+}
+
+/* ====== GRIDPANE SPACING ====== */
+
+.grid-pane {
+    -fx-padding: 10 0 0 0;
+}
