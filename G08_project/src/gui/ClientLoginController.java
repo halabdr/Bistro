@@ -1,6 +1,6 @@
 package gui;
 
-import client.ClientSession;
+import client.BistroClient;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -21,11 +21,11 @@ public class ClientLoginController {
     @FXML
     private void handleConnect(ActionEvent event) {
         String host = ipField.getText().trim();
-        ClientSession.setHost(host);
+        BistroClient.setHost(host);
 
         try {
             // נפתח חיבור לשרת
-            ClientSession.connect();
+            BistroClient.connect();
 
             // נטען את החלון הראשי
             Parent root = FXMLLoader.load(getClass().getResource("/gui/BistroClientUI.fxml"));

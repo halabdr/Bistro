@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDate;
 
-import client.ClientSession;
+import client.BistroClient;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextArea;
@@ -30,9 +30,9 @@ public class BistroClientUIController {
 
     @FXML
     private void initialize() {
-        // ניקח את החיבור מ-ClientSession
-        out = ClientSession.getOut();
-        in  = ClientSession.getIn();
+        // ניקח את החיבור מ-BistroClient
+        out = BistroClient.getOut();
+        in  = BistroClient.getIn();
     }
 
     @FXML
@@ -142,8 +142,8 @@ public class BistroClientUIController {
 
         return String.format(
             "===========%n" +
-            "     |Order #%s| " +
-            "%n===========%n" +
+            "     |Order #%s| %n" +
+            "===========%n" +
             "Date: %s%n" +
             "Guests: %s%n" +
             "Confirmation code: %s%n" +
