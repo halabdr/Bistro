@@ -10,12 +10,17 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.application.Platform;
+import javafx.stage.Stage;
 
+//Controller for the main client window: the bistro orders screen
+//Handles user actions - load orders, update order, clear, exit
 public class BistroClientUIController {
 
     @FXML
     private TextArea ordersArea;
 
+    //Input fields for order number, new date and number of guests
     @FXML
     private TextField orderNumberField;
 
@@ -28,13 +33,14 @@ public class BistroClientUIController {
     private PrintWriter out;
     private BufferedReader in;
 
+    //Grab I/O streams from BistroClient 
     @FXML
     private void initialize() {
-        // ניקח את החיבור מ-BistroClient
         out = BistroClient.getOut();
         in  = BistroClient.getIn();
     }
 
+    //Sends GET_ORDERS to the server and prints all returned lines
     @FXML
     private void handleLoadOrders() {
         ordersArea.clear();
@@ -56,7 +62,8 @@ public class BistroClientUIController {
             showError("Failed to load orders: " + e.getMessage());
         }
     }
-
+    
+    //Validates the inputs of the update and sends an UPDATE command to the server
     @FXML
     private void handleUpdateOrder() {
         String orderStr  = orderNumberField.getText().trim();
@@ -95,6 +102,11 @@ public class BistroClientUIController {
         if (!guestsStr.isEmpty()) {
             try {
                 guests = Integer.parseInt(guestsStr);
+                
+                if (guests <=0) {
+                	showError("Guests must be a number greater than 0");
+                	return;
+                }
             } catch (NumberFormatException e) {
                 showError("Guests must be an integer");
                 return;
@@ -113,6 +125,7 @@ public class BistroClientUIController {
             String command = "UPDATE;" + orderNumber + ";" + datePart + ";" + guestsPart;
             out.println(command);
 
+            //Read server response "OK" or "Error:..."
             String response = in.readLine();
             if ("OK".equals(response)) {
                 showInfo("Order updated successfully");
@@ -125,6 +138,7 @@ public class BistroClientUIController {
         }
     }
 
+    //Clears all fields
     @FXML
     private void handleClear() {
         ordersArea.clear();
@@ -132,7 +146,20 @@ public class BistroClientUIController {
         dateField.clear();
         guestsField.clear();
     }
-
+    
+    //Closes the client connection and exits the JavaFX application
+    @FXML
+    private void handleExit() {
+    	//Close the socket and notify server with QUIT
+    	BistroClient.close();
+    	
+    	//Close the current window
+    	Stage stage = (Stage) ordersArea.getScene().getWindow();
+    	stage.close();
+    	
+    	Platform.exit();
+    }
+    
     private String formatOrderLine(String line) {
         String[] parts = line.split(",");
         if (parts.length < 6) {

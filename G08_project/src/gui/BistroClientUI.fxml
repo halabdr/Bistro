@@ -17,23 +17,30 @@
     </padding>
 
     <children>
-        <Label text="Bistro Orders" styleClass="title-label"/>
-
-       <HBox spacing="10">
-       <children>
-       <Button text="Load orders"
+       <Label text="Bistro Orders" styleClass="title-label"/>
+<HBox spacing="10" alignment="CENTER_LEFT">
+    <children>
+        <Button text="Load orders"
                 onAction="#handleLoadOrders"
                 styleClass="btn-primary"/>
 
-       <Button text="Update order"
+        <Button text="Update order"
                 onAction="#handleUpdateOrder"
                 styleClass="btn-secondary"/>
 
-       <Button text="Clear"
+        <Button text="Clear"
                 onAction="#handleClear"
                 styleClass="btn-danger"/>
-       </children>
-	   </HBox>
+    </children>
+</HBox>
+
+<HBox alignment="CENTER_RIGHT">
+    <children>
+        <Button text="Exit"
+                onAction="#handleExit"
+                styleClass="btn-exit"/>
+    </children>
+</HBox>
 
         <TextArea fx:id="ordersArea"
                   editable="false"

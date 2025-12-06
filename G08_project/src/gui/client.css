@@ -78,27 +78,40 @@
 /* ====== BUTTON TYPES ====== */
 
 .btn-primary {
-    -fx-background-color: linear-gradient(to right, #4a90e2, #357abf);
+    -fx-background-color: linear-gradient(to right, #003cff, #001f7a);
 }
 
 .btn-primary:hover {
-    -fx-background-color: linear-gradient(to right, #5aa2f1, #3e80c7);
+    -fx-background-color: linear-gradient(to right, #335CFF, #112266);
 }
 
 .btn-secondary {
-    -fx-background-color: linear-gradient(to right, #7b8da0, #5c6a7a);
+    -fx-background-color: linear-gradient(to right, #24c1a7, #1d8f7e);
 }
 
 .btn-secondary:hover {
-    -fx-background-color: linear-gradient(to right, #8b9db0, #667688);
+    -fx-background-color: linear-gradient(to right, #32e4c8, #23a894);
 }
 
 .btn-danger {
-    -fx-background-color: linear-gradient(to right, #e74c3c, #c0392b);
+    -fx-background-color: linear-gradient(to right, #ff6ec7, #ff3ca0);
 }
 
 .btn-danger:hover {
-    -fx-background-color: linear-gradient(to right, #ff6650, #d24a36);
+    -fx-background-color: linear-gradient(to right, #ff8ed8, #ff5ab7);
+}
+
+.btn-exit {
+    -fx-background-color: linear-gradient(to right, #8A5FFF, #5E3ECF);
+    -fx-text-fill: white;
+    -fx-background-radius: 999;
+    -fx-padding: 6 18;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+}
+
+.btn-exit:hover {
+    -fx-background-color: #754DDB;
 }
 
 /* ====== LABELS ====== */

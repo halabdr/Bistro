@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="gui.ServerUIController"
+      spacing="10"
+      prefWidth="520" prefHeight="360"
+      stylesheets="@client.css"
+      styleClass="root-pane login-pane">
+
+    <padding>
+        <Insets top="15" right="15" bottom="15" left="15"/>
+    </padding>
+
+    <children>
+        <Label text="Server" styleClass="title-label"/>
+
+        <GridPane hgap="10" vgap="6">
+            <columnConstraints>
+                <ColumnConstraints halignment="RIGHT" minWidth="90"/>
+                <ColumnConstraints hgrow="ALWAYS"/>
+            </columnConstraints>
+
+            <children>
+                <Label text="Port:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <TextField fx:id="portField"
+                           promptText="Enter port number"
+                           GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                <Label text="Status:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <Label fx:id="statusLabel"
+                       text="Stopped"
+                       GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+            </children>
+        </GridPane>
+
+        <HBox spacing="10">
+            <children>
+                <Button text="Start server"
+                        onAction="#handleStart"
+                        styleClass="btn-primary"/>
+                <Button text="Stop"
+                        onAction="#handleStop"
+                        styleClass="btn-danger"/>
+            </children>
+        </HBox>
+
+        <Label text="Connections log:"/>
+
+        <TextArea fx:id="logArea"
+                  editable="false"
+                  prefRowCount="8"
+                  VBox.vgrow="ALWAYS"/>
+    </children>
+</VBox>
