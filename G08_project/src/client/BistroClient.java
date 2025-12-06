@@ -41,7 +41,7 @@ public class BistroClient {
         return out;
     }
     
-    //Returns the BufferedReader used to get messages from the server
+    //Returns the BufferedReader used to receive messages from the server
     public static BufferedReader getIn() {
         return in;
     }
