@@ -5,48 +5,6 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/javaFX2"/>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="C:/Users/User/OneDrive - ort braude college of engineering/Desktop/javafx-sdk-21.0.9/lib/javafx.base.jar">
-		<attributes>
-			<attribute name="module" value="true"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/User/OneDrive - ort braude college of engineering/Desktop/javafx-sdk-21.0.9/lib/javafx.controls.jar">
-		<attributes>
-			<attribute name="module" value="true"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/User/OneDrive - ort braude college of engineering/Desktop/javafx-sdk-21.0.9/lib/javafx.fxml.jar">
-		<attributes>
-			<attribute name="module" value="true"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/User/OneDrive - ort braude college of engineering/Desktop/javafx-sdk-21.0.9/lib/javafx.graphics.jar">
-		<attributes>
-			<attribute name="module" value="true"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/User/OneDrive - ort braude college of engineering/Desktop/javafx-sdk-21.0.9/lib/javafx.media.jar">
-		<attributes>
-			<attribute name="module" value="true"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/User/OneDrive - ort braude college of engineering/Desktop/javafx-sdk-21.0.9/lib/javafx.swing.jar">
-		<attributes>
-			<attribute name="module" value="true"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/User/OneDrive - ort braude college of engineering/Desktop/javafx-sdk-21.0.9/lib/javafx.web.jar">
-		<attributes>
-			<attribute name="module" value="true"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/User/OneDrive - ort braude college of engineering/Desktop/javafx-sdk-21.0.9/lib/javafx-swt.jar">
-		<attributes>
-			<attribute name="module" value="true"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/User/Downloads/Ex-03-WorkbenchJDBC/Ex-03-WorkbenchJDBC/jdbc/lib/mysql-connector-j-9.5.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
