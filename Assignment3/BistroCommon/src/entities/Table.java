@@ -5,33 +5,30 @@ import java.util.Objects;
 
 /**
  * Represents a table in the restaurant.
- * Each table has a fixed number of seats and an availability status.
- * This class is shared between client and server.
+ * The table has a fixed number of seats and an availability status.
  */
 public class Table implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    /** Unique table number */
     private int tableNumber;
-
-    /** Number of seats at the table */
     private int numberOfSeats;
-
-    /** Indicates whether the table is available */
-    private boolean available;
+    private boolean availabilityStatus;
 
     /**
      * Creates a new table.
      *
      * @param tableNumber unique table identifier
-     * @param numberOfSeats number of seats at the table
-     * @param available availability status
+     * @param numberOfSeats number of seats at the table (must be positive)
+     * @param availabilityStatus availability status of the table
      */
-    public Table(int tableNumber, int numberOfSeats, boolean available) {
+    public Table(int tableNumber, int numberOfSeats, boolean availabilityStatus) {
+        if (numberOfSeats <= 0) {
+            throw new IllegalArgumentException("Number of seats must be greater than zero");
+        }
         this.tableNumber = tableNumber;
         this.numberOfSeats = numberOfSeats;
-        this.available = available;
+        this.availabilityStatus = availabilityStatus;
     }
 
     /** Empty constructor */
@@ -50,21 +47,58 @@ public class Table implements Serializable {
         return numberOfSeats;
     }
 
+    /**
+     * Updates the number of seats at the table.
+     *
+     * @param numberOfSeats new number of seats (must be positive)
+     */
     public void setNumberOfSeats(int numberOfSeats) {
+        if (numberOfSeats <= 0) {
+            throw new IllegalArgumentException("Number of seats must be greater than zero");
+        }
         this.numberOfSeats = numberOfSeats;
     }
 
     /**
-     * Returns whether the table is available.
+     * Returns the availability status of the table.
      *
-     * @return true if available, false otherwise
+     * @return true if the table is available
      */
-    public boolean isAvailable() {
-        return available;
+    public boolean isAvailabilityStatus() {
+        return availabilityStatus;
     }
 
-    public void setAvailable(boolean available) {
-        this.available = available;
+    /**
+     * Sets the availability status of the table.
+     *
+     * @param availabilityStatus new availability status
+     */
+    public void setAvailabilityStatus(boolean availabilityStatus) {
+        this.availabilityStatus = availabilityStatus;
+    }
+
+    /**
+     * Checks whether a given number of guests can be seated at the table.
+     *
+     * @param numberOfGuests number of guests
+     * @return true if the table is available and has enough seats
+     */
+    public boolean canSeat(int numberOfGuests) {
+        return availabilityStatus && numberOfGuests > 0 && numberOfGuests <= numberOfSeats;
+    }
+
+    /**
+     * Releases the table and marks it as available.
+     */
+    public void releaseTable() {
+        this.availabilityStatus = true;
+    }
+
+    /**
+     * Marks the table as occupied.
+     */
+    public void occupyTable() {
+        this.availabilityStatus = false;
     }
 
     @Override
@@ -78,5 +112,14 @@ public class Table implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(tableNumber);
+    }
+
+    @Override
+    public String toString() {
+        return "Table{" +
+                "tableNumber=" + tableNumber +
+                ", numberOfSeats=" + numberOfSeats +
+                ", availabilityStatus=" + availabilityStatus +
+                '}';
     }
 }
