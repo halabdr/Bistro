@@ -1,5 +1,6 @@
 package entities;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -9,6 +10,7 @@ import java.util.Objects;
  */
 public class Table implements Serializable {
 
+	@Serial
     private static final long serialVersionUID = 1L;
 
     private int tableNumber;
@@ -18,14 +20,19 @@ public class Table implements Serializable {
     /**
      * Creates a new table.
      *
-     * @param tableNumber unique table identifier
+     * @param tableNumber unique table identifier (must be positive)
      * @param numberOfSeats number of seats at the table (must be positive)
      * @param availabilityStatus availability status of the table
      */
     public Table(int tableNumber, int numberOfSeats, boolean availabilityStatus) {
-        if (numberOfSeats <= 0) {
+        if (tableNumber <= 0) {
+        	throw new IllegalArgumentException("Table number must be greater than zero");
+        }
+        	
+    	if (numberOfSeats <= 0) {
             throw new IllegalArgumentException("Number of seats must be greater than zero");
         }
+    	
         this.tableNumber = tableNumber;
         this.numberOfSeats = numberOfSeats;
         this.availabilityStatus = availabilityStatus;
@@ -40,6 +47,9 @@ public class Table implements Serializable {
     }
 
     public void setTableNumber(int tableNumber) {
+    	if (tableNumber <= 0) {
+    		throw new IllegalArgumentException("Table number must be greater than zero");
+    	}
         this.tableNumber = tableNumber;
     }
 
@@ -64,7 +74,7 @@ public class Table implements Serializable {
      *
      * @return true if the table is available
      */
-    public boolean isAvailabilityStatus() {
+    public boolean isAvailable() {
         return availabilityStatus;
     }
 
@@ -100,7 +110,10 @@ public class Table implements Serializable {
     public void occupyTable() {
         this.availabilityStatus = false;
     }
-
+    
+    /**
+     * Tables are identified by tableNumber.
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

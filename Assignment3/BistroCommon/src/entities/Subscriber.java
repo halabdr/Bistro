@@ -1,5 +1,6 @@
 package entities;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -9,6 +10,7 @@ import java.util.Objects;
  */
 public class Subscriber implements Serializable {
 
+	@Serial
     private static final long serialVersionUID = 1L;
 
     private int subscriberId;
@@ -34,8 +36,8 @@ public class Subscriber implements Serializable {
         }
 
         this.subscriberId = subscriberId;
-        this.firstName = firstName;
-        this.lastName = lastName;
+        setFirstName(firstName);
+        setLastName(lastName);
         setPhoneNumber(phoneNumber);
         setEmail(email);
     }
@@ -60,7 +62,9 @@ public class Subscriber implements Serializable {
     }
 
     public void setFirstName(String firstName) {
-        this.firstName = firstName;
+    	if (firstName == null || firstName.trim().isEmpty())
+    		throw new IllegalArgumentException("First name must not be empty");
+    	this.firstName = firstName;
     }
 
     public String getLastName() {
@@ -68,7 +72,9 @@ public class Subscriber implements Serializable {
     }
 
     public void setLastName(String lastName) {
-        this.lastName = lastName;
+        if (lastName == null || lastName.trim().isEmpty())
+        	throw new IllegalArgumentException("Last name must not be empty");
+    	this.lastName = lastName;
     }
 
     public String getPhoneNumber() {
@@ -100,6 +106,10 @@ public class Subscriber implements Serializable {
         if (email == null || email.trim().isEmpty()) {
             throw new IllegalArgumentException("Email must not be empty");
         }
+        
+        if (!email.contains("@")) {
+        	throw new IllegalArgumentException("Invalid email address");
+        }
         this.email = email;
     }
 
@@ -109,8 +119,8 @@ public class Subscriber implements Serializable {
      * @return true if both phone number and email are valid
      */
     public boolean hasValidContactInfo() {
-        return phoneNumber != null && !phoneNumber.trim().isEmpty()
-                && email != null && !email.trim().isEmpty();
+        return phoneNumber != null && !phoneNumber.trim().isEmpty() && 
+        	   email != null && !email.trim().isEmpty() && email.contains("@");
     }
 
     /**
