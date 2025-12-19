@@ -21,7 +21,7 @@ public class BistroServer extends AbstractServer {
 
     /**
      * Handles messages received from connected clients
-     *
+     * 
      * This method is automatically called by the OCSF framework
      * whenever a message is sent from a client to the server
      *
