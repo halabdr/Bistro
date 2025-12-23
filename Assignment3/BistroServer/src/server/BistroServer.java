@@ -35,6 +35,12 @@ public class BistroServer extends AbstractServer {
      * @param client the client that sent the message
      */
     @Override
+    protected void clientConnected(ConnectionToClient client) {
+        System.out.println("Client connected: " + client);
+    }
+
+
+    @Override
     protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
     	serverController.handleRequest(msg, client);
     }
