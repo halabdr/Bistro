@@ -9,7 +9,12 @@ import ocsf.server.ConnectionToClient;
  *
  */
 public class BistroServer extends AbstractServer {
+	/**
+     * The server controller responsible for routing client requests.
+     */
+    private ServerController serverController;
 
+    /**
     /**
      * Constructs a new BistroServer with the specified port number
      *
@@ -17,6 +22,7 @@ public class BistroServer extends AbstractServer {
      */
     public BistroServer(int port) {
         super(port);
+        this.serverController = new ServerController();
     }
 
     /**
@@ -30,7 +36,7 @@ public class BistroServer extends AbstractServer {
      */
     @Override
     protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
-        // Message handling logic will be implemented in later stages
+    	serverController.handleRequest(msg, client);
     }
 
     /**
