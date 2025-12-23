@@ -39,7 +39,10 @@ public class BistroServer extends AbstractServer {
         System.out.println("Client connected: " + client);
     }
 
-
+    @Override
+    protected void clientDisconnected(ConnectionToClient client) {
+        System.out.println("Client disconnected: " + client);
+    }
     @Override
     protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
     	serverController.handleRequest(msg, client);
