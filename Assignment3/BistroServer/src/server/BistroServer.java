@@ -12,6 +12,8 @@ public class BistroServer extends AbstractServer {
 	/**
      * The server controller responsible for routing client requests.
      */
+
+    public static final int DEFAULT_PORT = 5555;
     private ServerController serverController;
 
     /**
@@ -41,6 +43,15 @@ public class BistroServer extends AbstractServer {
     @Override
     protected void clientDisconnected(ConnectionToClient client) {
         System.out.println("Client disconnected: " + client);
+    }
+    @Override
+    protected void clientException(ConnectionToClient client, Throwable exception) {
+        System.out.println("Client exception occurred: " + client);
+
+        if (client.getInfo("Disconnected") == null) {
+            client.setInfo("Disconnected", true);
+            System.out.println("Handling unexpected client disconnection.");
+        }
     }
     @Override
     protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
