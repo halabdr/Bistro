@@ -1,9 +1,10 @@
 package client;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
-public class ConnectController {
+public class ConnectController implements MessageListener {
 
     @FXML private TextField hostField;
     @FXML private TextField portField;
@@ -47,5 +48,12 @@ public class ConnectController {
         statusLabel.setText("Disconnected");
         connectBtn.setDisable(false);
         disconnectBtn.setDisable(true);
+    }
+    
+    @Override
+    public void onMessage(Object msg) {
+        Platform.runLater(() -> {
+            statusLabel.setText("Server: " + msg);
+        });
     }
 }
