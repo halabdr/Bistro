@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="12" alignment="CENTER"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="client.ConnectController"
+      stylesheets="@connect.css">
+
+    <HBox spacing="8">
+        <Label text="Host:"/>
+        <TextField fx:id="hostField" text="localhost"/>
+    </HBox>
+
+    <HBox spacing="8">
+        <Label text="Port:"/>
+        <TextField fx:id="portField" text="5555"/>
+    </HBox>
+
+    <HBox spacing="10">
+        <Button fx:id="connectBtn" text="Connect" onAction="#onConnect"/>
+        <Button fx:id="disconnectBtn" text="Disconnect" onAction="#onDisconnect"/>
+    </HBox>
+
+    <Label fx:id="statusLabel" text="Not connected"/>
+</VBox>

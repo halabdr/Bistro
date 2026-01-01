@@ -1,6 +1,11 @@
 package client;
 
 import java.io.IOException;
+import java.time.LocalDate;
+
+import common.CommandType;
+import common.GetAvailableSlotsQuery;
+import common.Message;
 
 /**
  * ClientController
@@ -70,6 +75,12 @@ public class ClientController {
     public void send(Object msg) throws IOException {
         client.send(msg);
     }
-    //h
+    
+    public void requestAvailableSlots(LocalDate date, int NumOfDiners) throws IOException {
+    	
+        Message msg = new Message(CommandType.GET_AVAILABLE_SLOTS, 
+    		                      new GetAvailableSlotsQuery(date, NumOfDiners));
+        send(msg);
+    }
 }
 

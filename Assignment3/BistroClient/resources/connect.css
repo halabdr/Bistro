@@ -1,0 +1,12 @@
+.root {
+    -fx-padding: 20;
+    -fx-font-size: 14px;
+}
+
+.button {
+    -fx-min-width: 100;
+}
+
+.label {
+    -fx-font-weight: bold;
+}

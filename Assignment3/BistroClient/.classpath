@@ -6,6 +6,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="resources"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/BistroCommon"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/OCSF"/>
 	<classpathentry kind="lib" path="C:/Users/User/OneDrive - ort braude college of engineering/Desktop/שיטות הנדסיות/javafx-sdk-21.0.9/lib/javafx.base.jar">
