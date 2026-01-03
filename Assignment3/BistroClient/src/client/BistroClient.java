@@ -1,6 +1,7 @@
 package client;
 
 import ocsf.client.AbstractClient;
+
 import java.io.IOException;
 import javafx.application.Platform;
 
@@ -54,6 +55,7 @@ public class BistroClient extends AbstractClient{
      * @throws IOException if an error occurs while opening the connection
      */
     public void connect() throws IOException {
+    	disconnectedHandled = false;
         if (!isConnected()) {
             openConnection();
         }

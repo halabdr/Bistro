@@ -7,15 +7,30 @@ import javafx.stage.Stage;
 
 public class ConnectApp extends Application {
 
+    private static Stage primaryStage;
+
     @Override
     public void start(Stage stage) throws Exception {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/connect.fxml"));
-        Scene scene = new Scene(loader.load());
-        scene.getStylesheets().add(getClass().getResource("/connect.css").toExternalForm());
-
-        stage.setTitle("Bistro - Connection Settings");
-        stage.setScene(scene);
+        primaryStage = stage;
+        showConnect();
+        stage.setTitle("Bistro Client");
         stage.show();
+    }
+
+    public static void showConnect() throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/connect.fxml"));
+        Scene scene = new Scene(loader.load());
+        primaryStage.setScene(scene);
+    }
+
+    public static void showAvailableSlots(ClientController controller) throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/AvailableSlots.fxml"));
+        Scene scene = new Scene(loader.load());
+
+        AvailableSlotsController c = loader.getController();
+        c.setClientController(controller);
+
+        primaryStage.setScene(scene);
     }
 
     public static void main(String[] args) {

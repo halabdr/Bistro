@@ -1,9 +1,11 @@
 package server;
 
 import common.AvailableSlot;
+import common.AvailableSlotsResponse;
 import common.CommandType;
 import common.GetAvailableSlotsQuery;
 import common.Message;
+import database.InmemoryStore;
 import ocsf.server.ConnectionToClient;
 
 import java.time.LocalDateTime;
@@ -20,6 +22,9 @@ import java.util.List;
  */
 public class ServerController {
 
+	private final InmemoryStore store = new InmemoryStore();
+	private final AvailabilityService availabilityService = new AvailabilityService(store);
+	
 	/**
      * Handles a request sent by a client.
      * The method checks that the message is valid and
@@ -57,23 +62,12 @@ public class ServerController {
      * @param client the client connection
      * @throws Exception if an error occurs while handling the request
      */
-    private void handleGetAvailableSlots(Message request, ConnectionToClient client) throws Exception 
+    private void handleGetAvailableSlots(Message request, ConnectionToClient client) 
     {
-        if (!(request.getData() instanceof GetAvailableSlotsQuery)) 
-        {
-            safeSend(client, Message.fail(CommandType.GET_AVAILABLE_SLOTS, "Payload must be GetAvailableSlotsQuery"));
-            return;
-        }
-
         GetAvailableSlotsQuery q = (GetAvailableSlotsQuery) request.getData();
+        var slots = availabilityService.getAvailableSlots(q.getDate(), q.getNumOfDiners());
+        safeSend(client, Message.ok(CommandType.GET_AVAILABLE_SLOTS, new AvailableSlotsResponse(slots)));
 
-        List<AvailableSlot> slots = new ArrayList<>();
-        LocalDateTime base = q.getDate().atTime(18, 0);
-        slots.add(new AvailableSlot(base));
-        slots.add(new AvailableSlot(base.plusMinutes(30)));
-        slots.add(new AvailableSlot(base.plusMinutes(60)));
-
-        safeSend(client, Message.ok(CommandType.GET_AVAILABLE_SLOTS, slots));
     }
 
     /**

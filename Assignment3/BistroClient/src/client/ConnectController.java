@@ -1,10 +1,9 @@
 package client;
 
-import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
-public class ConnectController implements MessageListener {
+public class ConnectController {
 
     @FXML private TextField hostField;
     @FXML private TextField portField;
@@ -17,6 +16,7 @@ public class ConnectController implements MessageListener {
     @FXML
     public void initialize() {
         disconnectBtn.setDisable(true);
+        statusLabel.setText("");
     }
 
     @FXML
@@ -26,7 +26,8 @@ public class ConnectController implements MessageListener {
             int port = Integer.parseInt(portField.getText().trim());
 
             clientController = new ClientController(host, port);
-            clientController.setListener(msg -> statusLabel.setText("Connected - server responded"));
+
+            clientController.setListener(msg -> statusLabel.setText("Server: " + msg));
 
             clientController.connect();
 
@@ -34,26 +35,21 @@ public class ConnectController implements MessageListener {
             connectBtn.setDisable(true);
             disconnectBtn.setDisable(false);
 
+            ConnectApp.showAvailableSlots(clientController);
+
         } catch (Exception e) {
-            statusLabel.setText("Connection failed");
+            statusLabel.setText("Connection failed: " + e.getMessage());
         }
     }
 
     @FXML
     public void onDisconnect() {
         try {
-            clientController.disconnect();
+            if (clientController != null) clientController.disconnect();
         } catch (Exception ignored) {}
 
         statusLabel.setText("Disconnected");
         connectBtn.setDisable(false);
         disconnectBtn.setDisable(true);
-    }
-    
-    @Override
-    public void onMessage(Object msg) {
-        Platform.runLater(() -> {
-            statusLabel.setText("Server: " + msg);
-        });
     }
 }
