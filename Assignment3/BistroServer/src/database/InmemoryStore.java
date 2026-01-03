@@ -37,4 +37,12 @@ public class InmemoryStore {
     public OpeningHours getHoursFor(LocalDate date) {
         return specialHours.getOrDefault(date, weeklyHours.get(date.getDayOfWeek()));
     }
+    public void addReservation(Reservation r) {
+        reservations.add(r);
+    }
+
+    public List<Reservation> getReservations() {
+        return reservations;
+    }
+
 }
