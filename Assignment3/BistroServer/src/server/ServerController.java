@@ -1,6 +1,5 @@
 package server;
 
-import common.AvailableSlot;
 import common.CreateReservationResponse;
 
 import common.AvailableSlotsResponse;
@@ -13,9 +12,6 @@ import entities.Reservation;
 import ocsf.server.ConnectionToClient;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 /**
  * The ServerController is responsible for handling requests from client.
@@ -75,64 +71,46 @@ public class ServerController {
         safeSend(client, Message.ok(CommandType.GET_AVAILABLE_SLOTS, new AvailableSlotsResponse(slots)));
 
     }
-    
-    /**
-     * Handles a request for creating a new reservation.
-     * The server allocates a table, creates a reservation,
-     * stores it in memory, and returns confirmation details.
-     *
-     * @param request the reservation creation request
-     * @param client  the client connection
-     */
-    private void handleCreateReservation(Message request,
-                                         ConnectionToClient client) {
-
-        CreateReservationRequest req =
-                (CreateReservationRequest) request.getData();
-
-        // Allocate table (same logic as availability check)
-        int tableId = availabilityService
-                .allocateTable(req.getDateTime(), req.getNumOfDiners());
-
+   
+    private void handleCreateReservation(Message request,ConnectionToClient client) {
+           
+    	CreateReservationRequest req = (CreateReservationRequest) request.getData();
+        int tableId = availabilityService.allocateTableForSeating(null);    //allocateTable(req.getDateTime(), req.getNumOfDiners());
         if (tableId == -1) {
-            safeSend(client,
-                    Message.fail(CommandType.CREATE_RESERVATION,
-                            "No available table"));
-            return;
+           safeSend(client,Message.fail(CommandType.CREATE_RESERVATION,"No available table"));
+           return;
         }
 
-        LocalDateTime startTime = req.getDateTime();
-        LocalDateTime endTime = startTime.plusHours(2);
+        Reservation reservation;
 
-        String confirmationCode =
-                "R-" + UUID.randomUUID()
-                        .toString()
-                        .substring(0, 8)
-                        .toUpperCase();
-
-        Reservation reservation = new Reservation(
-                confirmationCode,
-                startTime,
-                req.getNumOfDiners(),
-                tableId,
-                req.getFullName(),
-                req.getPhone(),
-                req.isSubscriber()
-        );
+        if (req.isSubscriber()) {
+           reservation = Reservation.createForSubscriber(
+                         req.getDateTime(),
+                         req.getNumOfDiners(),
+                         req.getSubscriberId()
+                         );
+        } 
+        else {
+             reservation = Reservation.createForGuest(
+                           req.getDateTime(),
+                           req.getNumOfDiners(),
+                           req.getGuestPhone(),
+                           req.getGuestEmail()
+                           );
+        }
+        
+        reservation.setAssignedTableNumber(tableId);
 
         store.addReservation(reservation);
 
-        CreateReservationResponse response =
-                new CreateReservationResponse(
-                        confirmationCode,
-                        tableId,
-                        startTime,
-                        endTime
-                );
+        LocalDateTime startTime = reservation.getStartDateTime();
+        LocalDateTime endTime = reservation.getEndDateTime();
 
-        safeSend(client,
-                Message.ok(CommandType.CREATE_RESERVATION, response));
+        CreateReservationResponse response = new CreateReservationResponse(reservation.getConfirmationCode(),tableId,
+                                                                           startTime,endTime);
+        safeSend(client,Message.ok(CommandType.CREATE_RESERVATION, response));
     }
+
 
     /**
      * Sends a response to the client.

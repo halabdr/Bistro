@@ -42,57 +42,177 @@ public class AvailabilityService {
         List<LocalDateTime> result = new ArrayList<>();
         for (LocalTime t = open; !t.isAfter(lastStart); t = t.plusMinutes(30)) {
             LocalDateTime start = LocalDateTime.of(date, t);
-            LocalDateTime end = start.plusHours(2);
 
-            if (hasFreeTable(start, end, diners)) {
+            if (canAccommodate(start, diners)) {
                 result.add(start);
             }
         }
         return result;
     }
-    /**
-     * Allocates a free table for a specific date-time and party size.
-     *
-     * @param dateTime reservation start time
-     * @param diners  number of diners
-     * @return allocated table ID, or -1 if none available
-     */
-    public int allocateTable(LocalDateTime dateTime, int diners) {
-        LocalDateTime endTime = dateTime.plusHours(2);
+    
+    public boolean canAccommodate(LocalDateTime start, int diners) {
+        LocalDateTime end = start.plusHours(2);
 
-        for (Table table : store.tables) {
-            if (table.getNumberOfSeats() < diners) continue;
+        // Tables sorted by seats (ascending)
+        List<Table> tables = new ArrayList<>(store.tables);
+        tables.sort(Comparator.comparingInt(Table::getNumberOfSeats));
 
-            boolean taken = store.reservations.stream().anyMatch(r ->
-                r.getAssignedTableNumber() == table.getTableNumber() &&
-                overlaps(dateTime, endTime, r.getStartDateTime(), r.getEndDateTime())
-            );
+        // Collect overlapping reservations (not cancelled etc. if you later add statuses)
+        List<Reservation> overlapping = store.reservations.stream()
+                .filter(r -> overlaps(start, end, r.getStartDateTime(), r.getEndDateTime()))
+                .toList();
 
-            if (!taken) {
-                return table.getTableNumber();
+        // Fixed tables (already seated / assignedTableNumber > 0) occupy tables
+        Set<Integer> takenTableNumbers = new HashSet<>();
+        for (Reservation r : overlapping) {
+            if (r.getAssignedTableNumber() > 0) {
+                takenTableNumbers.add(r.getAssignedTableNumber());
             }
         }
+
+        // Build list of "unfixed" party sizes (reservations with no assigned table yet)
+        List<Integer> parties = new ArrayList<>();
+        for (Reservation r : overlapping) {
+            if (r.getAssignedTableNumber() <= 0) {
+                parties.add(r.getDinersCount());
+            }
+        }
+        // include the new requested party
+        parties.add(diners);
+
+        // Sort parties descending (greedy best-fit)
+        parties.sort(Comparator.reverseOrder());
+
+        // Available tables after removing fixed ones
+        List<Integer> freeSeats = new ArrayList<>();
+        for (Table t : tables) {
+            if (!takenTableNumbers.contains(t.getTableNumber())) {
+                freeSeats.add(t.getNumberOfSeats());
+            }
+        }
+        freeSeats.sort(Integer::compareTo);
+
+        // Assign each party to the smallest available table that fits
+        for (int p : parties) {
+            int idx = -1;
+            for (int i = 0; i < freeSeats.size(); i++) {
+                if (freeSeats.get(i) >= p) {
+                    idx = i;
+                    break;
+                }
+            }
+            if (idx == -1) return false; // no table fits this party
+            freeSeats.remove(idx);
+        }
+
+        return true;
+    }
+    
+    public int allocateTableForSeating(Reservation toSeat) {
+        LocalDateTime start = toSeat.getStartDateTime();
+        LocalDateTime end = toSeat.getEndDateTime();
+
+        // Get overlapping reservations in that time window (including those not yet seated)
+        List<Reservation> overlapping = store.reservations.stream()
+                .filter(r -> overlaps(start, end, r.getStartDateTime(), r.getEndDateTime()))
+                .toList();
+
+        // Tables sorted by seats ascending (try smallest that fits)
+        List<Table> tables = new ArrayList<>(store.tables);
+        tables.sort(Comparator.comparingInt(Table::getNumberOfSeats));
+
+        for (Table t : tables) {
+            if (t.getNumberOfSeats() < toSeat.getDinersCount()) continue;
+
+            // is this table already occupied by an already-seated reservation in the same time window?
+            boolean occupiedByFixed = overlapping.stream().anyMatch(r ->
+                    r.getAssignedTableNumber() == t.getTableNumber()
+            );
+            if (occupiedByFixed) continue;
+
+            // Create a local list where we "fix" this reservation to this table (without changing the real object)
+            List<Reservation> simulated = new ArrayList<>();
+
+            for (Reservation r : overlapping) {
+                if (r == toSeat) continue; // skip original (we will add a simulated copy)
+                simulated.add(r);
+            }
+
+            // add a simulated fixed reservation entry for toSeat
+            Reservation fixed = new Reservation();
+            fixed.setStartDateTime(toSeat.getStartDateTime());
+            fixed.setDinersCount(toSeat.getDinersCount());
+            fixed.setCustomerType(toSeat.getCustomerType());
+            fixed.setReservationStatus(toSeat.getStatus());
+            fixed.setConfirmationCode(toSeat.getConfirmationCode());
+            fixed.setAssignedTableNumber(t.getTableNumber());
+            fixed.setCreatedAt(toSeat.getCreatedAt());
+            fixed.setSubscriberId(toSeat.getSubscriberId());
+            fixed.setGuestPhone(toSeat.getGuestPhone());
+            fixed.setGuestEmail(toSeat.getGuestEmail());
+
+            simulated.add(fixed);
+
+            // If with this fixed choice the whole set is still feasible -> choose this table
+            if (canAccommodateWithFixed(simulated, tables)) {
+                return t.getTableNumber();
+            }
+        }
+
         return -1;
     }
-    /**
-     * Checks if at least one suitable table is free in the given time range.
-     */
-    private boolean hasFreeTable(LocalDateTime start, LocalDateTime end, int diners) {
-        for (Table table : store.tables) {
-            if (table.getNumberOfSeats() < diners) continue;
-
-            boolean taken = store.reservations.stream().anyMatch(r ->
-                r.getAssignedTableNumber() == table.getTableNumber() && overlaps(start, end, r.getStartDateTime(), r.getEndDateTime())
-            );
-
-            if (!taken) return true;
-        }
-        return false;
-    }
+    
+      //======================== Help functions ===========================
+    
     /**
      * Checks if two time ranges overlap.
      */
-    private boolean overlaps(LocalDateTime aStart, LocalDateTime aEnd, LocalDateTime bStart, LocalDateTime bEnd) {
-        return aStart.isBefore(bEnd) && bStart.isBefore(aEnd);
+    private boolean overlaps(LocalDateTime startA, LocalDateTime endA, LocalDateTime startB, LocalDateTime endB) {
+            return startA.isBefore(endB) && startB.isBefore(endA);
     }
+    
+    private boolean canAccommodateWithFixed(List<Reservation> overlapping, List<Table> tables) {
+		// tables sorted by seats ascending
+		List<Table> sortedTables = new ArrayList<>(tables);
+		sortedTables.sort(Comparator.comparingInt(Table::getNumberOfSeats));
+		
+		// mark fixed tables taken (already assigned reservations)
+		Set<Integer> taken = new HashSet<>();
+		for (Reservation r : overlapping) {
+			if (r.getAssignedTableNumber() > 0) {
+				taken.add(r.getAssignedTableNumber());
+			}
+		}
+		
+		// party sizes that still need tables
+		List<Integer> parties = new ArrayList<>();
+		for (Reservation r : overlapping) {
+			if (r.getAssignedTableNumber() <= 0) {
+				parties.add(r.getDinersCount());
+			}
+		}
+		
+		// sort parties descending (place biggest first)
+		parties.sort(Comparator.reverseOrder());
+		
+		// free tables seats
+		List<Integer> freeSeats = new ArrayList<>();
+		for (Table t : sortedTables) {
+			if (!taken.contains(t.getTableNumber())) {
+				freeSeats.add(t.getNumberOfSeats());
+			}
+		}
+		freeSeats.sort(Integer::compareTo);
+		
+		for (int p : parties) {
+			int idx = -1;
+			for (int i = 0; i < freeSeats.size(); i++) {
+				if (freeSeats.get(i) >= p) { idx = i; break; }
+			}
+			if (idx == -1) return false;
+			freeSeats.remove(idx);
+		}
+		return true;
+	}
+		
 }

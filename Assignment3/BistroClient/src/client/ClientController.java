@@ -3,6 +3,7 @@ package client;
 import java.io.IOException;
 import java.time.LocalDate;
 
+import common.ChatIF;
 import common.CommandType;
 import common.GetAvailableSlotsQuery;
 import common.Message;
@@ -35,7 +36,8 @@ public class ClientController {
      * @throws IOException if an error occurs while creating the client
      */
     public ClientController(String host, int port) throws IOException {
-        this.client = new BistroClient(host, port);
+        ChatIF clientUI = null;
+		this.client = new BistroClient(host, port, clientUI); //must change
     }
 
     /**

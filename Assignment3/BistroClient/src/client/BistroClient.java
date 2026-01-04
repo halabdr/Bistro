@@ -3,6 +3,8 @@ package client;
 import ocsf.client.AbstractClient;
 
 import java.io.IOException;
+
+import common.ChatIF;
 import javafx.application.Platform;
 
 
@@ -24,6 +26,8 @@ public class BistroClient extends AbstractClient{
      */
 	private MessageListener listener;
 	
+	private ChatIF clientUI;
+	
 	/**
 	 * Flag used to ensure that disconnection handling logic is executed only once.
 	 */
@@ -35,8 +39,9 @@ public class BistroClient extends AbstractClient{
      * @param host the server address
      * @param port the server port number
      */
-    public BistroClient(String host, int port) {
+    public BistroClient(String host, int port, ChatIF clientUI) {
         super(host, port);
+        this.clientUI = clientUI;
     }
     
     /**
@@ -93,7 +98,8 @@ public class BistroClient extends AbstractClient{
      */
     @Override
     protected void handleMessageFromServer(Object msg) {
-        System.out.println("SERVER -> " + msg);
+    	clientUI.display("Connected to server");
+
         
         if (listener != null) {
         	javafx.application.Platform.runLater(() -> listener.onMessage(msg));

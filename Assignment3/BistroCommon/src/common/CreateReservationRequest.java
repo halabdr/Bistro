@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 
 /**
  * Request object sent from the client to create a new reservation.
- * Contains all details required for reservation creation.
+ * Shared between client and server.
  */
 public class CreateReservationRequest implements Serializable {
 
@@ -13,48 +13,51 @@ public class CreateReservationRequest implements Serializable {
 
     private final LocalDateTime dateTime;
     private final int numOfDiners;
-    private final String fullName;
-    private final String phone;
+
+    /** True if the reservation is made by a subscriber, false for a guest. */
     private final boolean subscriber;
 
-    /**
-     * Constructs a CreateReservationRequest.
-     *
-     * @param dateTime reservation start date and time
-     * @param numOfDiners number of diners
-     * @param fullName customer's full name
-     * @param phone customer's phone number
-     * @param subscriber whether the customer is a subscriber
-     */
+    /** Required when subscriber == true. */
+    private final int subscriberId;
+
+    /** Required when subscriber == false. */
+    private final String guestPhone;
+
+    /** Optional when subscriber == false. */
+    private final String guestEmail;
+
     public CreateReservationRequest(LocalDateTime dateTime,
                                     int numOfDiners,
-                                    String fullName,
-                                    String phone,
-                                    boolean subscriber) {
+                                    boolean subscriber,
+                                    int subscriberId,
+                                    String guestPhone,
+                                    String guestEmail) {
         this.dateTime = dateTime;
         this.numOfDiners = numOfDiners;
-        this.fullName = fullName;
-        this.phone = phone;
         this.subscriber = subscriber;
+        this.subscriberId = subscriberId;
+        this.guestPhone = guestPhone;
+        this.guestEmail = guestEmail;
     }
 
-    public LocalDateTime getDateTime() {
-        return dateTime;
+    // Convenience constructors
+    public static CreateReservationRequest forSubscriber(LocalDateTime dateTime,
+                                                         int numOfDiners,
+                                                         int subscriberId) {
+        return new CreateReservationRequest(dateTime, numOfDiners, true, subscriberId, null, null);
     }
 
-    public int getNumOfDiners() {
-        return numOfDiners;
+    public static CreateReservationRequest forGuest(LocalDateTime dateTime,
+                                                    int numOfDiners,
+                                                    String guestPhone,
+                                                    String guestEmail) {
+        return new CreateReservationRequest(dateTime, numOfDiners, false, 0, guestPhone, guestEmail);
     }
 
-    public String getFullName() {
-        return fullName;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public boolean isSubscriber() {
-        return subscriber;
-    }
+    public LocalDateTime getDateTime() { return dateTime; }
+    public int getNumOfDiners() { return numOfDiners; }
+    public boolean isSubscriber() { return subscriber; }
+    public int getSubscriberId() { return subscriberId; }
+    public String getGuestPhone() { return guestPhone; }
+    public String getGuestEmail() { return guestEmail; }
 }

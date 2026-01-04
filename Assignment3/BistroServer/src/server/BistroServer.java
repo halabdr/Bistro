@@ -1,5 +1,6 @@
 package server;
 
+import common.ChatIF;
 import ocsf.server.AbstractServer;
 import ocsf.server.ConnectionToClient;
 
@@ -37,12 +38,16 @@ public class BistroServer extends AbstractServer {
      */
     @Override
     protected void clientConnected(ConnectionToClient client) {
-        System.out.println("Client connected: " + client);
+    	ChatIF clientUI = null; //MUST change
+		clientUI.display("Connected to server");
+    	//System.out.println("Client connected: " + client);
     }
 
     @Override
     protected void clientDisconnected(ConnectionToClient client) {
-        System.out.println("Client disconnected: " + client);
+    	ChatIF clientUI = null; //MUST change
+		clientUI.display("Failed connecting to server");
+    	//System.out.println("Client disconnected: " + client);
     }
     @Override
     protected void clientException(ConnectionToClient client, Throwable exception) {
