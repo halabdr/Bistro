@@ -1,5 +1,6 @@
-package client;
+package clientgui;
 
+import client.ClientController;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
@@ -81,7 +82,7 @@ public class ConnectController {
             disconnectBtn.setDisable(false);
             
             // Navigate to the available slots screen
-            ConnectApp.showAvailableSlots(clientController);
+            ConnectApp.showHome(clientController);
 
         } catch (Exception e) {
         	// Handle invalid input or connection failur

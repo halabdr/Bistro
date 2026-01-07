@@ -1,9 +1,12 @@
-package client;
+package slotsgui;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
+import client.ClientController;
+import client.MessageListener;
+import clientgui.ConnectApp;
 import common.AvailableSlot;
 import common.CommandType;
 import common.Message;

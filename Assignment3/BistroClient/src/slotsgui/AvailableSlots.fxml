@@ -6,7 +6,7 @@
 <VBox spacing="12" alignment="CENTER"
       xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
-      fx:controller="client.AvailableSlotsController">
+      fx:controller="slotsgui.AvailableSlotsController">
 
     <Label text="Check Available Slots"/>
 
