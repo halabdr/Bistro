@@ -13,17 +13,9 @@ public class Subscriber implements Serializable {
 	@Serial
     private static final long serialVersionUID = 1L;
 
-    // New fields to match database
     private int userId;
     private String subscriberNumber;
     private String membershipCard;
-    
-    // Old fields (will be removed)
-    private int subscriberId;
-    private String firstName;
-    private String lastName;
-    private String phoneNumber;
-    private String email;
 
     /**
      * Creates a new subscriber.
@@ -156,3 +148,4 @@ public class Subscriber implements Serializable {
                 '}';
     }
 }
+
