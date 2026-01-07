@@ -3,7 +3,6 @@ package client;
 import java.io.IOException;
 import java.time.LocalDate;
 
-import common.ChatIF;
 import common.CommandType;
 import common.GetAvailableSlotsQuery;
 import common.Message;
@@ -35,9 +34,9 @@ public class ClientController {
      * @param port the server port number
      * @throws IOException if an error occurs while creating the client
      */
-    public ClientController(String host, int port) throws IOException {
-        ChatIF clientUI = null;
-		this.client = new BistroClient(host, port, clientUI); //must change
+    public ClientController(String host, int port) throws IOException{
+    	 // Initialize the network client with server address and port
+    	this.client = new BistroClient(host, port, new ClientUI());
     }
 
     /**
@@ -47,6 +46,8 @@ public class ClientController {
      * @param listener an implementation of MessageListener
      */
     public void setListener(MessageListener listener) {
+    	// Store the listener inside the network client so it can be notified
+        // when messages arrive from the server.
         client.setListener(listener);
     }
 
@@ -78,10 +79,29 @@ public class ClientController {
         client.send(msg);
     }
     
+    /**
+     * Indicates whether the underlying OCSF client is currently connected to the server.
+     *
+     * @return {@code true} if connected, otherwise {@code false}
+     */
+   
+    
+    public boolean isConnected() {
+    	return client != null && client.isConnected() ;
+    }
+    
+    /**
+     * Sends a request to the server to retrieve available reservation slots.
+     *
+     * @param date the requested reservation date
+     * @param numOfDiners number of diners
+     * @throws IOException if sending the request fails
+     */
+
+    
     public void requestAvailableSlots(LocalDate date, int NumOfDiners) throws IOException {
-    	
-        Message msg = new Message(CommandType.GET_AVAILABLE_SLOTS, 
-    		                      new GetAvailableSlotsQuery(date, NumOfDiners));
+    	// Build the request message with the required command and parameters
+        Message msg = new Message(CommandType.GET_AVAILABLE_SLOTS, new GetAvailableSlotsQuery(date, NumOfDiners));
         send(msg);
     }
 }

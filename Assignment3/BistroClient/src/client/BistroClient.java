@@ -98,12 +98,8 @@ public class BistroClient extends AbstractClient{
      */
     @Override
     protected void handleMessageFromServer(Object msg) {
-    	clientUI.display("Connected to server");
-
-        
-        if (listener != null) {
-        	javafx.application.Platform.runLater(() -> listener.onMessage(msg));
-        }
+    	if (clientUI != null) clientUI.display("Received: " + msg);
+        if (listener != null) Platform.runLater(() -> listener.onMessage(msg));
     }
     
     /**
