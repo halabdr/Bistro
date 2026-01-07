@@ -5,7 +5,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * Represents a subscriber in the Bistro restaurant system.
+ * Represents a subscriber in the Bistro restaurant system
  */
 public class Subscriber implements Serializable {
 
