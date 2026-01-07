@@ -5,7 +5,7 @@
 
 <VBox spacing="12" alignment="CENTER"
       xmlns:fx="http://javafx.com/fxml"
-      fx:controller="client.ConnectController"
+      fx:controller="clientgui.ConnectController"
       stylesheets="@connect.css">
 
     <HBox spacing="8">

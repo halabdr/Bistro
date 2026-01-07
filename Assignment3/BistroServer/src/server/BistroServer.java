@@ -4,78 +4,80 @@ import common.ChatIF;
 import ocsf.server.AbstractServer;
 import ocsf.server.ConnectionToClient;
 
+import java.util.function.IntConsumer;
+
 /**
  * The BistroServer class represents the server side of the Bistro system.
- * It is responsible for receiving messages from clients and handling
- *
+ * It receives messages from clients and routes them to the ServerController.
  */
 public class BistroServer extends AbstractServer {
-	/**
-     * The server controller responsible for routing client requests.
-     */
 
     public static final int DEFAULT_PORT = 5555;
-    private ServerController serverController;
 
-    /**
-     * Constructs a new BistroServer with the specified port number
-     *
-     * @param port the port number on which the server listens for connections
-     */
+    private final ServerController serverController;
+
+    // UI logger (Server GUI or console)
+    private ChatIF ui;
+
+    // connected clients counter (optional, for GUI)
+    private int clientsCount = 0;
+    private IntConsumer clientsCountConsumer;
+
     public BistroServer(int port) {
         super(port);
         this.serverController = new ServerController();
     }
 
     /**
-     * Handles messages received from connected clients
-     * 
-     * This method is automatically called by the OCSF framework
-     * whenever a message is sent from a client to the server
-     *
-     * @param msg the message received from the client
-     * @param client the client that sent the message
+     * Optional: attach a UI logger and a client-count callback (for Server GUI).
      */
+    public void setUI(ChatIF ui, IntConsumer clientsCountConsumer) {
+        this.ui = ui;
+        this.clientsCountConsumer = clientsCountConsumer;
+    }
+
+    private void log(String s) {
+        if (ui != null) ui.display(s);
+        else System.out.println(s);
+    }
+
     @Override
     protected void clientConnected(ConnectionToClient client) {
-    	ChatIF clientUI = null; //MUST change
-		clientUI.display("Connected to server");
-    	//System.out.println("Client connected: " + client);
+        clientsCount++;
+        if (clientsCountConsumer != null) clientsCountConsumer.accept(clientsCount);
+        log("Client connected: " + client);
     }
 
     @Override
     protected void clientDisconnected(ConnectionToClient client) {
-    	ChatIF clientUI = null; //MUST change
-		clientUI.display("Failed connecting to server");
-    	//System.out.println("Client disconnected: " + client);
+        clientsCount = Math.max(0, clientsCount - 1);
+        if (clientsCountConsumer != null) clientsCountConsumer.accept(clientsCount);
+        log("Client disconnected: " + client);
     }
+
     @Override
     protected void clientException(ConnectionToClient client, Throwable exception) {
-        System.out.println("Client exception occurred: " + client);
+        log("Client exception: " + client + " (" + exception.getMessage() + ")");
 
-        if (client.getInfo("Disconnected") == null) {
+        if (client != null && client.getInfo("Disconnected") == null) {
             client.setInfo("Disconnected", true);
-            System.out.println("Handling unexpected client disconnection.");
+            log("Handling unexpected client disconnection.");
         }
     }
+
     @Override
     protected void handleMessageFromClient(Object msg, ConnectionToClient client) {
-    	serverController.handleRequest(msg, client);
+        log("Received message: " + msg);
+        serverController.handleRequest(msg, client);
     }
 
-    /**
-     * This method is called when the server starts listening for connections
-     */
     @Override
     protected void serverStarted() {
-        System.out.println("BistroServer started and is listening for clients.");
+        log("BistroServer started and is listening on port " + getPort());
     }
 
-    /**
-     * This method is called when the server stops listening for connections
-     */
     @Override
     protected void serverStopped() {
-        System.out.println("BistroServer stopped.");
+        log("BistroServer stopped.");
     }
 }

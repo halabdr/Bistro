@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="homegui.HomeController"
+      spacing="12" alignment="CENTER" prefWidth="420" prefHeight="320">
+
+    <Button text="Customer (Remote) - Book / Pay" onAction="#onCustomerClicked" prefWidth="260"/>
+    <Button text="Terminal - Get Table by Code" onAction="#onTerminalClicked" prefWidth="260"/>
+    <Button text="Staff Login (Representative / Manager)" onAction="#onStaffClicked" prefWidth="260"/>
+</VBox>
