@@ -5,8 +5,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * Represents a registered restaurant subscriber (member).
- * This class holds subscriber personal details and basic validations.
+ * Represents a subscriber in the Bistro restaurant system.
  */
 public class Subscriber implements Serializable {
 
@@ -18,30 +17,31 @@ public class Subscriber implements Serializable {
     private String membershipCard;
 
     /**
-     * Creates a new subscriber.
-     *
-     * @param subscriberId unique subscriber identifier (must be positive)
-     * @param firstName subscriber first name
-     * @param lastName subscriber last name
-     * @param phoneNumber subscriber phone number
-     * @param email subscriber email address
+     * Default constructor.
      */
-    public Subscriber(int subscriberId, String firstName, String lastName,
-                      String phoneNumber, String email) {
-
-        if (subscriberId <= 0) {
-            throw new IllegalArgumentException("Subscriber ID must be greater than zero");
-        }
-
-        this.subscriberId = subscriberId;
-        setFirstName(firstName);
-        setLastName(lastName);
-        setPhoneNumber(phoneNumber);
-        setEmail(email);
+    public Subscriber() {
     }
 
-    /** Empty constructor */
-    public Subscriber() {
+    /**
+     * Full constructor.
+     * @param userId user ID
+     * @param subscriberNumber unique subscriber number
+     * @param membershipCard membership card identifier
+     */
+    public Subscriber(int userId, String subscriberNumber, String membershipCard) {
+        this.userId = userId;
+        this.subscriberNumber = subscriberNumber;
+        this.membershipCard = membershipCard;
+    }
+
+    /**
+     * Constructor for creating new subscriber.
+     * @param subscriberNumber unique subscriber number
+     * @param membershipCard membership card identifier
+     */
+    public Subscriber(String subscriberNumber, String membershipCard) {
+        this.subscriberNumber = subscriberNumber;
+        this.membershipCard = membershipCard;
     }
 
     public int getSubscriberId() {
@@ -148,4 +148,3 @@ public class Subscriber implements Serializable {
                 '}';
     }
 }
-
