@@ -44,81 +44,52 @@ public class Subscriber implements Serializable {
         this.membershipCard = membershipCard;
     }
 
-    public int getSubscriberId() {
-        return subscriberId;
-    }
-
-    public void setSubscriberId(int subscriberId) {
-        if (subscriberId <= 0) {
-            throw new IllegalArgumentException("Subscriber ID must be greater than zero");
-        }
-        this.subscriberId = subscriberId;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-    	if (firstName == null || firstName.trim().isEmpty())
-    		throw new IllegalArgumentException("First name must not be empty");
-    	this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        if (lastName == null || lastName.trim().isEmpty())
-        	throw new IllegalArgumentException("Last name must not be empty");
-    	this.lastName = lastName;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
+    /**
+     * Gets the user ID.
+     * @return user ID
+     */
+    public int getUserId() {
+        return userId;
     }
 
     /**
-     * Updates subscriber phone number.
-     *
-     * @param phoneNumber phone number (must not be null or empty)
+     * Sets the user ID.
+     * @param userId user ID
      */
-    public void setPhoneNumber(String phoneNumber) {
-        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
-            throw new IllegalArgumentException("Phone number must not be empty");
-        }
-        this.phoneNumber = phoneNumber;
-    }
-
-    public String getEmail() {
-        return email;
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
 
     /**
-     * Updates subscriber email address.
-     *
-     * @param email email address (must not be null or empty)
+     * Gets the subscriber number.
+     * @return subscriber number
      */
-    public void setEmail(String email) {
-        if (email == null || email.trim().isEmpty()) {
-            throw new IllegalArgumentException("Email must not be empty");
-        }
-        
-        if (!email.contains("@")) {
-        	throw new IllegalArgumentException("Invalid email address");
-        }
-        this.email = email;
+    public String getSubscriberNumber() {
+        return subscriberNumber;
     }
 
     /**
-     * Checks whether the subscriber has valid contact information.
-     *
-     * @return true if both phone number and email are valid
+     * Sets the subscriber number.
+     * @param subscriberNumber subscriber number
      */
-    public boolean hasValidContactInfo() {
-        return phoneNumber != null && !phoneNumber.trim().isEmpty() && 
-        	   email != null && !email.trim().isEmpty() && email.contains("@");
+    public void setSubscriberNumber(String subscriberNumber) {
+        this.subscriberNumber = subscriberNumber;
+    }
+
+    /**
+     * Gets the membership card identifier.
+     * @return membership card
+     */
+    public String getMembershipCard() {
+        return membershipCard;
+    }
+
+    /**
+     * Sets the membership card identifier.
+     * @param membershipCard membership card
+     */
+    public void setMembershipCard(String membershipCard) {
+        this.membershipCard = membershipCard;
     }
 
     /**
