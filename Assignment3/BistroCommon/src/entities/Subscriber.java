@@ -1,15 +1,13 @@
 package entities;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * Represents a subscriber in the Bistro restaurant system
+ * Represents a subscriber in the Bistro restaurant system.
  */
 public class Subscriber implements Serializable {
 
-	@Serial
     private static final long serialVersionUID = 1L;
 
     private int userId;
@@ -92,30 +90,25 @@ public class Subscriber implements Serializable {
         this.membershipCard = membershipCard;
     }
 
-    /**
-     * Subscribers are uniquely identified by subscriberId.
-     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Subscriber)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
         Subscriber that = (Subscriber) o;
-        return subscriberId == that.subscriberId;
+        return userId == that.userId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(subscriberId);
+        return Objects.hash(userId);
     }
 
     @Override
     public String toString() {
         return "Subscriber{" +
-                "subscriberId=" + subscriberId +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", phoneNumber='" + phoneNumber + '\'' +
-                ", email='" + email + '\'' +
+                "userId=" + userId +
+                ", subscriberNumber='" + subscriberNumber + '\'' +
+                ", membershipCard='" + membershipCard + '\'' +
                 '}';
     }
 }
