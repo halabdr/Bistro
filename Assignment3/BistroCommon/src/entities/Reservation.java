@@ -120,16 +120,47 @@ public class Reservation implements Serializable {
  
 
     /**
+     * Returns the start date and time as LocalDateTime.
+     * 
+     * @return LocalDateTime combining bookingDate and bookingTime
+     */
+    public LocalDateTime getStartDateTime() {
+        if (bookingDate == null || bookingTime == null) {
+            return null;
+        }
+        return LocalDateTime.of(bookingDate, bookingTime);
+    }
+
+    /**
      * Calculates the reservation end time 
      * 
      * @return reservation end date/time = startDateTime + 2 hours
      */
     public LocalDateTime getEndDateTime() {
-        return startDateTime == null ? null : startDateTime.plus(DURATION);
+        LocalDateTime start = getStartDateTime();
+        return start == null ? null : start.plus(DURATION);
+    }
+
+    /**
+     * Checks if this reservation is for a subscriber.
+     * 
+     * @return true if subscriberNumber is not null
+     */
+    public boolean isSubscriber() {
+        return subscriberNumber != null && !subscriberNumber.trim().isEmpty();
+    }
+
+    /**
+     * Checks if this reservation is for a guest (non-subscriber).
+     * 
+     * @return true if subscriberNumber is null
+     */
+    public boolean isGuest() {
+        return !isSubscriber();
     }
 
     /** Cancels the reservation.
-     *  The reservation status is updates to CANCELLED 
+     *  The reservation status is updated to CANCELLED 
      */
     public void cancel() {
         setReservationStatus(ReservationStatus.CANCELLED);
@@ -140,77 +171,37 @@ public class Reservation implements Serializable {
         setReservationStatus(ReservationStatus.NO_SHOW);
     }
 
+    /** Marks the reservation as completed. */
+    public void complete() {
+        setReservationStatus(ReservationStatus.COMPLETED);
+    }
+
     /**
      * Validates the reservation state.
      * 
      * @throws IllegalArgumentException if the reservation isn't valid
      */
     public void validate() {
-        if (startDateTime == null) {
-            throw new IllegalArgumentException("Start date/time must not be null");
+        if (bookingDate == null) {
+            throw new IllegalArgumentException("Booking date must not be null");
         }
-        if (dinersCount <= 0) {
-            throw new IllegalArgumentException("Diners count must be greater than zero");
+        if (bookingTime == null) {
+            throw new IllegalArgumentException("Booking time must not be null");
         }
-        if (customerType == null) {
-            throw new IllegalArgumentException("Customer type must not be null");
+        if (guestCount <= 0) {
+            throw new IllegalArgumentException("Guest count must be greater than zero");
         }
         if (status == null) {
             throw new IllegalArgumentException("Reservation status must not be null");
         }
-        if (confCode == null || confCode.trim().isEmpty()) {
+        if (confirmationCode == null || confirmationCode.trim().isEmpty()) {
             throw new IllegalArgumentException("Confirmation code must not be empty");
         }
-
-        if (assignedTableNumber < 0) {
-            throw new IllegalArgumentException("Assigned table number must not be negative");
+        if (tableNumber < 0) {
+            throw new IllegalArgumentException("Table number must not be negative");
         }
         if (reservationId < 0) {
             throw new IllegalArgumentException("Reservation ID must not be negative");
-        }
-        
-        validateBookingWindow();
-        
-        if (customerType == CustomerType.SUBSCRIBER) {
-            if (subscriberId <= 0) {
-                throw new IllegalArgumentException("Subscriber ID must be greater than zero");
-            }
-            if (guestPhone != null || guestEmail != null) {
-                throw new IllegalArgumentException("Guest details must be null for subscriber reservation");
-            }
-        } else { /** Validate for guest*/ 
-            if (guestPhone == null || guestPhone.trim().isEmpty()) {
-                throw new IllegalArgumentException("Guest phone must not be empty");
-            }
-         
-            if (guestEmail != null && !guestEmail.trim().isEmpty() && !guestEmail.contains("@")) {
-                throw new IllegalArgumentException("Invalid email address");
-            }
-            if (subscriberId != 0) {
-                throw new IllegalArgumentException("Subscriber ID must be 0 for guest reservation");
-            }
-        }
-    }
-
-    /**
-     * Validates the time window allowed for bookin,
-     * at least 1 hour and not more than 30 days from creation time (createdAt).
-     *
-     * @throws IllegalArgumentException if booking time window is smash
-     */
-    private void validateBookingWindow() {
-        if (createdAt == null) {
-            return;
-        }
-
-        Duration diff = Duration.between(createdAt, startDateTime);
-
-        if (diff.compareTo(MIN_TIME_BEFORE) < 0) {
-            throw new IllegalArgumentException("Reservation must be at least 1 hour from booking time");
-        }
-        
-        if (diff.compareTo(MAX_TIME_BEFORE) > 0) {
-            throw new IllegalArgumentException("Reservation must be no more than 1 month from booking time");
         }
     }
     
@@ -223,10 +214,9 @@ public class Reservation implements Serializable {
         return UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
 
-   
     /** Returns the reservation identifier.
      * 
-     * @return reservation id 
+     * @return reservation identifier 
      */
     public int getReservationId() {
         return reservationId;
@@ -236,7 +226,7 @@ public class Reservation implements Serializable {
      * Sets the reservation identifier.
      * 
      * @param reservationId reservation identifier
-     * @throws IllegalArgumentException if the table number is negative
+     * @throws IllegalArgumentException if the reservation ID is negative
      */
     public void setReservationId(int reservationId) {
         if (reservationId < 0) {
@@ -247,144 +237,109 @@ public class Reservation implements Serializable {
 
     /** Returns the confirmation code.
      * 
-     * @return cofirmation code 
+     * @return confirmation code 
      */
     public String getConfirmationCode() {
-        return confCode;
+        return confirmationCode;
     }
 
     /**
      * Sets the confirmation code.
      * 
-     * @param confirmationCode cofirmation code
-     * @throws IllegalArgumentException if the confirmation code is negative
+     * @param confirmationCode confirmation code
+     * @throws IllegalArgumentException if the confirmation code is empty
      */
     public void setConfirmationCode(String confirmationCode) {
         if (confirmationCode == null || confirmationCode.trim().isEmpty()) {
             throw new IllegalArgumentException("Confirmation code must not be empty");
         }
-        this.confCode = confirmationCode;
+        this.confirmationCode = confirmationCode;
     }
     
-    /** Returns the start date and time of the reservation.
+    /** Returns the booking date.
      * 
-     * @return stat date and time 
+     * @return booking date 
      */
-    public LocalDateTime getStartDateTime() {
-        return startDateTime;
+    public LocalDate getBookingDate() {
+        return bookingDate;
     }
 
     /**
-     * Sets the start date and time of the reservation.
+     * Sets the booking date.
      * 
-     * @param startDateTime start date and time of the reservation
-     * @throws IllegalArgumentException if the start date and time is null
+     * @param bookingDate booking date
+     * @throws IllegalArgumentException if the booking date is null
      */
-    public void setStartDateTime(LocalDateTime startDateTime) {
-        if (startDateTime == null) {
-            throw new IllegalArgumentException("Start date/time must not be null");
+    public void setBookingDate(LocalDate bookingDate) {
+        if (bookingDate == null) {
+            throw new IllegalArgumentException("Booking date must not be null");
         }
-        this.startDateTime = startDateTime;
+        this.bookingDate = bookingDate;
     }
 
-    /** Returns the number of the diners.
+    /** Returns the booking time.
      * 
-     * @return number of diners 
+     * @return booking time 
      */
-    public int getDinersCount() {
-        return dinersCount;
+    public LocalTime getBookingTime() {
+        return bookingTime;
     }
 
     /**
-     * Sets the number of diners.
+     * Sets the booking time.
      * 
-     * @param dinersCount number of the diners
-     * @throws IllegalArgumentException if the number of diners isn't greater than zero
+     * @param bookingTime booking time
+     * @throws IllegalArgumentException if the booking time is null
      */
-    public void setDinersCount(int dinersCount) {
-        if (dinersCount <= 0) {
-            throw new IllegalArgumentException("Diners count must be greater than zero");
+    public void setBookingTime(LocalTime bookingTime) {
+        if (bookingTime == null) {
+            throw new IllegalArgumentException("Booking time must not be null");
         }
-        this.dinersCount = dinersCount;
+        this.bookingTime = bookingTime;
     }
 
-    /** Returns the type of the customer (subscriber/guest).
+    /** Returns the number of guests.
      * 
-     * @return type of customer
+     * @return number of guests 
      */
-    public CustomerType getCustomerType() {
-        return customerType;
+    public int getGuestCount() {
+        return guestCount;
     }
 
     /**
-     * Sets the type of the customer.
+     * Sets the number of guests.
      * 
-     * @param customerType the type of the customer
-     * @throws IllegalArgumentException if the customer type is null
+     * @param guestCount number of guests
+     * @throws IllegalArgumentException if the number of guests isn't greater than zero
      */
-    public void setCustomerType(CustomerType customerType) {
-        if (customerType == null) {
-            throw new IllegalArgumentException("Customer type must not be null");
+    public void setGuestCount(int guestCount) {
+        if (guestCount <= 0) {
+            throw new IllegalArgumentException("Guest count must be greater than zero");
         }
-        this.customerType = customerType;
+        this.guestCount = guestCount;
     }
 
-    /** Returns the subscriber id.
+    /** Returns the subscriber number (null for guest reservations).
      * 
-     * @return suscriber id
+     * @return subscriber number or null
      */
-    public int getSubscriberId() {
-        return subscriberId;
-    }
-
-    /**
-     * Sets the subscriber id.
-     * 
-     * @param subscriberId the ID of the subscriber
-     */
-    public void setSubscriberId(int subscriberId) {
-        this.subscriberId = subscriberId;
-    }
-
-    /** Returns the phone number of the guest.
-     * 
-     * @return the guest phone
-     */
-    public String getGuestPhone() {
-        return guestPhone;
+    public String getSubscriberNumber() {
+        return subscriberNumber;
     }
 
     /**
-     * Sets guest phone.
+     * Sets the subscriber number.
      * 
-     * @param guestPhone the phone number of the guest
+     * @param subscriberNumber the subscriber number (can be null for guests)
      */
-    public void setGuestPhone(String guestPhone) {
-        this.guestPhone = guestPhone;
-    }
-
-    /** 
-     * Returns the email of the guest.
-     * 
-     * @return the guest email
-     */
-    public String getGuestEmail() {
-        return guestEmail;
-    }
-
-    /**
-     * Sets the guest email.
-     * 
-     * @param guestEmail the email of the guest
-     */
-    public void setGuestEmail(String guestEmail) {
-        this.guestEmail = guestEmail;
+    public void setSubscriberNumber(String subscriberNumber) {
+        this.subscriberNumber = subscriberNumber;
     }
 
     /** 
      * Returns the status of the reservation.
      * 
-     * @return the status reservation
+     * @return the reservation status
      */
     public ReservationStatus getStatus() {
         return status;
@@ -404,43 +359,25 @@ public class Reservation implements Serializable {
     }
 
     /** 
-     * Returns the assigned table number.
+     * Returns the table number.
      * 
-     * @return the number of the table
+     * @return the table number
      */
-    public int getAssignedTableNumber() {
-        return assignedTableNumber;
+    public int getTableNumber() {
+        return tableNumber;
     }
 
     /**
-     * Sets the assigned table number.
+     * Sets the table number.
      * 
-     * @param AssignedTableNumber the number of the assigned table
-     * @throws IllegalArgumentException if the number of the table isn't positive
+     * @param tableNumber the table number
+     * @throws IllegalArgumentException if the table number is negative
      */
-    public void setAssignedTableNumber(int assignedTableNumber) {
-        if (assignedTableNumber < 0) {
-            throw new IllegalArgumentException("Assigned table number must not be negative");
+    public void setTableNumber(int tableNumber) {
+        if (tableNumber < 0) {
+            throw new IllegalArgumentException("Table number must not be negative");
         }
-        this.assignedTableNumber = assignedTableNumber;
-    }
-
-    /** 
-     * Returns the date and time of the reservation creation.
-     * 
-     * @return timestamp of reservation creation
-     */
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    /**
-     * Sets the timestamp of a reservation.
-     * 
-     * @param createdAt the timestamp of a reservation creation
-     */
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+        this.tableNumber = tableNumber;
     }
 
     /**
@@ -451,7 +388,7 @@ public class Reservation implements Serializable {
      * Otherwise, comparison is based on the confirmation code.
      * 
      * @param o object to compare
-     * @return true if reservations are considired equal
+     * @return true if reservations are considered equal
      */
     @Override
     public boolean equals(Object o) {
@@ -462,7 +399,7 @@ public class Reservation implements Serializable {
         if (reservationId > 0 && that.reservationId > 0) {
             return reservationId == that.reservationId;
         }
-        return Objects.equals(confCode, that.confCode);
+        return Objects.equals(confirmationCode, that.confirmationCode);
     }
 
     /**
@@ -472,18 +409,20 @@ public class Reservation implements Serializable {
      */
     @Override
     public int hashCode() {
-        return reservationId > 0 ? Objects.hash(reservationId) : Objects.hash(confCode);
+        return reservationId > 0 ? Objects.hash(reservationId) : Objects.hash(confirmationCode);
     }
 
     @Override
     public String toString() {
         return "Reservation{" +
                 "reservationId=" + reservationId +
-                ", confirmationCode='" + confCode + '\'' +
-                ", startDateTime=" + startDateTime +
-                ", dinersCount=" + dinersCount +
-                ", customerType=" + customerType +
+                ", confirmationCode='" + confirmationCode + '\'' +
+                ", bookingDate=" + bookingDate +
+                ", bookingTime=" + bookingTime +
+                ", guestCount=" + guestCount +
+                ", subscriberNumber='" + subscriberNumber + '\'' +
                 ", status=" + status +
+                ", tableNumber=" + tableNumber +
                 '}';
     }
 }
