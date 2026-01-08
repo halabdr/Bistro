@@ -12,7 +12,7 @@ public class CreateReservationResponse implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private final String confirmationCode;
-    private final int tableId;
+    // private final int tableId;
     private final LocalDateTime startTime;
     private final LocalDateTime endTime;
     /**
@@ -24,11 +24,11 @@ public class CreateReservationResponse implements Serializable {
      * @param endTime reservation end time
      */
     public CreateReservationResponse(String confirmationCode,
-                                     int tableId,
+                                    
                                      LocalDateTime startTime,
                                      LocalDateTime endTime) {
         this.confirmationCode = confirmationCode;
-        this.tableId = tableId;
+       // this.tableId = tableId;
         this.startTime = startTime;
         this.endTime = endTime;
     }
@@ -37,9 +37,9 @@ public class CreateReservationResponse implements Serializable {
         return confirmationCode;
     }
 
-    public int getTableId() {
-        return tableId;
-    }
+  //  public int getTableId() {
+  //      return tableId;
+  //  }
 
     public LocalDateTime getStartTime() {
         return startTime;
