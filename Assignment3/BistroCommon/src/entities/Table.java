@@ -1,45 +1,71 @@
 package entities;
 
-import java.io.Serial;
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.Objects;
 
 /**
  * Represents a table in the restaurant.
- * The table has a fixed number of seats and an availability status.
  */
 public class Table implements Serializable {
 
-	@Serial
     private static final long serialVersionUID = 1L;
 
     private int tableNumber;
-    private int numberOfSeats;
-    private boolean availabilityStatus;
+    private int seatCapacity;
+    private String tableLocation;
+    
+    /** Table status (AVAILABLE or OCCUPIED) */
+    private TableStatus tableStatus;
+    
+    private Timestamp reservationStart;
+    private Timestamp reservationEnd;
 
     /**
-     * Creates a new table.
-     *
-     * @param tableNumber unique table identifier (must be positive)
-     * @param numberOfSeats number of seats at the table (must be positive)
-     * @param availabilityStatus availability status of the table
+     * Table status enum.
      */
-    public Table(int tableNumber, int numberOfSeats, boolean availabilityStatus) {
-        if (tableNumber <= 0) {
-        	throw new IllegalArgumentException("Table number must be greater than zero");
-        }
-        	
-    	if (numberOfSeats <= 0) {
-            throw new IllegalArgumentException("Number of seats must be greater than zero");
-        }
-    	
-        this.tableNumber = tableNumber;
-        this.numberOfSeats = numberOfSeats;
-        this.availabilityStatus = availabilityStatus;
+    public enum TableStatus {
+        AVAILABLE,
+        OCCUPIED
     }
 
-    /** Empty constructor */
+    /**
+     * Default constructor.
+     */
     public Table() {
+        this.tableStatus = TableStatus.AVAILABLE;
+    }
+
+    /**
+     * Full constructor.
+     * @param tableNumber table number
+     * @param seatCapacity number of seats
+     * @param tableLocation location of the table
+     * @param tableStatus table status
+     * @param reservationStart reservation start time
+     * @param reservationEnd reservation end time
+     */
+    public Table(int tableNumber, int seatCapacity, String tableLocation, 
+                 TableStatus tableStatus, Timestamp reservationStart, Timestamp reservationEnd) {
+        this.tableNumber = tableNumber;
+        this.seatCapacity = seatCapacity;
+        this.tableLocation = tableLocation;
+        this.tableStatus = tableStatus;
+        this.reservationStart = reservationStart;
+        this.reservationEnd = reservationEnd;
+    }
+
+    /**
+     * Constructor for creating new table.
+     * @param tableNumber table number
+     * @param seatCapacity number of seats
+     * @param tableLocation location of the table
+     */
+    public Table(int tableNumber, int seatCapacity, String tableLocation) {
+        this.tableNumber = tableNumber;
+        this.seatCapacity = seatCapacity;
+        this.tableLocation = tableLocation;
+        this.tableStatus = TableStatus.AVAILABLE;
     }
 
     public int getTableNumber() {
@@ -47,9 +73,6 @@ public class Table implements Serializable {
     }
 
     public void setTableNumber(int tableNumber) {
-    	if (tableNumber <= 0) {
-    		throw new IllegalArgumentException("Table number must be greater than zero");
-    	}
         this.tableNumber = tableNumber;
     }
 
