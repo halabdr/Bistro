@@ -38,3 +38,25 @@ public class DBController {
             }
         } catch (SQLException ignored) {}
     }
+    /**
+     * Retrieves all tables from the restaurant.
+     *
+     * @return list of table numbers
+     * @throws SQLException if query fails
+     */
+    public List<Integer> getAllTables() throws SQLException {
+        List<Integer> tables = new ArrayList<>();
+
+        String query = "SELECT table_number FROM tables_info";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                tables.add(rs.getInt("table_number"));
+            }
+        }
+        return tables;
+    }
+
+}
