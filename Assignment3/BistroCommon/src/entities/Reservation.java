@@ -67,32 +67,30 @@ public class Reservation implements Serializable {
     /**
      * Creates a reservation for a subscriber.
      *
-     * @param startDateTime reservation start date and time
-     * @param dinersCount number of diners
-     * @param subscriberId subscriber id
-     * @return a confirmed reservation for a subscriber
+     * @param bookingDate reservation date
+     * @param bookingTime reservation time
+     * @param guestCount number of diners
+     * @param subscriberNumber subscriber number
+     * @return an active reservation for a subscriber
      * 
-     * @throws IllegalArgumentsException if input data is invalid
+     * @throws IllegalArgumentException if input data is invalid
      */
-    public static Reservation createForSubscriber(LocalDateTime startDateTime, int dinersCount, int subscriberId) {
+    public static Reservation createForSubscriber(LocalDate bookingDate, LocalTime bookingTime, int guestCount, String subscriberNumber) {
         Reservation r = new Reservation();
         
-        r.setCustomerType(CustomerType.SUBSCRIBER);
-        r.setStartDateTime(startDateTime);
-        r.setDinersCount(dinersCount);
-        r.setReservationStatus(ReservationStatus.CONFIRMED);
+        r.setBookingDate(bookingDate);
+        r.setBookingTime(bookingTime);
+        r.setGuestCount(guestCount);
+        r.setSubscriberNumber(subscriberNumber);
+        r.setReservationStatus(ReservationStatus.ACTIVE);
 
-        r.subscriberId = subscriberId;  
-        r.guestPhone = null;
-        r.guestEmail = null;
-
-        r.confCode = generateCode();
-        r.createdAt = LocalDateTime.now();
-        r.assignedTableNumber = 0;
+        r.confirmationCode = generateCode();
+        r.tableNumber = 0;
 
         r.validate();
         return r;
     }
+
 
     /**
      * Creates a reservation for a guest.
