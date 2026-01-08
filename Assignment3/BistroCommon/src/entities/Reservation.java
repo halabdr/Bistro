@@ -48,26 +48,19 @@ public class Reservation implements Serializable {
     }
 
     /** Full constructor used for loading reservations from database. */
-    public Reservation(int reservationId, String confirmationCode, LocalDateTime startDateTime,
-                       int dinersCount, CustomerType customerType, int subscriberId,
-                       String guestPhone, String guestEmail, ReservationStatus status,
-                       int assignedTableNumber, LocalDateTime createdAt) {
+    public Reservation(int reservationId, String confirmationCode, LocalDate bookingDate, LocalTime bookingTime,
+            int guestCount, String subscriberNumber, ReservationStatus status, int tableNumber) {
 
-        setReservationId(reservationId);
-        setConfirmationCode(confirmationCode);
-        setStartDateTime(startDateTime);
-        setDinersCount(dinersCount);
-        setCustomerType(customerType);
+    	setReservationId(reservationId);
+    	setConfirmationCode(confirmationCode);
+    	setBookingDate(bookingDate);
+    	setBookingTime(bookingTime);
+    	setGuestCount(guestCount);
+    	setSubscriberNumber(subscriberNumber);
+    	setReservationStatus(status);
+    	setTableNumber(tableNumber);
 
-        this.subscriberId = subscriberId;
-        this.guestPhone = guestPhone;
-        this.guestEmail = guestEmail;
-
-        setReservationStatus(status);
-        setAssignedTableNumber(assignedTableNumber);
-        setCreatedAt(createdAt);
-
-        validate();
+    	validate();
     }
 
 
