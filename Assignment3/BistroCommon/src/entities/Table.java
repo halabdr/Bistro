@@ -14,10 +14,7 @@ public class Table implements Serializable {
     private int tableNumber;
     private int seatCapacity;
     private String tableLocation;
-    
-    /** Table status (AVAILABLE or OCCUPIED) */
     private TableStatus tableStatus;
-    
     private Timestamp reservationStart;
     private Timestamp reservationEnd;
 
@@ -68,75 +65,110 @@ public class Table implements Serializable {
         this.tableStatus = TableStatus.AVAILABLE;
     }
 
+    /**
+     * Gets the table number.
+     * @return table number
+     */
     public int getTableNumber() {
         return tableNumber;
     }
 
+    /**
+     * Sets the table number.
+     * @param tableNumber table number
+     */
     public void setTableNumber(int tableNumber) {
         this.tableNumber = tableNumber;
     }
 
-    public int getNumberOfSeats() {
-        return numberOfSeats;
-    }
-
     /**
-     * Updates the number of seats at the table.
-     *
-     * @param numberOfSeats new number of seats (must be positive)
+     * Gets the seat capacity.
+     * @return seat capacity
      */
-    public void setNumberOfSeats(int numberOfSeats) {
-        if (numberOfSeats <= 0) {
-            throw new IllegalArgumentException("Number of seats must be greater than zero");
-        }
-        this.numberOfSeats = numberOfSeats;
+    public int getSeatCapacity() {
+        return seatCapacity;
     }
 
     /**
-     * Returns the availability status of the table.
-     *
-     * @return true if the table is available
+     * Sets the seat capacity.
+     * @param seatCapacity seat capacity
+     */
+    public void setSeatCapacity(int seatCapacity) {
+        this.seatCapacity = seatCapacity;
+    }
+
+    /**
+     * Gets the table location.
+     * @return table location
+     */
+    public String getTableLocation() {
+        return tableLocation;
+    }
+
+    /**
+     * Sets the table location.
+     * @param tableLocation table location
+     */
+    public void setTableLocation(String tableLocation) {
+        this.tableLocation = tableLocation;
+    }
+
+    /**
+     * Gets the table status.
+     * @return table status
+     */
+    public TableStatus getTableStatus() {
+        return tableStatus;
+    }
+
+    /**
+     * Sets the table status.
+     * @param tableStatus table status
+     */
+    public void setTableStatus(TableStatus tableStatus) {
+        this.tableStatus = tableStatus;
+    }
+
+    /**
+     * Gets the reservation start time.
+     * @return reservation start time
+     */
+    public Timestamp getReservationStart() {
+        return reservationStart;
+    }
+
+    /**
+     * Sets the reservation start time.
+     * @param reservationStart reservation start time
+     */
+    public void setReservationStart(Timestamp reservationStart) {
+        this.reservationStart = reservationStart;
+    }
+
+    /**
+     * Gets the reservation end time.
+     * @return reservation end time
+     */
+    public Timestamp getReservationEnd() {
+        return reservationEnd;
+    }
+
+    /**
+     * Sets the reservation end time.
+     * @param reservationEnd reservation end time
+     */
+    public void setReservationEnd(Timestamp reservationEnd) {
+        this.reservationEnd = reservationEnd;
+    }
+
+    /**
+     * Checks if table is available.
+     * @return true if available
      */
     public boolean isAvailable() {
-        return availabilityStatus;
+        return tableStatus == TableStatus.AVAILABLE;
     }
 
-    /**
-     * Sets the availability status of the table.
-     *
-     * @param availabilityStatus new availability status
-     */
-    public void setAvailabilityStatus(boolean availabilityStatus) {
-        this.availabilityStatus = availabilityStatus;
-    }
-
-    /**
-     * Checks whether a given number of guests can be seated at the table.
-     *
-     * @param numberOfGuests number of guests
-     * @return true if the table is available and has enough seats
-     */
-    public boolean canSeat(int numberOfGuests) {
-        return availabilityStatus && numberOfGuests > 0 && numberOfGuests <= numberOfSeats;
-    }
-
-    /**
-     * Releases the table and marks it as available.
-     */
-    public void releaseTable() {
-        this.availabilityStatus = true;
-    }
-
-    /**
-     * Marks the table as occupied.
-     */
-    public void occupyTable() {
-        this.availabilityStatus = false;
-    }
-    
-    /**
-     * Tables are identified by tableNumber.
-     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
