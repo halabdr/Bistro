@@ -58,5 +58,29 @@ public class DBController {
         }
         return tables;
     }
+    /**
+     * Retrieves tables that can seat at least the given number of diners.
+     *
+     * @param diners number of diners
+     * @return list of matching table numbers
+     * @throws SQLException if query fails
+     */
+    public List<Integer> getTablesByCapacity(int diners) throws SQLException {
+        List<Integer> tables = new ArrayList<>();
+
+        String query =
+                "SELECT table_number FROM tables_info WHERE seat_capacity >= ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, diners);
+
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                tables.add(rs.getInt("table_number"));
+            }
+        }
+        return tables;
+    }
+
 
 }
