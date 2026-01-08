@@ -169,10 +169,35 @@ public class Table implements Serializable {
         return tableStatus == TableStatus.AVAILABLE;
     }
 
+    /**
+     * Checks if a number of guests can be seated.
+     * @param numberOfGuests number of guests
+     * @return true if table can accommodate the guests
+     */
+    public boolean canSeat(int numberOfGuests) {
+        return isAvailable() && numberOfGuests > 0 && numberOfGuests <= seatCapacity;
+    }
+
+    /**
+     * Marks the table as available.
+     */
+    public void releaseTable() {
+        this.tableStatus = TableStatus.AVAILABLE;
+        this.reservationStart = null;
+        this.reservationEnd = null;
+    }
+
+    /**
+     * Marks the table as occupied.
+     */
+    public void occupyTable() {
+        this.tableStatus = TableStatus.OCCUPIED;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Table)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
         Table table = (Table) o;
         return tableNumber == table.tableNumber;
     }
@@ -186,8 +211,11 @@ public class Table implements Serializable {
     public String toString() {
         return "Table{" +
                 "tableNumber=" + tableNumber +
-                ", numberOfSeats=" + numberOfSeats +
-                ", availabilityStatus=" + availabilityStatus +
+                ", seatCapacity=" + seatCapacity +
+                ", tableLocation='" + tableLocation + '\'' +
+                ", tableStatus=" + tableStatus +
+                ", reservationStart=" + reservationStart +
+                ", reservationEnd=" + reservationEnd +
                 '}';
     }
 }
