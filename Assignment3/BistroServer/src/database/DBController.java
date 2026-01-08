@@ -1,0 +1,40 @@
+package database;
+
+import java.sql.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * DBController handles all database interactions.
+ * This class is the ONLY class that communicates directly with MySQL.
+ */
+public class DBController {
+
+    private static final String DB_URL =
+            "jdbc:mysql://localhost:3306/bistrorestaurant?serverTimezone=UTC";
+    private static final String DB_USER = "root";
+    private static final String DB_PASSWORD = "YOUR_PASSWORD";
+
+    private Connection connection;
+
+    /**
+     * Establishes a connection to the database.
+     *
+     * @throws SQLException if connection fails
+     */
+    public void connect() throws SQLException {
+        connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+    }
+
+    /**
+     * Closes the database connection.
+     */
+    public void disconnect() {
+        try {
+            if (connection != null && !connection.isClosed()) {
+                connection.close();
+            }
+        } catch (SQLException ignored) {}
+    }
