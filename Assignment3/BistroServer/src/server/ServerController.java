@@ -75,11 +75,11 @@ public class ServerController {
     private void handleCreateReservation(Message request,ConnectionToClient client) {
            
     	CreateReservationRequest req = (CreateReservationRequest) request.getData();
-        int tableId = availabilityService.allocateTableForSeating(null);    //allocateTable(req.getDateTime(), req.getNumOfDiners());
-        if (tableId == -1) {
-           safeSend(client,Message.fail(CommandType.CREATE_RESERVATION,"No available table"));
-           return;
-        }
+       // int tableId = availabilityService.allocateTableForSeating(null);    //allocateTable(req.getDateTime(), req.getNumOfDiners());
+     //   if (tableId == -1) {
+       //    safeSend(client,Message.fail(CommandType.CREATE_RESERVATION,"No available table"));
+         //  return;
+        //}
 
         Reservation reservation;
 
@@ -99,14 +99,14 @@ public class ServerController {
                            );
         }
         
-        reservation.setAssignedTableNumber(tableId);
+        reservation.setAssignedTableNumber(0);
 
         store.addReservation(reservation);
 
         LocalDateTime startTime = reservation.getStartDateTime();
         LocalDateTime endTime = reservation.getEndDateTime();
 
-        CreateReservationResponse response = new CreateReservationResponse(reservation.getConfirmationCode(),tableId,
+        CreateReservationResponse response = new CreateReservationResponse(reservation.getConfirmationCode(),
                                                                            startTime,endTime);
         safeSend(client,Message.ok(CommandType.CREATE_RESERVATION, response));
     }
