@@ -3,14 +3,15 @@ package entities;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Objects;
 import java.util.UUID;
 
 /**
  * Reservation entity class represents a table reservation in the Bistro system.
- * It includes date and time, number of diners, customer identification
- * (subscriber or guest) and a confirmation code.
+ * It includes date and time, number of diners, and a confirmation code.
  */
 public class Reservation implements Serializable {
 
@@ -18,48 +19,28 @@ public class Reservation implements Serializable {
     private static final long serialVersionUID = 1L;
 
     public static final Duration DURATION = Duration.ofHours(2);
-
-    /** Booking must be at least 1 hour from creation time. */
-    public static final Duration MIN_TIME_BEFORE = Duration.ofHours(1);
-    
-    /** Booking must be no more than 30 days from creation time. */
-    public static final Duration MAX_TIME_BEFORE = Duration.ofDays(30);
     
     private int reservationId;             
-    private String confCode;
-    private LocalDateTime startDateTime;
-    private int dinersCount;
-    private CustomerType customerType;
-    private int subscriberId;                
-    private String guestPhone;              
-    private String guestEmail;         
+    private String confirmationCode;
+    private LocalDate bookingDate;
+    private LocalTime bookingTime;
+    private int guestCount;
+    private String subscriberNumber;         
     private ReservationStatus status;
 
     /** Assigned table number after seating. */
-    private int assignedTableNumber;
-    
-    /** Timestamp of reservation creation. */
-    private LocalDateTime createdAt;
-
-   /**
-    * Enum represents the type of customer who made the reservation.
-    */
-    public enum CustomerType {
-        SUBSCRIBER,
-        GUEST
-    }
+    private int tableNumber;
 
     /**
      * Enum represents the status of a reservation.
      */
     public enum ReservationStatus {
-        CONFIRMED,
+        ACTIVE,
         CANCELLED,
+        COMPLETED,
         
         /** Customer didn't arrive within the allowed time. */
-        NO_SHOW,
-        
-        EXPIRED
+        NO_SHOW
     }
 
     /** Empty constructor */
