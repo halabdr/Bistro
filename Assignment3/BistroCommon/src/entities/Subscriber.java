@@ -1,16 +1,18 @@
 package entities;
 
-import java.io.Serializable;
-import java.util.Objects;
+import java.io.Serial;
+import java.time.LocalDateTime;
+import java.sql.Timestamp;
 
 /**
- * Represents a subscriber in the Bistro restaurant system.
+ * Subscriber entity represents a restaurant subscriber (member).
+ * Extends User to include subscriber-specific information.
  */
-public class Subscriber implements Serializable {
+public class Subscriber extends User {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
-    private int userId;
     private String subscriberNumber;
     private String membershipCard;
 
@@ -18,48 +20,43 @@ public class Subscriber implements Serializable {
      * Default constructor.
      */
     public Subscriber() {
+        super();
+        setUserRole(UserRole.SUBSCRIBER);
     }
 
     /**
      * Full constructor.
+     * 
      * @param userId user ID
-     * @param subscriberNumber unique subscriber number
-     * @param membershipCard membership card identifier
+     * @param name user name
+     * @param emailAddress email address
+     * @param phoneNumber phone number
+     * @param userPassword password
+     * @param accountStatus account status
+     * @param subscriberNumber subscriber number
+     * @param membershipCard membership card
      */
-    public Subscriber(int userId, String subscriberNumber, String membershipCard) {
-        this.userId = userId;
+    public Subscriber(int userId, String name, String emailAddress, String phoneNumber,
+                     String userPassword, boolean accountStatus, String subscriberNumber, 
+                     String membershipCard) {
+        super();
+        
+        setUserId(userId);
+        setName(name);
+        setEmailAddress(emailAddress);
+        setPhoneNumber(phoneNumber);
+        setUserPassword(userPassword);
+        setUserRole(UserRole.SUBSCRIBER);
+        setAccountStatus(accountStatus);
+        setRegistrationDate(Timestamp.valueOf(LocalDateTime.now()));
+        
         this.subscriberNumber = subscriberNumber;
         this.membershipCard = membershipCard;
-    }
-
-    /**
-     * Constructor for creating new subscriber.
-     * @param subscriberNumber unique subscriber number
-     * @param membershipCard membership card identifier
-     */
-    public Subscriber(String subscriberNumber, String membershipCard) {
-        this.subscriberNumber = subscriberNumber;
-        this.membershipCard = membershipCard;
-    }
-
-    /**
-     * Gets the user ID.
-     * @return user ID
-     */
-    public int getUserId() {
-        return userId;
-    }
-
-    /**
-     * Sets the user ID.
-     * @param userId user ID
-     */
-    public void setUserId(int userId) {
-        this.userId = userId;
     }
 
     /**
      * Gets the subscriber number.
+     * 
      * @return subscriber number
      */
     public String getSubscriberNumber() {
@@ -68,6 +65,7 @@ public class Subscriber implements Serializable {
 
     /**
      * Sets the subscriber number.
+     * 
      * @param subscriberNumber subscriber number
      */
     public void setSubscriberNumber(String subscriberNumber) {
@@ -75,7 +73,8 @@ public class Subscriber implements Serializable {
     }
 
     /**
-     * Gets the membership card identifier.
+     * Gets the membership card.
+     * 
      * @return membership card
      */
     public String getMembershipCard() {
@@ -83,7 +82,8 @@ public class Subscriber implements Serializable {
     }
 
     /**
-     * Sets the membership card identifier.
+     * Sets the membership card.
+     * 
      * @param membershipCard membership card
      */
     public void setMembershipCard(String membershipCard) {
@@ -91,24 +91,14 @@ public class Subscriber implements Serializable {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Subscriber that = (Subscriber) o;
-        return userId == that.userId;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(userId);
-    }
-
-    @Override
     public String toString() {
         return "Subscriber{" +
-                "userId=" + userId +
+                "userId=" + getUserId() +
+                ", name='" + getName() + '\'' +
+                ", email='" + getEmailAddress() + '\'' +
                 ", subscriberNumber='" + subscriberNumber + '\'' +
                 ", membershipCard='" + membershipCard + '\'' +
+                ", accountStatus=" + isAccountStatus() +
                 '}';
     }
 }
