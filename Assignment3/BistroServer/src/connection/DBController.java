@@ -61,7 +61,7 @@ public class DBController {
     }
 
 =======
-package database;
+package connection;
 
 import java.sql.*;
 import java.time.LocalDate;

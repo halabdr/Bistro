@@ -1,7 +1,7 @@
 package servergui;
 
 import common.ChatIF;
-import database.DBController;
+import connection.DBController;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;

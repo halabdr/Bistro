@@ -7,7 +7,7 @@ import common.CommandType;
 import common.CreateReservationRequest;
 import common.GetAvailableSlotsQuery;
 import common.Message;
-import database.InmemoryStore;
+import connection.InmemoryStore;
 import entities.Reservation;
 import ocsf.server.ConnectionToClient;
 

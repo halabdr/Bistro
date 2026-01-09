@@ -3,13 +3,14 @@ package server;
 import java.time.*;
 import java.util.*;
 
-import database.InmemoryStore;
 import entities.Reservation;
 import entities.Table;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import connection.InmemoryStore;
 
 /**
  * Service responsible for availability and table allocation logic.
