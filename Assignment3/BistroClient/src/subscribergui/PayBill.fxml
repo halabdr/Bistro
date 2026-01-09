@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="customergui.PayBillController"
+      spacing="10" alignment="CENTER" prefWidth="420" prefHeight="340">
+
+    <Label text="Pay Bill" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+
+    <HBox spacing="10">
+        <Label text="Table number:"/>
+        <TextField fx:id="tableField" prefWidth="90"/>
+    </HBox>
+
+    <HBox spacing="10">
+        <Label text="Subscriber number (optional):"/>
+        <TextField fx:id="subscriberField" prefWidth="170"/>
+    </HBox>
+
+    <Label fx:id="statusLabel"/>
+    <Label fx:id="resultLabel" wrapText="true"/>
+
+    <HBox spacing="10">
+        <Button text="Back" onAction="#onBack"/>
+        <Button text="Pay" onAction="#onPay"/>
+    </HBox>
+</VBox>

@@ -1,30 +1,22 @@
 package homegui;
 
-import client.ClientController;
 import clientgui.ConnectApp;
-import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 
 public class HomeController {
 
-    private ClientController clientController;
-
-    public void setClientController(ClientController controller) {
-        this.clientController = controller;
+    @FXML
+    private void onCustomerClicked() throws Exception {
+        ConnectApp.showCustomerMenu();
     }
 
-    public void onCustomerClicked(ActionEvent e) {
-        try {
-            ConnectApp.showAvailableSlots(clientController);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+    @FXML
+    private void onTerminalClicked() throws Exception {
+        ConnectApp.showTerminalSeatByCode();
     }
 
-    public void onTerminalClicked(ActionEvent e) {
-        System.out.println("Open terminal screen");
-    }
-
-    public void onStaffClicked(ActionEvent e) {
-        System.out.println("Open staff login screen");
+    @FXML
+    private void onStaffClicked() {
+    	ConnectApp.showStaffLogin();
     }
 }

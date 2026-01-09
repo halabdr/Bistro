@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="terminalgui.SeatByCodeController"
+      spacing="10" alignment="CENTER" prefWidth="420" prefHeight="320">
+
+    <Label text="Terminal - Seat by Code" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+
+    <HBox spacing="10">
+        <Label text="Confirmation code:"/>
+        <TextField fx:id="codeField" prefWidth="200"/>
+    </HBox>
+
+    <Label fx:id="statusLabel"/>
+    <Label fx:id="resultLabel"/>
+
+    <HBox spacing="10">
+        <Button text="Back" onAction="#onBack"/>
+        <Button text="Seat" onAction="#onSeat"/>
+    </HBox>
+</VBox>

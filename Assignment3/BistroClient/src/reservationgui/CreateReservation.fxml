@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="10" padding="12"
+      xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="reservationgui.CreateReservationController">
+
+    <Label text="Reservation - Step 2 (Details & Confirm)" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+
+    <Label fx:id="summaryLabel" />
+
+    <HBox spacing="10">
+        <Label text="Type:"/>
+        <RadioButton fx:id="guestRadio" text="Guest" toggleGroup="$typeGroup"/>
+        <RadioButton fx:id="subscriberRadio" text="Subscriber" toggleGroup="$typeGroup"/>
+    </HBox>
+
+    <HBox spacing="10">
+        <Label text="Subscriber number:"/>
+        <TextField fx:id="subscriberNumberField" promptText="Only for subscriber"/>
+    </HBox>
+
+    <Label fx:id="statusLabel"/>
+
+    <HBox spacing="10">
+        <Button text="Back" onAction="#onBack"/>
+        <Button text="Confirm reservation" onAction="#onConfirm"/>
+    </HBox>
+</VBox>

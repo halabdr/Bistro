@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="12" alignment="CENTER"
+      xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="reservationgui.ReservationSearchController"
+      prefWidth="720" prefHeight="420">
+
+    <Label text="Find Available Dates & Times" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+
+    <HBox spacing="10" alignment="CENTER">
+        <Label text="Start date:"/>
+        <DatePicker fx:id="startDatePicker"/>
+
+        <Label text="Days:"/>
+        <Spinner fx:id="daysSpinner" prefWidth="90"/>
+
+        <Label text="Diners:"/>
+        <Spinner fx:id="dinersSpinner" prefWidth="90"/>
+
+        <Button fx:id="searchBtn" text="Search" onAction="#onSearch"/>
+        <Button text="Back" onAction="#onBack"/>
+    </HBox>
+
+    <Label fx:id="statusLabel" text=""/>
+
+    <HBox spacing="12" alignment="CENTER">
+
+        <VBox spacing="8">
+            <Label text="Available dates"/>
+            <ListView fx:id="datesList" prefWidth="260" prefHeight="260"/>
+        </VBox>
+
+        <VBox spacing="8">
+            <Label text="Available times"/>
+            <ListView fx:id="slotsList" prefWidth="360" prefHeight="260"/>
+        </VBox>
+
+    </HBox>
+
+    <HBox spacing="10" alignment="CENTER">
+        <Button fx:id="continueBtn" text="Continue" onAction="#onContinue" disable="true" prefWidth="140"/>
+    </HBox>
+</VBox>

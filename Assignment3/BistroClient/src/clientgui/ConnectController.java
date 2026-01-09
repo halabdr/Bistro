@@ -71,7 +71,7 @@ public class ConnectController {
             
             
             // Register a listener to display server messages in the status label
-            clientController.setListener(msg ->statusLabel.setText("Server: " + String.valueOf(msg)));
+            clientController.setMessageListener(msg ->statusLabel.setText("Server: " + String.valueOf(msg)));
 
             // Establish the connection to the server
             clientController.connect();
