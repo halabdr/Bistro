@@ -2,10 +2,10 @@ package servergui;
 
 import common.ChatIF;
 import connection.DBController;
+import data_access.BistroServer;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import server.BistroServer;
 
 import java.net.InetAddress;
 
