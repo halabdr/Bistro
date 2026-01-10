@@ -17,11 +17,12 @@ public class MySQLConnectionPool {
 
     private static MySQLConnectionPool instance;
     
-    // Database Configuration
-    private static final String DB_URL = 
-        "jdbc:mysql://localhost:3306/bistrorestaurant?serverTimezone=Asia/Jerusalem";
-    private static final String USER = "root";
-    private static final String PASS = "Aa123456";
+    // Database Configuration,set dynamically from GUI
+    private static String DB_HOST = "localhost";
+    private static String DB_PORT = "3306";
+    private static String DB_USER = "root";
+    private static String DB_PASS = "";
+    private static String DB_URL;
 
     // Pool Configuration
     private static final int MAX_POOL_SIZE = 10;
@@ -32,10 +33,35 @@ public class MySQLConnectionPool {
     private ScheduledExecutorService cleanerService;
 
     /**
+     * Sets database credentials from GUI before connection pool initialization.
+     * Must be called before getInstance() for the first time.
+     * 
+     * @param host database host
+     * @param port database port
+     * @param user database username
+     * @param password database password
+     */
+    public static void setDatabaseCredentials(String host, String port, String user, String password) {
+        DB_HOST = host;
+        DB_PORT = port;
+        DB_USER = user;
+        DB_PASS = password;
+        DB_URL = "jdbc:mysql://" + DB_HOST + ":" + DB_PORT +  "/bistrorestaurant?serverTimezone=Asia/Jerusalem";
+        
+        System.out.println("[Pool] Database credentials configured:");
+        System.out.println("[Pool] Host: " + DB_HOST + ":" + DB_PORT);
+        System.out.println("[Pool] User: " + DB_USER);
+    }
+
+    /**
      * Private constructor for Singleton pattern.
      * Initializes the connection pool and starts the cleanup timer.
      */
     private MySQLConnectionPool() {
+        if (DB_URL == null) {
+            DB_URL = "jdbc:mysql://" + DB_HOST + ":" + DB_PORT + 
+                     "/bistrorestaurant?serverTimezone=Asia/Jerusalem";
+        }
         pool = new LinkedBlockingQueue<>(MAX_POOL_SIZE);
         startCleanupTimer();
         System.out.println("[Pool] Initialized. Max Size: " + MAX_POOL_SIZE);
@@ -102,9 +128,11 @@ public class MySQLConnectionPool {
      */
     private PooledConnection createNewConnection() {
         try {
-            return new PooledConnection(DriverManager.getConnection(DB_URL, USER, PASS));
+            return new PooledConnection(DriverManager.getConnection(DB_URL, DB_USER, DB_PASS));
         } catch (SQLException e) {
             System.err.println("[Pool] CONNECTION ERROR:");
+            System.err.println("[Pool] URL: " + DB_URL);
+            System.err.println("[Pool] User: " + DB_USER);
             e.printStackTrace();
             return null;
         }

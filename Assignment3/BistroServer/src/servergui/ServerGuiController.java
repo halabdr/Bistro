@@ -1,6 +1,7 @@
 package servergui;
 import common.ChatIF;
 import connection.BistroServer;
+import connection.MySQLConnectionPool;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -14,6 +15,14 @@ public class ServerGuiController {
 
 	@FXML
 	private TextField portField;
+	@FXML
+	private TextField dbHostField;
+	@FXML
+	private TextField dbPortField;
+	@FXML
+	private TextField dbUserField;
+	@FXML
+	private PasswordField dbPasswordField;
 	@FXML
 	private Label serverStatusLabel;
 	@FXML
@@ -44,7 +53,7 @@ public class ServerGuiController {
 		portField.setText(String.valueOf(BistroServer.DEFAULT_PORT));
 		refreshHostInfo();
 		ui.display("Server GUI initialized and ready.");
-		ui.display("MySQL Connection Pool configured.");
+		ui.display("Enter DB password to start server.");
 	}
 
 	/**
@@ -52,8 +61,23 @@ public class ServerGuiController {
 	 */
 	@FXML
 	private void onStart(ActionEvent e) {
+		// Validate DB password
+		String dbPassword = dbPasswordField.getText().trim();
+		if (dbPassword.isEmpty()) {
+			ui.display("ERROR: Please enter database password");
+			showAlert("Database Error", "Please enter the database password before starting the server.");
+			return;
+		}
+
 		try {
 			int port = Integer.parseInt(portField.getText().trim());
+			String dbHost = dbHostField.getText().trim();
+			String dbPort = dbPortField.getText().trim();
+			String dbUser = dbUserField.getText().trim();
+
+			// Set DB credentials in connection pool before starting server
+			MySQLConnectionPool.setDatabaseCredentials(dbHost, dbPort, dbUser, dbPassword);
+			ui.display("Database credentials configured.");
 
 			server = new BistroServer(port);
 			server.setUI(ui, this::setClientsCount);
@@ -67,7 +91,7 @@ public class ServerGuiController {
 
 			startBtn.setDisable(true);
 			stopBtn.setDisable(false);
-			
+			dbPasswordField.setDisable(true);
 
 			ui.display("Server started successfully on port " + port);
 			ui.display("Listening for client connections...");
@@ -77,6 +101,7 @@ public class ServerGuiController {
 		} catch (Exception ex) {
 			ui.display("ERROR: Failed to start server - " + ex.getMessage());
 			ex.printStackTrace();
+			showAlert("Server Error", "Failed to start server: " + ex.getMessage());
 		}
 	}
 
@@ -113,10 +138,10 @@ public class ServerGuiController {
 		try {
 			InetAddress local = InetAddress.getLocalHost();
 			ipLabel.setText("IP: " + local.getHostAddress());
-			hostLabel.setText("Host: " + local.getHostName());
+			hostLabel.setText("Host: localhost");
 		} catch (Exception ex) {
 			ipLabel.setText("IP: Unknown");
-			hostLabel.setText("Host: Unknown");
+			hostLabel.setText("Host: localhost");
 		}
 	}
 
@@ -151,7 +176,18 @@ public class ServerGuiController {
 
 			startBtn.setDisable(false);
 			stopBtn.setDisable(true);
-			
+			dbPasswordField.setDisable(false);
 		}
+	}
+
+	/**
+	 * Shows an alert dialog to the user.
+	 */
+	private void showAlert(String title, String message) {
+		Alert alert = new Alert(Alert.AlertType.WARNING);
+		alert.setTitle(title);
+		alert.setHeaderText(null);
+		alert.setContentText(message);
+		alert.showAndWait();
 	}
 }

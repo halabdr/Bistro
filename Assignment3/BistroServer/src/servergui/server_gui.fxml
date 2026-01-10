@@ -7,7 +7,7 @@
 <BorderPane xmlns="http://javafx.com/javafx"
 	xmlns:fx="http://javafx.com/fxml"
 	fx:controller="servergui.ServerGuiController" prefWidth="900"
-	prefHeight="650" styleClass="root">
+	prefHeight="750" styleClass="root">
 
 	<!-- Header -->
 	<top>
@@ -23,14 +23,45 @@
 				<Insets top="20" right="20" bottom="20" left="20" />
 			</padding>
 
+			<!-- Database Configuration -->
+			<VBox spacing="12" styleClass="card">
+				<Label text="Database Configuration" styleClass="section-title" />
+
+				<GridPane hgap="15" vgap="12">
+					<Label text="DB Host:" styleClass="field-label"
+						GridPane.rowIndex="0" GridPane.columnIndex="0" />
+					<TextField fx:id="dbHostField" text="localhost" 
+						prefWidth="150" editable="false" styleClass="port-field"
+						GridPane.rowIndex="0" GridPane.columnIndex="1" />
+
+					<Label text="DB Port:" styleClass="field-label"
+						GridPane.rowIndex="0" GridPane.columnIndex="2" />
+					<TextField fx:id="dbPortField" text="3306" 
+						prefWidth="100" editable="false" styleClass="port-field"
+						GridPane.rowIndex="0" GridPane.columnIndex="3" />
+
+					<Label text="DB User:" styleClass="field-label"
+						GridPane.rowIndex="1" GridPane.columnIndex="0" />
+					<TextField fx:id="dbUserField" text="root" 
+						prefWidth="150" editable="false" styleClass="port-field"
+						GridPane.rowIndex="1" GridPane.columnIndex="1" />
+
+					<Label text="DB Password:" styleClass="field-label"
+						GridPane.rowIndex="1" GridPane.columnIndex="2" />
+					<PasswordField fx:id="dbPasswordField" 
+						promptText="Enter password" prefWidth="150"
+						GridPane.rowIndex="1" GridPane.columnIndex="3" />
+				</GridPane>
+			</VBox>
+
 			<!-- Server Control Panel -->
 			<VBox spacing="12" styleClass="card">
 				<Label text="Server Control" styleClass="section-title" />
 
 				<HBox spacing="15" alignment="CENTER_LEFT">
 					<Label text="Port:" styleClass="field-label" />
-					<TextField fx:id="portField" prefWidth="100"
-						promptText="5555" styleClass="port-field" editable="false"/>
+					<TextField fx:id="portField" text="5555" prefWidth="100"
+						editable="false" styleClass="port-field-disabled" />
 
 					<Button fx:id="startBtn" text="Start Server"
 						onAction="#onStart" styleClass="btn-start" />
@@ -52,7 +83,7 @@
 				<GridPane hgap="20" vgap="10">
 					<Label fx:id="ipLabel" text="IP: -" styleClass="info-label"
 						GridPane.rowIndex="0" GridPane.columnIndex="0" />
-					<Label fx:id="hostLabel" text="Host: -"
+					<Label fx:id="hostLabel" text="Host: localhost"
 						styleClass="info-label" GridPane.rowIndex="0"
 						GridPane.columnIndex="1" />
 					<Label fx:id="portLabel" text="Port: -"
@@ -73,7 +104,7 @@
 						styleClass="btn-clear" />
 				</HBox>
 
-				<TextArea fx:id="logArea" prefHeight="280" editable="false"
+				<TextArea fx:id="logArea" prefHeight="200" editable="false"
 					wrapText="true" styleClass="log-area" VBox.vgrow="ALWAYS" />
 			</VBox>
 
