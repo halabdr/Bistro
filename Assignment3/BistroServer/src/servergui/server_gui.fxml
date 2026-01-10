@@ -5,83 +5,84 @@
 <?import javafx.geometry.Insets?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="servergui.ServerGuiController"
-            prefWidth="860" prefHeight="620">
+	xmlns:fx="http://javafx.com/fxml"
+	fx:controller="servergui.ServerGuiController" prefWidth="900"
+	prefHeight="650" styleClass="root">
 
-    <center>
-        <VBox spacing="14">
-            <padding>
-                <Insets top="18" right="18" bottom="18" left="18"/>
-            </padding>
+	<!-- Header -->
+	<top>
+		<VBox styleClass="header">
+			<Label text="Bistro Restaurant Server" styleClass="title" />
+			<Label text="Server Management Console" styleClass="subtitle" />
+		</VBox>
+	</top>
 
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="Port:"/>
-                <TextField fx:id="portField" prefWidth="120"/>
-                <Button fx:id="startBtn" text="Start Server" onAction="#onStart"/>
-                <Button fx:id="stopBtn" text="Stop" onAction="#onStop" disable="true"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <Label text="Server:"/>
-                <Label fx:id="serverStatusLabel" text="OFFLINE"/>
-            </HBox>
+	<center>
+		<VBox spacing="15" styleClass="content-area">
+			<padding>
+				<Insets top="20" right="20" bottom="20" left="20" />
+			</padding>
 
-            <Accordion fx:id="accordion">
-                <panes>
-                    <TitledPane fx:id="dbPane" text="Database Connection" animated="true">
-                        <content>
-                            <VBox spacing="10">
-                                <padding>
-                                    <Insets top="12" right="12" bottom="12" left="12"/>
-                                </padding>
+			<!-- Server Control Panel -->
+			<VBox spacing="12" styleClass="card">
+				<Label text="Server Control" styleClass="section-title" />
 
-                                <GridPane hgap="10" vgap="10">
-                                    <Label text="Host:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                                    <TextField fx:id="dbHostField" text="localhost"
-                                               GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+				<HBox spacing="15" alignment="CENTER_LEFT">
+					<Label text="Port:" styleClass="field-label" />
+					<TextField fx:id="portField" prefWidth="100"
+						promptText="5555" styleClass="port-field" />
 
-                                    <Label text="Database:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                                    <TextField fx:id="dbNameField" promptText="bistro"
-                                               GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+					<Button fx:id="startBtn" text="Start Server"
+						onAction="#onStart" styleClass="btn-start" />
+					<Button fx:id="stopBtn" text="Stop Server"
+						onAction="#onStop" disable="true" styleClass="btn-stop" />
 
-                                    <Label text="User:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-                                    <TextField fx:id="dbUserField" text="root"
-                                               GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+					<Region HBox.hgrow="ALWAYS" />
 
-                                    <Label text="Password:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-                                    <PasswordField fx:id="dbPassField"
-                                                   GridPane.rowIndex="3" GridPane.columnIndex="1"/>
-                                </GridPane>
+					<Label text="Status:" styleClass="field-label" />
+					<Label fx:id="serverStatusLabel" text="OFFLINE"
+						styleClass="status-offline" />
+				</HBox>
+			</VBox>
 
-                                <HBox spacing="10">
-                                    <Button text="Test DB Connection" onAction="#onTestDb"/>
-                                    <Label text="DB:"/>
-                                    <Label fx:id="dbStatusLabel" text="NOT CONNECTED"
-                                           style="-fx-font-weight: bold;"/>
-                                </HBox>
-                            </VBox>
-                        </content>
-                    </TitledPane>
+			<!-- Server Information -->
+			<VBox spacing="12" styleClass="card">
+				<Label text="Server Information" styleClass="section-title" />
 
-                    <TitledPane text="Server Info" animated="true">
-                        <content>
-                            <VBox spacing="8">
-                                <padding>
-                                    <Insets top="12" right="12" bottom="12" left="12"/>
-                                </padding>
+				<GridPane hgap="20" vgap="10">
+					<Label fx:id="ipLabel" text="IP: -" styleClass="info-label"
+						GridPane.rowIndex="0" GridPane.columnIndex="0" />
+					<Label fx:id="hostLabel" text="Host: -"
+						styleClass="info-label" GridPane.rowIndex="0"
+						GridPane.columnIndex="1" />
+					<Label fx:id="portLabel" text="Port: -"
+						styleClass="info-label" GridPane.rowIndex="1"
+						GridPane.columnIndex="0" />
+					<Label fx:id="clientsLabel" text="Connected Clients: 0"
+						styleClass="info-label" GridPane.rowIndex="1"
+						GridPane.columnIndex="1" />
+				</GridPane>
+			</VBox>
 
-                                <Label fx:id="ipLabel" text="IP: -"/>
-                                <Label fx:id="hostLabel" text="Host: -"/>
-                                <Label fx:id="portLabel" text="Port: -"/>
-                                <Label fx:id="clientsLabel" text="Clients connected: 0"/>
-                            </VBox>
-                        </content>
-                    </TitledPane>
-                </panes>
-            </Accordion>
+			<!-- Activity Log -->
+			<VBox spacing="12" styleClass="card" VBox.vgrow="ALWAYS">
+				<HBox spacing="10" alignment="CENTER_LEFT">
+					<Label text="Activity Log" styleClass="section-title" />
+					<Region HBox.hgrow="ALWAYS" />
+					<Button text="Clear Log" onAction="#onClearLog"
+						styleClass="btn-clear" />
+				</HBox>
 
-            <TextArea fx:id="logArea" prefHeight="300" editable="false"/>
+				<TextArea fx:id="logArea" prefHeight="280" editable="false"
+					wrapText="true" styleClass="log-area" VBox.vgrow="ALWAYS" />
+			</VBox>
 
-        </VBox>
-    </center>
+			<!-- Exit Button -->
+			<HBox alignment="CENTER_RIGHT">
+				<Button text="Exit" onAction="#onExit" styleClass="btn-exit" />
+			</HBox>
+
+		</VBox>
+	</center>
 
 </BorderPane>

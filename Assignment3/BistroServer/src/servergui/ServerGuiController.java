@@ -1,132 +1,157 @@
 package servergui;
-
 import common.ChatIF;
-import connection.DBController;
-import data_access.BistroServer;
+import connection.BistroServer;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-
 import java.net.InetAddress;
 
+/**
+ * Controller for the Server GUI. Manages server start/stop, displays connection
+ * info, and shows activity log.
+ */
 public class ServerGuiController {
 
-    @FXML private TextField portField;
+	@FXML
+	private TextField portField;
+	@FXML
+	private Label serverStatusLabel;
+	@FXML
+	private Label ipLabel;
+	@FXML
+	private Label hostLabel;
+	@FXML
+	private Label portLabel;
+	@FXML
+	private Label clientsLabel;
+	@FXML
+	private TextArea logArea;
+	@FXML
+	private Button startBtn;
+	@FXML
+	private Button stopBtn;
 
-    @FXML private TextField dbHostField;
-    @FXML private TextField dbNameField;
-    @FXML private TextField dbUserField;
-    @FXML private PasswordField dbPassField;
+	private BistroServer server;
+	private ChatIF ui;
 
-    @FXML private Label serverStatusLabel;
-    @FXML private Label dbStatusLabel;
-    
-    @FXML private Accordion accordion;
-    @FXML private TitledPane dbPane;
+	/**
+	 * Initializes the controller. Called automatically by JavaFX after FXML
+	 * loading.
+	 */
+	@FXML
+	public void initialize() {
+		ui = new ServerUI(logArea);
+		portField.setText(String.valueOf(BistroServer.DEFAULT_PORT));
+		refreshHostInfo();
+		ui.display("Server GUI initialized and ready.");
+		ui.display("MySQL Connection Pool configured.");
+	}
 
-    @FXML private Label ipLabel;
-    @FXML private Label hostLabel;
-    @FXML private Label portLabel;
-    @FXML private Label clientsLabel;
+	/**
+	 * Handles Start Server button click.
+	 */
+	@FXML
+	private void onStart(ActionEvent e) {
+		try {
+			int port = Integer.parseInt(portField.getText().trim());
 
-    @FXML private TextArea logArea;
+			server = new BistroServer(port);
+			server.setUI(ui, this::setClientsCount);
+			server.listen();
 
-    @FXML private Button startBtn;
-    @FXML private Button stopBtn;
+			serverStatusLabel.setText("ONLINE");
+			serverStatusLabel.getStyleClass().remove("status-offline");
+			serverStatusLabel.getStyleClass().add("status-online");
 
-    private BistroServer server;
-    private ChatIF ui;
+			portLabel.setText("Port: " + port);
 
-    @FXML
-    public void initialize() {
-    	ui = new ServerUI(logArea);
+			startBtn.setDisable(true);
+			stopBtn.setDisable(false);
+			portField.setDisable(true);
 
-        if (accordion != null && dbPane != null) {
-            accordion.setExpandedPane(dbPane);
-        }
+			ui.display("Server started successfully on port " + port);
+			ui.display("Listening for client connections...");
 
-        portField.setText(String.valueOf(BistroServer.DEFAULT_PORT));
-        refreshHostInfo();
-        ui.display("Server GUI ready.");
-    }
+		} catch (NumberFormatException ex) {
+			ui.display("ERROR: Invalid port number");
+		} catch (Exception ex) {
+			ui.display("ERROR: Failed to start server - " + ex.getMessage());
+			ex.printStackTrace();
+		}
+	}
 
-    @FXML
-    private void onStart(ActionEvent e) {
-        int port = Integer.parseInt(portField.getText().trim());
+	/**
+	 * Handles Stop Server button click.
+	 */
+	@FXML
+	private void onStop(ActionEvent e) {
+		shutdown();
+	}
 
-        try {
-            server = new BistroServer(port);
-            server.setUI(ui, this::setClientsCount); 
-            server.listen();
+	/**
+	 * Handles Clear Log button click.
+	 */
+	@FXML
+	private void onClearLog(ActionEvent e) {
+		logArea.clear();
+		ui.display("Log cleared.");
+	}
 
-            serverStatusLabel.setText("ONLINE");
-            portLabel.setText("Port: " + port);
+	/**
+	 * Handles Exit button click.
+	 */
+	@FXML
+	private void onExit(ActionEvent e) {
+		shutdown();
+		System.exit(0);
+	}
 
-            startBtn.setDisable(true);
-            stopBtn.setDisable(false);
+	/**
+	 * Refreshes the host information display.
+	 */
+	private void refreshHostInfo() {
+		try {
+			InetAddress local = InetAddress.getLocalHost();
+			ipLabel.setText("IP: " + local.getHostAddress());
+			hostLabel.setText("Host: " + local.getHostName());
+		} catch (Exception ex) {
+			ipLabel.setText("IP: Unknown");
+			hostLabel.setText("Host: Unknown");
+		}
+	}
 
-            ui.display("Server started and listening on port " + port);
-        } catch (Exception ex) {
-            ui.display("Failed to start server: " + ex.getMessage());
-        }
-    }
+	/**
+	 * Updates the connected clients count display. Called by BistroServer when
+	 * client count changes.
+	 */
+	private void setClientsCount(int count) {
+		javafx.application.Platform.runLater(() -> {
+			clientsLabel.setText("Connected Clients: " + count);
+		});
+	}
 
-    @FXML
-    private void onStop(ActionEvent e) {
-        try {
-            if (server != null) {
-                server.close();
-                ui.display("Server stopped.");
-            }
-        } catch (Exception ex) {
-            ui.display("Failed to stop server: " + ex.getMessage());
-        } finally {
-            serverStatusLabel.setText("OFFLINE");
-            startBtn.setDisable(false);
-            stopBtn.setDisable(true);
-        }
-    }
+	/**
+	 * Shuts down the server gracefully.
+	 */
+	public void shutdown() {
+		try {
+			if (server != null && server.isListening()) {
+				server.close();
+				ui.display("Server stopped successfully.");
+			}
+		} catch (Exception ex) {
+			ui.display("ERROR: Failed to stop server - " + ex.getMessage());
+		} finally {
+			serverStatusLabel.setText("OFFLINE");
+			serverStatusLabel.getStyleClass().remove("status-online");
+			serverStatusLabel.getStyleClass().add("status-offline");
 
-    @FXML
-    private void onTestDb(ActionEvent e) {
-        String host = dbHostField.getText().trim();
-        String db = dbNameField.getText().trim();
-        String user = dbUserField.getText().trim();
-        String pass = dbPassField.getText();
+			portLabel.setText("Port: -");
+			clientsLabel.setText("Connected Clients: 0");
 
-        try {
-            boolean ok = DBController.testConnection(host, db, user, pass); 
-            dbStatusLabel.setText(ok ? "CONNECTED" : "FAILED");
-            ui.display(ok ? "DB connected successfully." : "DB connection failed.");
-        } catch (Exception ex) {
-            dbStatusLabel.setText("FAILED");
-            ui.display("DB error: " + ex.getMessage());
-        }
-    }
-
-    @FXML
-    private void onClearLog(ActionEvent e) {
-        logArea.clear();
-    }
-
-    @FXML
-    private void onExit(ActionEvent e) {
-        onStop(null);
-        System.exit(0);
-    }
-
-    private void refreshHostInfo() {
-        try {
-            InetAddress local = InetAddress.getLocalHost();
-            ipLabel.setText("IP: " + local.getHostAddress());
-            hostLabel.setText("Host: " + local.getHostName());
-        } catch (Exception ex) {
-            ipLabel.setText("IP: -");
-            hostLabel.setText("Host: -");
-        }
-    }
-
-    private void setClientsCount(int count) {
-        clientsLabel.setText("Clients connected: " + count);
-    }
+			startBtn.setDisable(false);
+			stopBtn.setDisable(true);
+			portField.setDisable(false);
+		}
+	}
 }
