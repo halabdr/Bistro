@@ -17,7 +17,7 @@ public class MySQLConnectionPool {
 
     private static MySQLConnectionPool instance;
     
-    // Database Configuration,set dynamically from GUI
+    // Database Configuration - pass set dynamically from GUI
     private static String DB_HOST = "localhost";
     private static String DB_PORT = "3306";
     private static String DB_USER = "root";
@@ -46,11 +46,34 @@ public class MySQLConnectionPool {
         DB_PORT = port;
         DB_USER = user;
         DB_PASS = password;
-        DB_URL = "jdbc:mysql://" + DB_HOST + ":" + DB_PORT +  "/bistrorestaurant?serverTimezone=Asia/Jerusalem";
+        DB_URL = "jdbc:mysql://" + DB_HOST + ":" + DB_PORT + 
+                 "/bistrorestaurant?serverTimezone=Asia/Jerusalem";
         
         System.out.println("[Pool] Database credentials configured:");
         System.out.println("[Pool] Host: " + DB_HOST + ":" + DB_PORT);
         System.out.println("[Pool] User: " + DB_USER);
+    }
+
+    /**
+     * Tests the database connection with current credentials.
+     * 
+     * @return true if connection successful, false otherwise
+     */
+    public static boolean testConnection() {
+        try {
+            if (DB_URL == null) {
+                DB_URL = "jdbc:mysql://" + DB_HOST + ":" + DB_PORT + 
+                         "/bistrorestaurant?serverTimezone=Asia/Jerusalem";
+            }
+            java.sql.Connection testConn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+            testConn.close();
+            System.out.println("[Pool] Database connection test: SUCCESS");
+            return true;
+        } catch (SQLException e) {
+            System.err.println("[Pool] Database connection test: FAILED");
+            System.err.println("[Pool] Error: " + e.getMessage());
+            return false;
+        }
     }
 
     /**

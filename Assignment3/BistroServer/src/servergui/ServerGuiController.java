@@ -65,7 +65,6 @@ public class ServerGuiController {
 		String dbPassword = dbPasswordField.getText().trim();
 		if (dbPassword.isEmpty()) {
 			ui.display("ERROR: Please enter database password");
-			showAlert("Database Error", "Please enter the database password before starting the server.");
 			return;
 		}
 
@@ -78,16 +77,29 @@ public class ServerGuiController {
 			// Set DB credentials in connection pool before starting server
 			MySQLConnectionPool.setDatabaseCredentials(dbHost, dbPort, dbUser, dbPassword);
 			ui.display("Database credentials configured.");
+			
+			// TEST DATABASE CONNECTION
+			ui.display("Testing database connection...");
+			if (!MySQLConnectionPool.testConnection()) {
+				
+				ui.display("ERROR: Failed to connect to database!");
+				
+				
+				ui.display("Please verify your password and try again.");
+				return;
+			}
+			ui.display("Database connection successful!");
 
 			server = new BistroServer(port);
 			server.setUI(ui, this::setClientsCount);
 			server.listen();
 
 			serverStatusLabel.setText("ONLINE");
-			serverStatusLabel.getStyleClass().remove("status-offline");
-			serverStatusLabel.getStyleClass().add("status-online");
+			serverStatusLabel.getStyleClass().clear();
+			serverStatusLabel.getStyleClass().add("status-online-compact");
 
-			portLabel.setText("Port: " + port);
+			portLabel.setText(String.valueOf(port));
+			clientsLabel.setText("0");
 
 			startBtn.setDisable(true);
 			stopBtn.setDisable(false);
@@ -101,7 +113,6 @@ public class ServerGuiController {
 		} catch (Exception ex) {
 			ui.display("ERROR: Failed to start server - " + ex.getMessage());
 			ex.printStackTrace();
-			showAlert("Server Error", "Failed to start server: " + ex.getMessage());
 		}
 	}
 
@@ -137,11 +148,11 @@ public class ServerGuiController {
 	private void refreshHostInfo() {
 		try {
 			InetAddress local = InetAddress.getLocalHost();
-			ipLabel.setText("IP: " + local.getHostAddress());
-			hostLabel.setText("Host: localhost");
+			ipLabel.setText(local.getHostAddress());
+			hostLabel.setText("localhost");
 		} catch (Exception ex) {
-			ipLabel.setText("IP: Unknown");
-			hostLabel.setText("Host: localhost");
+			ipLabel.setText("Unknown");
+			hostLabel.setText("localhost");
 		}
 	}
 
@@ -151,7 +162,7 @@ public class ServerGuiController {
 	 */
 	private void setClientsCount(int count) {
 		javafx.application.Platform.runLater(() -> {
-			clientsLabel.setText("Connected Clients: " + count);
+			clientsLabel.setText(String.valueOf(count));
 		});
 	}
 
@@ -168,26 +179,15 @@ public class ServerGuiController {
 			ui.display("ERROR: Failed to stop server - " + ex.getMessage());
 		} finally {
 			serverStatusLabel.setText("OFFLINE");
-			serverStatusLabel.getStyleClass().remove("status-online");
-			serverStatusLabel.getStyleClass().add("status-offline");
+			serverStatusLabel.getStyleClass().clear();
+			serverStatusLabel.getStyleClass().add("status-offline-compact");
 
-			portLabel.setText("Port: -");
-			clientsLabel.setText("Connected Clients: 0");
+			portLabel.setText("-");
+			clientsLabel.setText("0");
 
 			startBtn.setDisable(false);
 			stopBtn.setDisable(true);
 			dbPasswordField.setDisable(false);
 		}
-	}
-
-	/**
-	 * Shows an alert dialog to the user.
-	 */
-	private void showAlert(String title, String message) {
-		Alert alert = new Alert(Alert.AlertType.WARNING);
-		alert.setTitle(title);
-		alert.setHeaderText(null);
-		alert.setContentText(message);
-		alert.showAndWait();
 	}
 }

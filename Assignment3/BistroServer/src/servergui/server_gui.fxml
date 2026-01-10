@@ -7,7 +7,7 @@
 <BorderPane xmlns="http://javafx.com/javafx"
 	xmlns:fx="http://javafx.com/fxml"
 	fx:controller="servergui.ServerGuiController" prefWidth="900"
-	prefHeight="750" styleClass="root">
+	prefHeight="550" styleClass="root">
 
 	<!-- Header -->
 	<top>
@@ -18,99 +18,125 @@
 	</top>
 
 	<center>
-		<VBox spacing="15" styleClass="content-area">
+		<VBox spacing="10" styleClass="content-area" VBox.vgrow="ALWAYS">
 			<padding>
-				<Insets top="20" right="20" bottom="20" left="20" />
+				<Insets top="10" right="15" bottom="10" left="15" />
 			</padding>
 
-			<!-- Database Configuration -->
-			<VBox spacing="12" styleClass="card">
-				<Label text="Database Configuration" styleClass="section-title" />
+			<!-- Top Section - Three Columns in One Row -->
+			<HBox spacing="12" VBox.vgrow="NEVER">
+				
+				<!-- Database Configuration -->
+				<VBox spacing="6" styleClass="card-compact" HBox.hgrow="ALWAYS">
+					<Label text="Database Configuration" styleClass="section-title-small" />
 
-				<GridPane hgap="15" vgap="12">
-					<Label text="DB Host:" styleClass="field-label"
-						GridPane.rowIndex="0" GridPane.columnIndex="0" />
-					<TextField fx:id="dbHostField" text="localhost" 
-						prefWidth="150" editable="false" styleClass="port-field"
-						GridPane.rowIndex="0" GridPane.columnIndex="1" />
+					<GridPane hgap="6" vgap="6">
+						<Label text="Host:" styleClass="field-label-tiny"
+							GridPane.rowIndex="0" GridPane.columnIndex="0" />
+						<TextField fx:id="dbHostField" text="localhost" 
+							prefWidth="90" editable="false" styleClass="port-field-compact"
+							GridPane.rowIndex="0" GridPane.columnIndex="1" />
 
-					<Label text="DB Port:" styleClass="field-label"
-						GridPane.rowIndex="0" GridPane.columnIndex="2" />
-					<TextField fx:id="dbPortField" text="3306" 
-						prefWidth="100" editable="false" styleClass="port-field"
-						GridPane.rowIndex="0" GridPane.columnIndex="3" />
+						<Label text="Port:" styleClass="field-label-tiny"
+							GridPane.rowIndex="1" GridPane.columnIndex="0" />
+						<TextField fx:id="dbPortField" text="3306" 
+							prefWidth="90" editable="false" styleClass="port-field-compact"
+							GridPane.rowIndex="1" GridPane.columnIndex="1" />
 
-					<Label text="DB User:" styleClass="field-label"
-						GridPane.rowIndex="1" GridPane.columnIndex="0" />
-					<TextField fx:id="dbUserField" text="root" 
-						prefWidth="150" editable="false" styleClass="port-field"
-						GridPane.rowIndex="1" GridPane.columnIndex="1" />
+						<Label text="User:" styleClass="field-label-tiny"
+							GridPane.rowIndex="2" GridPane.columnIndex="0" />
+						<TextField fx:id="dbUserField" text="root" 
+							prefWidth="90" editable="false" styleClass="port-field-compact"
+							GridPane.rowIndex="2" GridPane.columnIndex="1" />
 
-					<Label text="DB Password:" styleClass="field-label"
-						GridPane.rowIndex="1" GridPane.columnIndex="2" />
-					<PasswordField fx:id="dbPasswordField" 
-						promptText="Enter password" prefWidth="150"
-						GridPane.rowIndex="1" GridPane.columnIndex="3" />
-				</GridPane>
-			</VBox>
+						<Label text="Password:" styleClass="field-label-tiny"
+							GridPane.rowIndex="3" GridPane.columnIndex="0" />
+						<PasswordField fx:id="dbPasswordField" 
+							promptText="Enter password" prefWidth="150"
+							styleClass="password-field-compact"
+							GridPane.rowIndex="3" GridPane.columnIndex="1" />
+					</GridPane>
+				</VBox>
 
-			<!-- Server Control Panel -->
-			<VBox spacing="12" styleClass="card">
-				<Label text="Server Control" styleClass="section-title" />
+				<!-- Server Control Panel -->
+				<VBox spacing="6" styleClass="card-compact" HBox.hgrow="ALWAYS">
+					<Label text="Server Control" styleClass="section-title-small" />
 
-				<HBox spacing="15" alignment="CENTER_LEFT">
-					<Label text="Port:" styleClass="field-label" />
-					<TextField fx:id="portField" text="5555" prefWidth="100"
-						editable="false" styleClass="port-field-disabled" />
+					<GridPane hgap="6" vgap="8">
+						<Label text="Port:" styleClass="field-label-tiny"
+							GridPane.rowIndex="0" GridPane.columnIndex="0" />
+						<TextField fx:id="portField" text="5555" prefWidth="70"
+							editable="false" styleClass="port-field-disabled-compact"
+							GridPane.rowIndex="0" GridPane.columnIndex="1" />
+						
+						<Button fx:id="startBtn" text="Start Server"
+							onAction="#onStart" styleClass="btn-start-compact" 
+							prefWidth="140" prefHeight="35"
+							GridPane.rowIndex="1" GridPane.columnIndex="0"
+							GridPane.columnSpan="2" />
+						
+						<Button fx:id="stopBtn" text="Stop Server"
+							onAction="#onStop" disable="true" styleClass="btn-stop-compact"
+							prefWidth="140" prefHeight="35"
+							GridPane.rowIndex="2" GridPane.columnIndex="0"
+							GridPane.columnSpan="2" />
+						
+						<Label text="Status:" styleClass="field-label-tiny"
+							GridPane.rowIndex="3" GridPane.columnIndex="0" />
+						<Label fx:id="serverStatusLabel" text="OFFLINE"
+							styleClass="status-offline-compact"
+							GridPane.rowIndex="3" GridPane.columnIndex="1" />
+					</GridPane>
+				</VBox>
 
-					<Button fx:id="startBtn" text="Start Server"
-						onAction="#onStart" styleClass="btn-start" />
-					<Button fx:id="stopBtn" text="Stop Server"
-						onAction="#onStop" disable="true" styleClass="btn-stop" />
+				<!-- Server Information -->
+				<VBox spacing="6" styleClass="card-compact" HBox.hgrow="ALWAYS">
+					<Label text="Server Information" styleClass="section-title-small" />
 
-					<Region HBox.hgrow="ALWAYS" />
+					<GridPane hgap="8" vgap="6">
+						<Label text="IP Address:" styleClass="field-label-tiny"
+							GridPane.rowIndex="0" GridPane.columnIndex="0" />
+						<Label fx:id="ipLabel" text="-" styleClass="info-value-compact"
+							GridPane.rowIndex="0" GridPane.columnIndex="1" />
 
-					<Label text="Status:" styleClass="field-label" />
-					<Label fx:id="serverStatusLabel" text="OFFLINE"
-						styleClass="status-offline" />
-				</HBox>
-			</VBox>
+						<Label text="Hostname:" styleClass="field-label-tiny"
+							GridPane.rowIndex="1" GridPane.columnIndex="0" />
+						<Label fx:id="hostLabel" text="localhost"
+							styleClass="info-value-compact"
+							GridPane.rowIndex="1" GridPane.columnIndex="1" />
 
-			<!-- Server Information -->
-			<VBox spacing="12" styleClass="card">
-				<Label text="Server Information" styleClass="section-title" />
+						<Label text="Server Port:" styleClass="field-label-tiny"
+							GridPane.rowIndex="2" GridPane.columnIndex="0" />
+						<Label fx:id="portLabel" text="-"
+							styleClass="info-value-compact"
+							GridPane.rowIndex="2" GridPane.columnIndex="1" />
 
-				<GridPane hgap="20" vgap="10">
-					<Label fx:id="ipLabel" text="IP: -" styleClass="info-label"
-						GridPane.rowIndex="0" GridPane.columnIndex="0" />
-					<Label fx:id="hostLabel" text="Host: localhost"
-						styleClass="info-label" GridPane.rowIndex="0"
-						GridPane.columnIndex="1" />
-					<Label fx:id="portLabel" text="Port: -"
-						styleClass="info-label" GridPane.rowIndex="1"
-						GridPane.columnIndex="0" />
-					<Label fx:id="clientsLabel" text="Connected Clients: 0"
-						styleClass="info-label" GridPane.rowIndex="1"
-						GridPane.columnIndex="1" />
-				</GridPane>
-			</VBox>
+						<Label text="Active Clients:" styleClass="field-label-tiny"
+							GridPane.rowIndex="3" GridPane.columnIndex="0" />
+						<Label fx:id="clientsLabel" text="0"
+							styleClass="info-value-compact"
+							GridPane.rowIndex="3" GridPane.columnIndex="1" />
+					</GridPane>
+				</VBox>
 
-			<!-- Activity Log -->
-			<VBox spacing="12" styleClass="card" VBox.vgrow="ALWAYS">
+			</HBox>
+
+			<!-- Activity Log - Takes Most Space -->
+			<VBox spacing="8" styleClass="card-compact" VBox.vgrow="ALWAYS">
 				<HBox spacing="10" alignment="CENTER_LEFT">
-					<Label text="Activity Log" styleClass="section-title" />
+					<Label text="Activity Log" styleClass="section-title-small" />
 					<Region HBox.hgrow="ALWAYS" />
 					<Button text="Clear Log" onAction="#onClearLog"
-						styleClass="btn-clear" />
+						styleClass="btn-clear-compact" />
 				</HBox>
 
-				<TextArea fx:id="logArea" prefHeight="200" editable="false"
+				<TextArea fx:id="logArea" editable="false"
 					wrapText="true" styleClass="log-area" VBox.vgrow="ALWAYS" />
 			</VBox>
 
 			<!-- Exit Button -->
 			<HBox alignment="CENTER_RIGHT">
-				<Button text="Exit" onAction="#onExit" styleClass="btn-exit" />
+				<Button text="Exit" onAction="#onExit" styleClass="btn-exit-compact" />
 			</HBox>
 
 		</VBox>
