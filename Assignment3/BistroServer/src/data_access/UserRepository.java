@@ -1,12 +1,10 @@
 package data_access;
-
 import connection.MySQLConnectionPool;
 import connection.PooledConnection;
 import common.Message;
 import entities.User;
 import entities.Subscriber;
 import entities.Representative;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
