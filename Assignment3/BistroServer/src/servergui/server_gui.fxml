@@ -30,7 +30,7 @@
 				<HBox spacing="15" alignment="CENTER_LEFT">
 					<Label text="Port:" styleClass="field-label" />
 					<TextField fx:id="portField" prefWidth="100"
-						promptText="5555" styleClass="port-field" />
+						promptText="5555" styleClass="port-field" editable="false"/>
 
 					<Button fx:id="startBtn" text="Start Server"
 						onAction="#onStart" styleClass="btn-start" />

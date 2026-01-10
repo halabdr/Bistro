@@ -67,7 +67,7 @@ public class ServerGuiController {
 
 			startBtn.setDisable(true);
 			stopBtn.setDisable(false);
-			portField.setDisable(true);
+			
 
 			ui.display("Server started successfully on port " + port);
 			ui.display("Listening for client connections...");
@@ -151,7 +151,7 @@ public class ServerGuiController {
 
 			startBtn.setDisable(false);
 			stopBtn.setDisable(true);
-			portField.setDisable(false);
+			
 		}
 	}
 }
