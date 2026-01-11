@@ -63,6 +63,18 @@ public final class ConnectApp {
 
         primaryStage.setScene(scene);
     }
+    
+    public static void showReservationSearch() throws Exception {
+        FXMLLoader loader = new FXMLLoader(
+                ConnectApp.class.getResource("/reservationgui/ReservationSearch.fxml")
+        );
+        Scene scene = new Scene(loader.load());
+
+        reservationgui.ReservationSearchController c = loader.getController();
+        c.init(controller);
+
+        primaryStage.setScene(scene);
+    }
 
     public static void showCreateReservation(LocalDate date, String hhmm, int guests) throws Exception {
         FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/reservationgui/CreateReservation.fxml"));
@@ -74,8 +86,16 @@ public final class ConnectApp {
         primaryStage.setScene(scene);
     }
 
+    public static void showLostCode() throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/subscribergui/LostCode.fxml"));
+        Scene scene = new Scene(loader.load());
 
-    // -------- Terminal --------
+        subscribergui.LostCodeController c = loader.getController();
+        c.init(controller);
+
+        primaryStage.setScene(scene);
+    }
+
     public static void showTerminalSeatByCode() throws Exception {
         FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/terminalgui/SeatByCode.fxml"));
         Scene scene = new Scene(loader.load());

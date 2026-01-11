@@ -1,27 +1,87 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
-<VBox spacing="12" alignment="CENTER"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:controller="clientgui.ConnectController"
-      stylesheets="@connect.css">
+<StackPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="clientgui.ConnectController">
 
-    <HBox spacing="8">
-        <Label text="Host:"/>
-        <TextField fx:id="hostField" text="localhost"/>
-    </HBox>
+    <!-- Background -->
+    <StackPane style="-fx-background-color: linear-gradient(to bottom right, #0f172a, #1e293b);">
+        <children>
 
-    <HBox spacing="8">
-        <Label text="Port:"/>
-        <TextField fx:id="portField" text="5555"/>
-    </HBox>
+            <!-- Center Card -->
+            <VBox alignment="CENTER" spacing="16"
+                  maxWidth="420"
+                  style="-fx-background-color: rgba(255,255,255,0.08);
+                         -fx-background-radius: 18;
+                         -fx-border-radius: 18;
+                         -fx-border-color: rgba(255,255,255,0.18);
+                         -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 18, 0.2, 0, 8);">
 
-    <HBox spacing="10">
-        <Button fx:id="connectBtn" text="Connect" onAction="#onConnect"/>
-        <Button fx:id="disconnectBtn" text="Disconnect" onAction="#onDisconnect"/>
-    </HBox>
+                <padding>
+                    <Insets top="24" right="24" bottom="24" left="24"/>
+                </padding>
 
-    <Label fx:id="statusLabel" text="Not connected"/>
-</VBox>
+                <!-- Logo / Title -->
+                <VBox alignment="CENTER" spacing="6">
+                    <Label text="Bistro" style="-fx-text-fill: white; -fx-font-size: 28px; -fx-font-weight: bold;"/>
+                    <Label text="Connect to Server" style="-fx-text-fill: rgba(255,255,255,0.75); -fx-font-size: 13px;"/>
+                </VBox>
+
+                <!-- IP -->
+                <VBox spacing="6" alignment="CENTER_LEFT">
+                    <Label text="Server IP" style="-fx-text-fill: rgba(255,255,255,0.85); -fx-font-size: 12px;"/>
+                    <TextField fx:id="hostField" promptText="e.g. 127.0.0.1"
+                               style="-fx-background-radius: 10;
+                                      -fx-border-radius: 10;
+                                      -fx-background-color: rgba(255,255,255,0.12);
+                                      -fx-border-color: rgba(255,255,255,0.18);
+                                      -fx-text-fill: white;
+                                      -fx-prompt-text-fill: rgba(255,255,255,0.55);
+                                      -fx-padding: 10;"/>
+                </VBox>
+
+                <!-- Port -->
+                <VBox spacing="6" alignment="CENTER_LEFT">
+                    <Label text="Port" style="-fx-text-fill: rgba(255,255,255,0.85); -fx-font-size: 12px;"/>
+                    <TextField fx:id="portField" promptText="e.g. 5555"
+                               style="-fx-background-radius: 10;
+                                      -fx-border-radius: 10;
+                                      -fx-background-color: rgba(255,255,255,0.12);
+                                      -fx-border-color: rgba(255,255,255,0.18);
+                                      -fx-text-fill: white;
+                                      -fx-prompt-text-fill: rgba(255,255,255,0.55);
+                                      -fx-padding: 10;"/>
+                </VBox>
+
+                <!-- Buttons -->
+                <HBox spacing="12" alignment="CENTER">
+                    <Button text="Connect" onAction="#onConnect"
+                            style="-fx-background-radius: 10;
+                                   -fx-font-size: 14px;
+                                   -fx-font-weight: bold;
+                                   -fx-padding: 10 26;
+                                   -fx-background-color: #22c55e;
+                                   -fx-text-fill: #06210f;"/>
+
+                    <Button text="Exit" onAction="#onExit"
+                            style="-fx-background-radius: 10;
+                                   -fx-font-size: 14px;
+                                   -fx-padding: 10 22;
+                                   -fx-background-color: rgba(255,255,255,0.14);
+                                   -fx-text-fill: white;"/>
+                </HBox>
+
+                <!-- Status -->
+                <Label fx:id="statusLabel" text=""
+                       style="-fx-text-fill: #fca5a5; -fx-font-size: 12px;"/>
+            </VBox>
+
+        </children>
+    </StackPane>
+
+</StackPane>

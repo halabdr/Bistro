@@ -1,15 +1,20 @@
-package customergui;
+package subscribergui;
 
 import client.ClientController;
+import client.Commands;
 import client.MessageListener;
 import clientgui.ConnectApp;
 import common.Message;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 
 import java.io.IOException;
 
+/**
+ * Controller for cancelling an existing reservation using its confirmation code.
+ */
 public class CancelReservationController implements MessageListener {
 
     @FXML private TextField codeField;
@@ -17,15 +22,23 @@ public class CancelReservationController implements MessageListener {
 
     private ClientController controller;
 
+    /**
+     * Initializes the screen with a connected {@link ClientController}.
+     *
+     * @param controller connected client controller
+     */
     public void init(ClientController controller) {
         this.controller = controller;
         this.controller.setListener(this);
         resultLabel.setText("");
     }
 
+    /**
+     * Sends CANCEL_RESERVATION request to the server.
+     */
     @FXML
     public void onCancel() {
-        String code = codeField.getText().trim();
+        String code = codeField.getText() == null ? "" : codeField.getText().trim();
         if (code.isEmpty()) {
             resultLabel.setText("Enter confirmation code");
             return;
@@ -39,6 +52,9 @@ public class CancelReservationController implements MessageListener {
         }
     }
 
+    /**
+     * Navigates back to the customer menu.
+     */
     @FXML
     public void onBack() {
         try {
@@ -49,12 +65,14 @@ public class CancelReservationController implements MessageListener {
     }
 
     @Override
-    public void onMessage(Object msg) {
-        Platform.runLater(() -> {
-            if (!(msg instanceof Message m)) return;
-            if (!"CANCEL_RESERVATION".equals(m.getCommand())) return;
+    public void onMessage(Message m) {
+        if (m == null) return;
+        if (!Commands.CANCEL_RESERVATION.equals(m.getCommand())) return;
 
-            resultLabel.setText(m.isSuccess() ? String.valueOf(m.getData()) : ("Error: " + m.getError()));
-        });
+        Platform.runLater(() ->
+                resultLabel.setText(m.isSuccess()
+                        ? String.valueOf(m.getData())
+                        : ("Error: " + m.getError()))
+        );
     }
 }

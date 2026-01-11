@@ -8,45 +8,46 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/BistroCommon"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/OCSF"/>
-	<classpathentry kind="lib" path="C:/Users/adham/Downloads/openjfx-21.0.9_windows-x64_bin-sdk/javafx-sdk-21.0.9/lib/javafx.base.jar">
+	<classpathentry kind="lib" path="C:/Users/User/OneDrive - ort braude college of engineering/Desktop/שיטות הנדסיות/javafx-sdk-21.0.9/lib/javafx.base.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/adham/Downloads/openjfx-21.0.9_windows-x64_bin-sdk/javafx-sdk-21.0.9/lib/javafx.controls.jar">
+	<classpathentry kind="lib" path="C:/Users/User/OneDrive - ort braude college of engineering/Desktop/שיטות הנדסיות/javafx-sdk-21.0.9/lib/javafx.controls.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/adham/Downloads/openjfx-21.0.9_windows-x64_bin-sdk/javafx-sdk-21.0.9/lib/javafx.fxml.jar">
+	<classpathentry kind="lib" path="C:/Users/User/OneDrive - ort braude college of engineering/Desktop/שיטות הנדסיות/javafx-sdk-21.0.9/lib/javafx.fxml.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/adham/Downloads/openjfx-21.0.9_windows-x64_bin-sdk/javafx-sdk-21.0.9/lib/javafx.graphics.jar">
+	<classpathentry kind="lib" path="C:/Users/User/OneDrive - ort braude college of engineering/Desktop/שיטות הנדסיות/javafx-sdk-21.0.9/lib/javafx.graphics.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/adham/Downloads/openjfx-21.0.9_windows-x64_bin-sdk/javafx-sdk-21.0.9/lib/javafx.media.jar">
+	<classpathentry kind="lib" path="C:/Users/User/OneDrive - ort braude college of engineering/Desktop/שיטות הנדסיות/javafx-sdk-21.0.9/lib/javafx.media.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/adham/Downloads/openjfx-21.0.9_windows-x64_bin-sdk/javafx-sdk-21.0.9/lib/javafx.swing.jar">
+	<classpathentry kind="lib" path="C:/Users/User/OneDrive - ort braude college of engineering/Desktop/שיטות הנדסיות/javafx-sdk-21.0.9/lib/javafx.swing.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/adham/Downloads/openjfx-21.0.9_windows-x64_bin-sdk/javafx-sdk-21.0.9/lib/javafx.web.jar">
+	<classpathentry kind="lib" path="C:/Users/User/OneDrive - ort braude college of engineering/Desktop/שיטות הנדסיות/javafx-sdk-21.0.9/lib/javafx.web.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/adham/Downloads/openjfx-21.0.9_windows-x64_bin-sdk/javafx-sdk-21.0.9/lib/javafx-swt.jar">
+	<classpathentry kind="lib" path="C:/Users/User/OneDrive - ort braude college of engineering/Desktop/שיטות הנדסיות/javafx-sdk-21.0.9/lib/javafx-swt.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/User/Downloads/Ex-03-WorkbenchJDBC/Ex-03-WorkbenchJDBC/jdbc/lib/mysql-connector-j-9.5.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

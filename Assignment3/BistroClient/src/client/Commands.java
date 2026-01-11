@@ -1,13 +1,20 @@
 package client;
 
-public final class commands {
-    private commands() {}
+/**
+ * Centralized list of protocol command names used by the client and server.
+ * Keep these values identical to the server-side switch(command) cases.
+ */
+public final class Commands {
+    
+	private Commands() {}
 
     // User
     public static final String LOGIN = "LOGIN";
     public static final String REGISTER_SUBSCRIBER = "REGISTER_SUBSCRIBER";
     public static final String GET_USER = "GET_USER";
     public static final String UPDATE_USER = "UPDATE_USER";
+    public static final String LOST_CODE = "LOST_CODE";
+
 
     // Reservation
     public static final String GET_AVAILABLE_SLOTS = "GET_AVAILABLE_SLOTS";
@@ -29,6 +36,7 @@ public final class commands {
     public static final String DELETE_TABLE = "DELETE_TABLE";
     public static final String OCCUPY_TABLE = "OCCUPY_TABLE";
     public static final String RELEASE_TABLE = "RELEASE_TABLE";
+    public static final String SEAT_BY_CODE = "SEAT_BY_CODE";
 
     // Bills
     public static final String CREATE_BILL = "CREATE_BILL";

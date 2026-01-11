@@ -1,55 +1,94 @@
 package subscribergui;
 
 import client.ClientController;
-import client.commands;
+import client.Commands;
+import client.MessageListener;
 import clientgui.ConnectApp;
 import common.Message;
-import entities.Bill;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
-public class PayBillController {
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.Map;
 
-    @FXML private TextField tableField;
-    @FXML private TextField subscriberField;
+/**
+ * Controller for paying a bill.
+ * Sends a command PAY_BILL request with code billNumber.
+ * The server expects a map containing only:
+ *   code billNumber
+ * and returns a response map with fields:
+ * code billNumber, totalPrice, discountValue, finalAmount, message.
+ */
+public class PayBillController implements MessageListener {
+
+    /** Input field for the bill number. */
+    @FXML private TextField billNumber;
+
+    /** Label for status messages. */
     @FXML private Label statusLabel;
+
+    /** Label for displaying payment details/result. */
     @FXML private Label resultLabel;
 
+    /** Shared client controller. */
     private ClientController controller;
 
+    /**
+     * Initializes the controller with the shared ClientController
+     * and registers this screen as the active message listener.
+     *
+     * @param controller shared client controller
+     */
     public void init(ClientController controller) {
         this.controller = controller;
-        this.controller.setMessageListener(this::onMessage);
+        this.controller.setListener(this);
         statusLabel.setText("");
         resultLabel.setText("");
     }
 
+    /**
+     * Handles the Pay action.
+     * Validates bill number and sends command PAY_BILL to the server.
+     */
     @FXML
     private void onPay() {
         try {
-            String tableTxt = tableField.getText() == null ? "" : tableField.getText().trim();
-            if (tableTxt.isEmpty()) {
-                statusLabel.setText("Please enter table number.");
+            String billTxt = billNumber.getText() == null ? "" : billNumber.getText().trim();
+            if (billTxt.isEmpty()) {
+                statusLabel.setText("Please enter bill number.");
                 return;
             }
-            int tableNumber = Integer.parseInt(tableTxt);
 
-            String sn = subscriberField.getText() == null ? "" : subscriberField.getText().trim();
+            int billNumber = Integer.parseInt(billTxt);
 
             resultLabel.setText("");
             statusLabel.setText("Paying...");
-            controller.payBill(tableNumber, sn);
+
+            // Server expects only billNumber
+            controller.payBill(billNumber);
+
         } catch (NumberFormatException e) {
-            statusLabel.setText("Table number must be a number.");
+            statusLabel.setText("Bill number must be a number.");
+        } catch (IOException e) {
+            statusLabel.setText("Failed: " + e.getMessage());
         } catch (Exception e) {
             statusLabel.setText("Error: " + e.getMessage());
         }
     }
 
-    private void onMessage(Message m) {
-        if (m == null || !commands.PAY_BILL.equals(m.getCommand())) return;
+    /**
+     * Receives server messages.
+     * Only handles responses for PAY_BILL.
+     *
+     * @param m message received from server
+     */
+    @Override
+    public void onMessage(Message m) {
+        if (m == null) return;
+        if (!Commands.PAY_BILL.equals(m.getCommand())) return;
 
         Platform.runLater(() -> {
             if (!m.isSuccess()) {
@@ -61,25 +100,40 @@ public class PayBillController {
 
             Object data = m.getData();
 
-            // If server returns Bill entity (recommended)
-            if (data instanceof Bill b) {
-                resultLabel.setText(
-                        "Bill #" + b.getBillNumber()
-                                + "\nTotal: " + b.getTotalPrice()
-                                + "\nDiscount: " + b.getDiscountValue()
-                                + "\nFinal: " + b.getFinalAmount()
-                                + "\nPayment date: " + b.getPaymentDate()
-                                + "\nTable: " + b.getTableNumber()
-                                + "\nSubscriber: " + b.getSubscriberNumber()
-                );
+            if (data instanceof Map<?, ?> map) {
+                resultLabel.setText(formatPayBillResponse(map));
                 return;
             }
 
-            // Otherwise show whatever server returns
             resultLabel.setText("Result: " + String.valueOf(data));
         });
     }
 
+    /**
+     * Formats the PAY_BILL response map returned by the server into readable text.
+     *
+     * @param map response data map
+     * @return formatted string for UI display
+     */
+    private String formatPayBillResponse(Map<?, ?> map) {
+        Object billNumber = map.get("billNumber");
+        Object total = map.get("totalPrice");
+        Object discount = map.get("discountValue");
+        Object finalAmount = map.get("finalAmount");
+        Object message = map.get("message");
+
+        return "Bill #" + String.valueOf(billNumber)
+                + "\nTotal: " + String.valueOf(total)
+                + "\nDiscount: " + String.valueOf(discount)
+                + "\nFinal: " + String.valueOf(finalAmount)
+                + "\nMessage: " + String.valueOf(message);
+    }
+
+    /**
+     * Navigates back to the customer menu.
+     *
+     * @throws Exception if navigation fails
+     */
     @FXML
     private void onBack() throws Exception {
         ConnectApp.showCustomerMenu();

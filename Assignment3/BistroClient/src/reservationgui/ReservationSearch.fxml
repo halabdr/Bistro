@@ -9,11 +9,11 @@
       fx:controller="reservationgui.ReservationSearchController"
       prefWidth="720" prefHeight="420">
 
-    <Label text="Find Available Dates & Times" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+    <Label text="Find Available Dates &amp; Times" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
 
     <HBox spacing="10" alignment="CENTER">
         <Label text="Start date:"/>
-        <DatePicker fx:id="startDatePicker"/>
+        <DatePicker fx:id="datePicker"/>
 
         <Label text="Days:"/>
         <Spinner fx:id="daysSpinner" prefWidth="90"/>
@@ -21,11 +21,11 @@
         <Label text="Diners:"/>
         <Spinner fx:id="dinersSpinner" prefWidth="90"/>
 
-        <Button fx:id="searchBtn" text="Search" onAction="#onSearch"/>
+        <Button text="Check" onAction="#onCheck"/>
         <Button text="Back" onAction="#onBack"/>
     </HBox>
 
-    <Label fx:id="statusLabel" text=""/>
+    <Label fx:id="resultLabel" text=""/>
 
     <HBox spacing="12" alignment="CENTER">
 
@@ -36,7 +36,7 @@
 
         <VBox spacing="8">
             <Label text="Available times"/>
-            <ListView fx:id="slotsList" prefWidth="360" prefHeight="260"/>
+            <ListView fx:id="timeList" prefWidth="360" prefHeight="260"/>
         </VBox>
 
     </HBox>

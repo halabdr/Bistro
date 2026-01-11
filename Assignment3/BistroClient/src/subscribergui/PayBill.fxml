@@ -12,7 +12,7 @@
 
     <HBox spacing="10">
         <Label text="Table number:"/>
-        <TextField fx:id="tableField" prefWidth="90"/>
+        <TextField fx:id="billNumber" prefWidth="90"/>
     </HBox>
 
     <HBox spacing="10">

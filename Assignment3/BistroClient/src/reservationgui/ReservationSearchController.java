@@ -1,6 +1,7 @@
 package reservationgui;
 
 import client.ClientController;
+import client.Commands;
 import client.MessageListener;
 import clientgui.ConnectApp;
 import common.Message;
@@ -15,18 +16,25 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+/**
+ * Controller for searching available reservation slots.
+ * Sends GET_AVAILABLE_SLOTS and displays the returned times.
+ */
 public class ReservationSearchController implements MessageListener {
 
     @FXML private DatePicker datePicker;
     @FXML private Spinner<Integer> dinersSpinner;
-    @FXML private Button checkBtn;
-    @FXML private Button backBtn;
     @FXML private Label resultLabel;
     @FXML private ListView<String> timesList;
 
     private ClientController controller;
     private final DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
 
+    /**
+     * Initializes this screen with a connected {@link ClientController}.
+     *
+     * @param controller connected client controller
+     */
     public void init(ClientController controller) {
         this.controller = controller;
         this.controller.setListener(this);
@@ -49,17 +57,23 @@ public class ReservationSearchController implements MessageListener {
         });
     }
 
+    /**
+     * Sends a GET_AVAILABLE_SLOTS request to the server.
+     */
     @FXML
     public void onCheck() {
         try {
             resultLabel.setText("Loading...");
             timesList.getItems().clear();
-            controller.requestAvailableSlots(datePicker.getValue(), dinersSpinner.getValue());
+            controller.getAvailableSlots(datePicker.getValue(), dinersSpinner.getValue());
         } catch (IOException e) {
             resultLabel.setText("Failed: " + e.getMessage());
         }
     }
 
+    /**
+     * Navigates back to the customer menu.
+     */
     @FXML
     public void onBack() {
         try {
@@ -70,11 +84,11 @@ public class ReservationSearchController implements MessageListener {
     }
 
     @Override
-    public void onMessage(Object msg) {
-        Platform.runLater(() -> {
-            if (!(msg instanceof Message m)) return;
-            if (!"GET_AVAILABLE_SLOTS".equals(m.getCommand())) return;
+    public void onMessage(Message m) {
+        if (m == null) return;
+        if (!Commands.GET_AVAILABLE_SLOTS.equals(m.getCommand())) return;
 
+        Platform.runLater(() -> {
             if (!m.isSuccess()) {
                 resultLabel.setText("Error: " + m.getError());
                 return;

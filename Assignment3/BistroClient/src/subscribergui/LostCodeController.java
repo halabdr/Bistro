@@ -1,7 +1,8 @@
 package subscribergui;
 
 import client.ClientController;
-import client.commands;
+import client.Commands;
+import client.MessageListener;
 import clientgui.ConnectApp;
 import common.Message;
 import javafx.application.Platform;
@@ -9,7 +10,13 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
-public class LostCodeController {
+import java.io.IOException;
+
+/**
+ * Controller for retrieving a reservation/confirmation code using an identifier
+ * such as an email address or phone number.
+ */
+public class LostCodeController implements MessageListener {
 
     @FXML private TextField identifierField;
     @FXML private Label statusLabel;
@@ -17,13 +24,23 @@ public class LostCodeController {
 
     private ClientController controller;
 
+    /**
+     * Initializes this screen with the shared ClientController instance
+     * and registers this controller as the active MessageListener.
+     *
+     * @param controller shared client controller
+     */
     public void init(ClientController controller) {
         this.controller = controller;
-        this.controller.setMessageListener(this::onMessage);
+        this.controller.setListener(this);
         statusLabel.setText("");
         resultLabel.setText("");
     }
 
+    /**
+     * Handles the Find button click.
+     * Sends a command LOST_CODE request to the server.
+     */
     @FXML
     private void onFind() {
         try {
@@ -32,16 +49,28 @@ public class LostCodeController {
                 statusLabel.setText("Please enter phone or email.");
                 return;
             }
+
             resultLabel.setText("");
             statusLabel.setText("Searching...");
-            controller.requestLostCode(id);
+
+            controller.lostCode(id);
+
+        } catch (IOException e) {
+            statusLabel.setText("Failed: " + e.getMessage());
         } catch (Exception e) {
             statusLabel.setText("Error: " + e.getMessage());
         }
     }
 
-    private void onMessage(Message m) {
-        if (m == null || !commands.LOST_CODE.equals(m.getCommand())) return;
+    /**
+     * Receives server responses for command LOST_CODE and updates the UI.
+     *
+     * @param m message received from the server
+     */
+    @Override
+    public void onMessage(Message m) {
+        if (m == null) return;
+        if (!Commands.LOST_CODE.equals(m.getCommand())) return;
 
         Platform.runLater(() -> {
             if (!m.isSuccess()) {
@@ -49,10 +78,15 @@ public class LostCodeController {
                 return;
             }
             statusLabel.setText("Done.");
-            resultLabel.setText("Your code: " + String.valueOf(m.getData()));
+            resultLabel.setText(String.valueOf(m.getData()));
         });
     }
 
+    /**
+     * Navigates back to the customer menu.
+     *
+     * @throws Exception if navigation fails
+     */
     @FXML
     private void onBack() throws Exception {
         ConnectApp.showCustomerMenu();

@@ -1,9 +1,8 @@
 package staffgui;
 
 import client.ClientController;
-import client.Commands;
 import client.MessageListener;
-import clientgui.ConnectApp;
+import client.Commands;
 import common.Message;
 import entities.OpeningHours;
 import entities.Reservation;
@@ -21,6 +20,11 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Controller for the Staff Dashboard screen.
+ * This dashboard supports staff actions such as:
+ * viewing reservations/waitlist, managing tables, and updating opening/special hours.
+ */
 public class StaffDashboardController implements MessageListener {
 
     @FXML private Label welcomeLabel;
@@ -63,16 +67,22 @@ public class StaffDashboardController implements MessageListener {
     private ClientController controller;
     private User staffUser;
 
+    /**
+     * Initializes the dashboard after successful staff login.
+     *
+     * @param controller connected client controller
+     * @param staffUser logged-in staff user
+     */
     public void init(ClientController controller, User staffUser) {
         this.controller = controller;
         this.staffUser = staffUser;
+
+        // Register for server responses
         this.controller.setListener(this);
 
         welcomeLabel.setText("Staff Dashboard - " + staffUser.getName() + " (" + staffUser.getUserRole() + ")");
-
         setupColumns();
 
-        // initial load
         refreshReservations();
         refreshWaitlist();
         refreshTables();
@@ -80,6 +90,9 @@ public class StaffDashboardController implements MessageListener {
         refreshSpecialHours();
     }
 
+    /**
+     * Maps entity fields to TableView columns.
+     */
     private void setupColumns() {
         // Reservations
         resCodeCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getConfirmationCode()));
@@ -99,31 +112,31 @@ public class StaffDashboardController implements MessageListener {
         tLocCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getTableLocation()));
         tStatusCol.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getTableStatus()));
 
-        // Hours
-        hDayCol.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getDayOfWeek()));
+        // OpeningHours (based on your entity)
+        hDayCol.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getWeekday()));
         hOpenCol.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getOpeningTime()));
         hCloseCol.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getClosingTime()));
 
-        // Special hours
+        // SpecialHours (based on your entity)
         sIdCol.setCellValueFactory(c -> new javafx.beans.property.SimpleIntegerProperty(c.getValue().getSpecialId()));
-        sDateCol.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getDate()));
+        sDateCol.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getSpecialDate()));
         sOpenCol.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getOpeningTime()));
         sCloseCol.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getClosingTime()));
     }
 
-    // ---------------- Navigation ----------------
-
+    /**
+     * Returns to the home screen.
+     */
     @FXML
     private void onLogout() {
         try {
-            ConnectApp.showHome();
+            clientgui.ConnectApp.showHome();
         } catch (Exception e) {
             showError("Logout failed: " + e.getMessage());
         }
     }
 
-    // ---------------- Refresh actions ----------------
-
+    /** Requests all reservations from the server. */
     @FXML
     public void refreshReservations() {
         try {
@@ -134,6 +147,7 @@ public class StaffDashboardController implements MessageListener {
         }
     }
 
+    /** Requests waitlist entries from the server. */
     @FXML
     public void refreshWaitlist() {
         try {
@@ -144,6 +158,7 @@ public class StaffDashboardController implements MessageListener {
         }
     }
 
+    /** Requests the list of tables from the server. */
     @FXML
     public void refreshTables() {
         try {
@@ -154,6 +169,7 @@ public class StaffDashboardController implements MessageListener {
         }
     }
 
+    /** Requests weekly opening hours from the server. */
     @FXML
     public void refreshOpeningHours() {
         try {
@@ -164,6 +180,7 @@ public class StaffDashboardController implements MessageListener {
         }
     }
 
+    /** Requests special hours list from the server. */
     @FXML
     public void refreshSpecialHours() {
         try {
@@ -174,8 +191,9 @@ public class StaffDashboardController implements MessageListener {
         }
     }
 
-    // ---------------- Tables CRUD ----------------
-
+    /**
+     * Opens a dialog and sends ADD_TABLE request.
+     */
     @FXML
     private void onAddTable() {
         Dialog<TableInput> d = new Dialog<>();
@@ -191,25 +209,22 @@ public class StaffDashboardController implements MessageListener {
         loc.setPromptText("Location");
 
         GridPane g = new GridPane();
-        g.setHgap(10); g.setVgap(10);
+        g.setHgap(10);
+        g.setVgap(10);
         g.addRow(0, new Label("Number:"), num);
         g.addRow(1, new Label("Seats:"), cap);
         g.addRow(2, new Label("Location:"), loc);
         d.getDialogPane().setContent(g);
 
-        d.setResultConverter(btn -> {
-            if (btn == ok) {
-                return new TableInput(num.getText().trim(), cap.getText().trim(), loc.getText().trim());
-            }
-            return null;
-        });
+        d.setResultConverter(btn -> (btn == ok)
+                ? new TableInput(num.getText().trim(), cap.getText().trim(), loc.getText().trim())
+                : null);
 
-        Optional<TableInput> r = d.showAndWait();
-        r.ifPresent(in -> {
+        d.showAndWait().ifPresent(in -> {
             try {
-                int n = Integer.parseInt(in.number);
-                int c = Integer.parseInt(in.capacity);
-                controller.addTable(n, c, in.location);
+                int n = Integer.parseInt(in.number());
+                int c = Integer.parseInt(in.capacity());
+                controller.addTable(n, c, in.location());
                 status("Adding table...");
             } catch (Exception e) {
                 showError("Add failed: " + e.getMessage());
@@ -217,6 +232,9 @@ public class StaffDashboardController implements MessageListener {
         });
     }
 
+    /**
+     * Updates the selected table and sends UPDATE_TABLE request.
+     */
     @FXML
     private void onUpdateTable() {
         Table sel = tablesTable.getSelectionModel().getSelectedItem();
@@ -234,21 +252,21 @@ public class StaffDashboardController implements MessageListener {
         TextField loc = new TextField(sel.getTableLocation());
 
         GridPane g = new GridPane();
-        g.setHgap(10); g.setVgap(10);
+        g.setHgap(10);
+        g.setVgap(10);
         g.addRow(0, new Label("Table #:"), new Label(String.valueOf(sel.getTableNumber())));
         g.addRow(1, new Label("Seats:"), cap);
         g.addRow(2, new Label("Location:"), loc);
         d.getDialogPane().setContent(g);
 
-        d.setResultConverter(btn -> {
-            if (btn == ok) return new TableInput(String.valueOf(sel.getTableNumber()), cap.getText().trim(), loc.getText().trim());
-            return null;
-        });
+        d.setResultConverter(btn -> (btn == ok)
+                ? new TableInput(String.valueOf(sel.getTableNumber()), cap.getText().trim(), loc.getText().trim())
+                : null);
 
         d.showAndWait().ifPresent(in -> {
             try {
-                sel.setSeatCapacity(Integer.parseInt(in.capacity));
-                sel.setTableLocation(in.location);
+                sel.setSeatCapacity(Integer.parseInt(in.capacity()));
+                sel.setTableLocation(in.location());
                 controller.updateTable(sel);
                 status("Updating table...");
             } catch (Exception e) {
@@ -257,6 +275,9 @@ public class StaffDashboardController implements MessageListener {
         });
     }
 
+    /**
+     * Sends DELETE_TABLE request for the selected table.
+     */
     @FXML
     private void onDeleteTable() {
         Table sel = tablesTable.getSelectionModel().getSelectedItem();
@@ -269,6 +290,7 @@ public class StaffDashboardController implements MessageListener {
         a.setTitle("Delete Table");
         a.setHeaderText(null);
         a.setContentText("Delete table #" + sel.getTableNumber() + "?");
+
         a.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
                 try {
@@ -281,17 +303,18 @@ public class StaffDashboardController implements MessageListener {
         });
     }
 
-    private static class TableInput {
-        final String number;
-        final String capacity;
-        final String location;
-        TableInput(String number, String capacity, String location) {
-            this.number = number; this.capacity = capacity; this.location = location;
-        }
-    }
-
-    // ---------------- Opening hours update ----------------
-
+    /**
+     * Small value object used by table add/update dialogs.
+     *
+     * @param number table number
+     * @param capacity seat capacity
+     * @param location table location
+     */
+    private record TableInput(String number, String capacity, String location) { }
+    
+    /**
+     * Updates opening/closing time for the selected weekday and sends UPDATE_OPENING_HOURS request.
+     */
     @FXML
     private void onUpdateOpeningHours() {
         OpeningHours sel = hoursTable.getSelectionModel().getSelectedItem();
@@ -324,8 +347,9 @@ public class StaffDashboardController implements MessageListener {
         }
     }
 
-    // ---------------- Special hours CRUD ----------------
-
+    /**
+     * Adds a special hours entry and sends ADD_SPECIAL_HOURS request.
+     */
     @FXML
     private void onAddSpecialHours() {
         TextInputDialog dateD = new TextInputDialog("2026-01-01");
@@ -354,6 +378,8 @@ public class StaffDashboardController implements MessageListener {
             s.setSpecialDate(java.time.LocalDate.parse(dateOpt.get().trim()));
             s.setOpeningTime(LocalTime.parse(openOpt.get().trim()));
             s.setClosingTime(LocalTime.parse(closeOpt.get().trim()));
+            s.setClosedFlag(false);
+
             controller.addSpecialHours(s);
             status("Adding special hours...");
         } catch (Exception e) {
@@ -361,6 +387,9 @@ public class StaffDashboardController implements MessageListener {
         }
     }
 
+    /**
+     * Deletes the selected special hours entry and sends DELETE_SPECIAL_HOURS request.
+     */
     @FXML
     private void onDeleteSpecialHours() {
         SpecialHours sel = specialTable.getSelectionModel().getSelectedItem();
@@ -372,11 +401,12 @@ public class StaffDashboardController implements MessageListener {
         Alert a = new Alert(Alert.AlertType.CONFIRMATION);
         a.setTitle("Delete Special Hours");
         a.setHeaderText(null);
-        a.setContentText("Delete special-hours ID " + sel.getSpecialId() + "?");
+        a.setContentText("Delete special-hours for date " + sel.getSpecialDate() + "?");
+
         a.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
                 try {
-                    controller.deleteSpecialHours(sel.getSpecialId());
+                	controller.deleteSpecialHours(sel.getSpecialDate());
                     status("Deleting special hours...");
                 } catch (Exception e) {
                     showError("Delete failed: " + e.getMessage());
@@ -385,8 +415,11 @@ public class StaffDashboardController implements MessageListener {
         });
     }
 
-    // ---------------- Server responses ----------------
-
+    /**
+     * Handles server responses and updates the UI.
+     *
+     * @param m server message response
+     */
     @Override
     public void onMessage(Message m) {
         Platform.runLater(() -> {
@@ -439,11 +472,27 @@ public class StaffDashboardController implements MessageListener {
                     status("Special hours updated.");
                     refreshSpecialHours();
                 }
+
                 default -> status("OK: " + m.getCommand());
             }
         });
     }
 
-    private void status(String s) { statusLabel.setText(s); }
-    private void showError(String s) { statusLabel.setText(s); }
+    /**
+     * Writes an informational message to the status label.
+     *
+     * @param s status text
+     */
+    private void status(String s) {
+        statusLabel.setText(s);
+    }
+
+    /**
+     * Writes an error message to the status label.
+     *
+     * @param s error text
+     */
+    private void showError(String s) {
+        statusLabel.setText(s);
+    }
 }
