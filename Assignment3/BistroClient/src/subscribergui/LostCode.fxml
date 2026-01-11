@@ -5,7 +5,7 @@
 
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
-      fx:controller="customergui.LostCodeController"
+	  fx:controller="subscribergui.LostCodeController"
       spacing="10" alignment="CENTER" prefWidth="420" prefHeight="320">
 
     <Label text="Lost confirmation code" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>

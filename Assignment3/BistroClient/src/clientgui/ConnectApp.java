@@ -35,20 +35,30 @@ public final class ConnectApp {
     }
 
     public static void showCustomerMenu() throws Exception {
-        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/customergui/CustomerMenu.fxml"));
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/subscribergui/CustomerMenu.fxml"));
         Scene scene = new Scene(loader.load());
 
-        customergui.CustomerMenuController c = loader.getController();
+        subscribergui.SubscriberMenuController c = loader.getController();
         c.init(controller);
 
         primaryStage.setScene(scene);
     }
 
-    public static void showReservationSearch() throws Exception {
-        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/reservationgui/ReservationSearch.fxml"));
+    public static void showCancelReservation() throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/subscribergui/CancelReservation.fxml"));
         Scene scene = new Scene(loader.load());
 
-        reservationgui.ReservationSearchController c = loader.getController();
+        subscribergui.CancelReservationController c = loader.getController();
+        c.init(controller);
+
+        primaryStage.setScene(scene);
+    }
+
+    public static void showPayBill() throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/subscribergui/PayBill.fxml"));
+        Scene scene = new Scene(loader.load());
+
+        subscribergui.PayBillController c = loader.getController();
         c.init(controller);
 
         primaryStage.setScene(scene);
@@ -58,41 +68,12 @@ public final class ConnectApp {
         FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/reservationgui/CreateReservation.fxml"));
         Scene scene = new Scene(loader.load());
 
-        reservationgui.CreReservationController c = loader.getController();
+        reservationgui.CreateReservationController c = loader.getController();
         c.init(controller, date, hhmm, guests);
 
         primaryStage.setScene(scene);
     }
 
-    public static void showCancelReservation() throws Exception {
-        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/customergui/CancelReservation.fxml"));
-        Scene scene = new Scene(loader.load());
-
-        subscribergui.CancelReservationController c = loader.getController();
-        c.init(controller);
-
-        primaryStage.setScene(scene);
-    }
-
-    public static void showLostCode() throws Exception {
-        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/customergui/LostCode.fxml"));
-        Scene scene = new Scene(loader.load());
-
-        subscribergui.LostCodeController c = loader.getController();
-        c.init(controller);
-
-        primaryStage.setScene(scene);
-    }
-
-    public static void showPayBill() throws Exception {
-        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/customergui/PayBill.fxml"));
-        Scene scene = new Scene(loader.load());
-
-        subscribergui.PayBillController c = loader.getController();
-        c.init(controller);
-
-        primaryStage.setScene(scene);
-    }
 
     // -------- Terminal --------
     public static void showTerminalSeatByCode() throws Exception {
@@ -101,6 +82,16 @@ public final class ConnectApp {
 
         terminalgui.SeatByCodeController c = loader.getController();
         c.init(controller);
+
+        primaryStage.setScene(scene);
+    }
+    
+    public static void showStaffDashboard(entities.User staffUser) throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/staffgui/StaffDashboard.fxml"));
+        Scene scene = new Scene(loader.load());
+
+        staffgui.StaffDashboardController c = loader.getController();
+        c.init(controller, staffUser);
 
         primaryStage.setScene(scene);
     }

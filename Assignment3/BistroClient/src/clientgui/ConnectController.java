@@ -71,7 +71,7 @@ public class ConnectController {
             
             
             // Register a listener to display server messages in the status label
-            clientController.setMessageListener(msg ->statusLabel.setText("Server: " + String.valueOf(msg)));
+            clientController.setListener(msg ->statusLabel.setText("Server: " + String.valueOf(msg)));
 
             // Establish the connection to the server
             clientController.connect();
@@ -82,7 +82,7 @@ public class ConnectController {
             disconnectBtn.setDisable(false);
             
             // Navigate to the available slots screen
-            ConnectApp.showHome(clientController);
+            ConnectApp.showHome();
 
         } catch (Exception e) {
         	// Handle invalid input or connection failur

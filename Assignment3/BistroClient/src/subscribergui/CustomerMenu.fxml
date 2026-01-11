@@ -5,7 +5,7 @@
 
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
-      fx:controller="customergui.CustomerMenuController"
+      fx:controller="subscribergui.SubscriberMenuController"
       spacing="12" alignment="CENTER" prefWidth="420" prefHeight="320">
 
     <Button text="Book a reservation" onAction="#onBook" prefWidth="260"/>

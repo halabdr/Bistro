@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="staffgui.StaffDashboardController">
+
+    <top>
+        <HBox spacing="10" style="-fx-padding: 10;">
+            <Label fx:id="welcomeLabel" text="Staff Dashboard" style="-fx-font-size: 16; -fx-font-weight: bold;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Logout" onAction="#onLogout"/>
+        </HBox>
+    </top>
+
+    <center>
+        <TabPane fx:id="tabs">
+            <tabs>
+
+                <Tab text="Reservations" closable="false">
+                    <BorderPane style="-fx-padding: 10;">
+                        <top>
+                            <HBox spacing="10">
+                                <Button text="Refresh" onAction="#refreshReservations"/>
+                            </HBox>
+                        </top>
+                        <center>
+                            <TableView fx:id="reservationsTable">
+                                <columns>
+                                    <TableColumn fx:id="resCodeCol" text="Code" prefWidth="140"/>
+                                    <TableColumn fx:id="resDateCol" text="Date" prefWidth="120"/>
+                                    <TableColumn fx:id="resTimeCol" text="Time" prefWidth="90"/>
+                                    <TableColumn fx:id="resGuestsCol" text="Guests" prefWidth="80"/>
+                                    <TableColumn fx:id="resSubCol" text="Subscriber" prefWidth="140"/>
+                                </columns>
+                            </TableView>
+                        </center>
+                    </BorderPane>
+                </Tab>
+
+                <Tab text="Waitlist" closable="false">
+                    <BorderPane style="-fx-padding: 10;">
+                        <top>
+                            <HBox spacing="10">
+                                <Button text="Refresh" onAction="#refreshWaitlist"/>
+                            </HBox>
+                        </top>
+                        <center>
+                            <TableView fx:id="waitlistTable">
+                                <columns>
+                                    <TableColumn fx:id="wlCodeCol" text="Code" prefWidth="140"/>
+                                    <TableColumn fx:id="wlGuestsCol" text="Diners" prefWidth="80"/>
+                                    <TableColumn fx:id="wlSubCol" text="Subscriber" prefWidth="140"/>
+                                </columns>
+                            </TableView>
+                        </center>
+                    </BorderPane>
+                </Tab>
+
+                <Tab text="Tables" closable="false">
+                    <BorderPane style="-fx-padding: 10;">
+                        <top>
+                            <HBox spacing="10">
+                                <Button text="Refresh" onAction="#refreshTables"/>
+                                <Button text="Add" onAction="#onAddTable"/>
+                                <Button text="Update" onAction="#onUpdateTable"/>
+                                <Button text="Delete" onAction="#onDeleteTable"/>
+                            </HBox>
+                        </top>
+                        <center>
+                            <TableView fx:id="tablesTable">
+                                <columns>
+                                    <TableColumn fx:id="tNumCol" text="Number" prefWidth="90"/>
+                                    <TableColumn fx:id="tCapCol" text="Seats" prefWidth="90"/>
+                                    <TableColumn fx:id="tLocCol" text="Location" prefWidth="180"/>
+                                    <TableColumn fx:id="tStatusCol" text="Status" prefWidth="120"/>
+                                </columns>
+                            </TableView>
+                        </center>
+                    </BorderPane>
+                </Tab>
+
+                <Tab text="Opening Hours" closable="false">
+                    <BorderPane style="-fx-padding: 10;">
+                        <top>
+                            <HBox spacing="10">
+                                <Button text="Refresh" onAction="#refreshOpeningHours"/>
+                                <Button text="Update Selected" onAction="#onUpdateOpeningHours"/>
+                            </HBox>
+                        </top>
+                        <center>
+                            <TableView fx:id="hoursTable">
+                                <columns>
+                                    <TableColumn fx:id="hDayCol" text="Day" prefWidth="150"/>
+                                    <TableColumn fx:id="hOpenCol" text="Open" prefWidth="120"/>
+                                    <TableColumn fx:id="hCloseCol" text="Close" prefWidth="120"/>
+                                </columns>
+                            </TableView>
+                        </center>
+                    </BorderPane>
+                </Tab>
+
+                <Tab text="Special Hours" closable="false">
+                    <BorderPane style="-fx-padding: 10;">
+                        <top>
+                            <HBox spacing="10">
+                                <Button text="Refresh" onAction="#refreshSpecialHours"/>
+                                <Button text="Add" onAction="#onAddSpecialHours"/>
+                                <Button text="Delete" onAction="#onDeleteSpecialHours"/>
+                            </HBox>
+                        </top>
+                        <center>
+                            <TableView fx:id="specialTable">
+                                <columns>
+                                    <TableColumn fx:id="sIdCol" text="ID" prefWidth="80"/>
+                                    <TableColumn fx:id="sDateCol" text="Date" prefWidth="130"/>
+                                    <TableColumn fx:id="sOpenCol" text="Open" prefWidth="120"/>
+                                    <TableColumn fx:id="sCloseCol" text="Close" prefWidth="120"/>
+                                </columns>
+                            </TableView>
+                        </center>
+                    </BorderPane>
+                </Tab>
+
+            </tabs>
+        </TabPane>
+    </center>
+
+    <bottom>
+        <Label fx:id="statusLabel" text="" style="-fx-padding: 10;"/>
+    </bottom>
+
+</BorderPane>

@@ -1,7 +1,7 @@
 package client;
 
-public final class Commands {
-    private Commands() {}
+public final class commands {
+    private commands() {}
 
     // User
     public static final String LOGIN = "LOGIN";
