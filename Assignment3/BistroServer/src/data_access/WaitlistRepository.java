@@ -168,6 +168,69 @@ public class WaitlistRepository {
             pool.releaseConnection(pConn);
         }
     }
+    
+    /**
+     * Retrieves a lost entry code by searching for a waitlist entry 
+     * using an identifier (phone number or email).
+     * 
+     * @param request Message containing "identifier" (phone or email)
+     * @return Message with entry code if found, or error message
+     */
+    public Message retrieveLostCode(Message request) {
+        MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+        PooledConnection pConn = null;
+
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> data = (Map<String, Object>) request.getData();
+            String identifier = (String) data.get("identifier");
+
+            if (identifier == null || identifier.trim().isEmpty()) {
+                return Message.fail("LOST_CODE", "Identifier is required");
+            }
+
+            pConn = pool.getConnection();
+            if (pConn == null) {
+                return Message.fail("LOST_CODE", "Database connection failed");
+            }
+
+            Connection conn = pConn.getConnection();
+            
+            // Find waitlist entry by phone or email through users table
+            String sql = "SELECT w.entry_code " +
+                        "FROM waiting_list w " +
+                        "JOIN subscribers s ON w.subscriber_number = s.subscriber_number " +
+                        "JOIN users u ON s.user_id = u.user_id " +
+                        "WHERE (u.phone_number = ? OR u.email_address = ?) " +
+                        "ORDER BY w.request_time DESC " +
+                        "LIMIT 1";
+            
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, identifier);
+            ps.setString(2, identifier);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                String entryCode = rs.getString("entry_code");
+                rs.close();
+                ps.close();
+                
+                // Simulate sending the code via email/SMS
+                return Message.ok("LOST_CODE", entryCode);
+            }
+
+            rs.close();
+            ps.close();
+
+            return Message.fail("LOST_CODE", "No waitlist entry found for this identifier");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return Message.fail("LOST_CODE", "Database error: " + e.getMessage());
+        } finally {
+            pool.releaseConnection(pConn);
+        }
+    }
 
     //methods to keep code clean 
 
