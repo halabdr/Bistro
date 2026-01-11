@@ -29,10 +29,15 @@ public final class ConnectApp {
     public static void showHome() throws Exception {
         FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/homegui/Home.fxml"));
         Scene scene = new Scene(loader.load());
+
+        homegui.HomeController c = loader.getController();
+        c.init(controller); 
+
         primaryStage.setScene(scene);
         primaryStage.setTitle("Bistro Client");
         primaryStage.show();
     }
+
 
     public static void showCustomerMenu() throws Exception {
         FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/subscribergui/CustomerMenu.fxml"));

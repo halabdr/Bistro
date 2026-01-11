@@ -23,14 +23,6 @@ public class HomeController implements MessageListener {
     private ClientController controller;
 
     @FXML
-    public void initialize() {
-        controller = ConnectApp.getController();
-        if (controller != null) {
-            controller.setListener(this);
-        }
-    }
-
-    @FXML
     private void onCustomerClicked() throws Exception {
         ConnectApp.showCustomerMenu();
     }
@@ -64,6 +56,14 @@ public class HomeController implements MessageListener {
             showAlert(Alert.AlertType.ERROR, "Error", e.getMessage());
         }
     }
+    
+    public void init(ClientController controller) {
+        this.controller = controller;
+        if (this.controller != null) {
+            this.controller.setListener(this);
+        }
+    }
+
 
     /**
      * Receives messages from the server.
