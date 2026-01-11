@@ -295,6 +295,59 @@ public class ReservationRepository {
     }
     
     /**
+     * Gets a reservation by its confirmation code.
+     * Used when a customer (subscriber or casual) checks in with their code.
+     * 
+     * @param request Message containing "confirmationCode"
+     * @return Message with Reservation object if found
+     */
+    public Message getReservationByCode(Message request) {
+        MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+        PooledConnection pConn = null;
+
+        try {
+            Map<String, Object> data = (Map<String, Object>) request.getData();
+            String confirmationCode = (String) data.get("confirmationCode");
+
+            if (confirmationCode == null || confirmationCode.trim().isEmpty()) {
+                return Message.fail("GET_RESERVATION_BY_CODE", "Confirmation code is required");
+            }
+
+            pConn = pool.getConnection();
+            if (pConn == null) {
+                return Message.fail("GET_RESERVATION_BY_CODE", "Database connection failed");
+            }
+
+            Connection conn = pConn.getConnection();
+            
+            String sql = "SELECT * FROM reservations WHERE confirmation_code = ?";
+            
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, confirmationCode);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                Reservation reservation = extractReservationFromResultSet(rs);
+                rs.close();
+                ps.close();
+                
+                return Message.ok("GET_RESERVATION_BY_CODE", reservation);
+            }
+
+            rs.close();
+            ps.close();
+
+            return Message.fail("GET_RESERVATION_BY_CODE", "Reservation not found");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return Message.fail("GET_RESERVATION_BY_CODE", "Database error: " + e.getMessage());
+        } finally {
+            pool.releaseConnection(pConn);
+        }
+    }
+    
+    /**
      * Retrieves a lost confirmation code by searching for a reservation 
      * using an identifier (phone number or email).
      * 

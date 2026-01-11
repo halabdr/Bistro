@@ -187,6 +187,10 @@ public class BistroServer extends AbstractServer {
                 response = reservationRepository.retrieveLostCode(request);
                 safeSend(client, response);
             }
+            case "SEAT_BY_CODE" -> {
+                response = reservationRepository.getReservationByCode(request);
+                safeSend(client, response);
+            }
 
             // Waitlist Management
             case "JOIN_WAITLIST" -> {
