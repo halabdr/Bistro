@@ -11,6 +11,8 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.time.YearMonth;
+import entities.MonthlyReport;
 
 /**
  * Client-side facade responsible for sending requests to the server,
@@ -278,8 +280,6 @@ public class ClientController {
         client.sendToServer(new Message(Commands.LOST_CODE_WAITLIST, data));
     }
 
-
-
     /**
      * Sends an ADD_SPECIAL_HOURS request.
      *
@@ -327,4 +327,62 @@ public class ClientController {
         data.put("specialDate", specialDate.toString());
         client.sendToServer(new Message(Commands.DELETE_SPECIAL_HOURS, data));
     }
+    
+ // ---------------- Reports (Manager/Staff) ----------------
+
+    /**
+     * Requests notification log report for a specific month.
+     *
+     * @param year  report year
+     * @param month report month (1-12)
+     * @throws IOException if sending fails
+     */
+    public void getNotificationLogReport(int year, int month) throws IOException {
+        MonthlyReport report = MonthlyReport.createForMonth(year, month);
+        client.sendToServer(new Message(Commands.GET_NOTIFICATION_LOG, report));
+    }
+
+    /**
+     * Requests time report for a specific month.
+     *
+     * @param year  report year
+     * @param month report month (1-12)
+     * @throws IOException if sending fails
+     */
+    public void getTimeReport(int year, int month) throws IOException {
+        MonthlyReport report = MonthlyReport.createForMonth(year, month);
+        client.sendToServer(new Message(Commands.GET_TIME_REPORT, report));
+    }
+
+    /**
+     * Requests subscribers report for a specific month.
+     *
+     * @param year  report year
+     * @param month report month (1-12)
+     * @throws IOException if sending fails
+     */
+    public void getSubscribersReport(int year, int month) throws IOException {
+        MonthlyReport report = MonthlyReport.createForMonth(year, month);
+        client.sendToServer(new Message(Commands.GET_SUBSCRIBERS_REPORT, report));
+    }
+    
+    /**
+     * Requests a list of available months that have reports or that can be generated.
+     */
+    public void getMonthlyReportsList() throws IOException {
+        client.sendToServer(new Message(Commands.GET_MONTHLY_REPORTS_LIST, null));
+    }
+
+    /**
+     * Triggers report generation for a specific month for manager action.
+     *
+     * @param year  report year
+     * @param month report month (1-12)
+     * @throws IOException if sending fails
+     */
+    public void generateReports(int year, int month) throws IOException {
+        MonthlyReport report = MonthlyReport.createForMonth(year, month);
+        client.sendToServer(new Message(Commands.GENERATE_REPORTS, report));
+    }
+
 }

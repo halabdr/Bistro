@@ -102,9 +102,14 @@ public class HomeController implements MessageListener {
             }
 
             try {
-                ConnectApp.showStaffDashboard(u);
+                if (role == User.UserRole.MANAGER) {
+                    ConnectApp.showManagerDashboard(u);
+                } else {
+                    ConnectApp.showStaffDashboard(u); // REPRESENTATIVE
+                }
             } catch (Exception e) {
-                showAlert(Alert.AlertType.ERROR, "Failed to open staff dashboard", e.getMessage());
+                showAlert(Alert.AlertType.ERROR, "Failed to open dashboard",
+                        "Error: " + e.getMessage());
             }
         });
     }

@@ -50,4 +50,13 @@ public final class Commands {
     public static final String GET_SPECIAL_HOURS = "GET_SPECIAL_HOURS";
     public static final String ADD_SPECIAL_HOURS = "ADD_SPECIAL_HOURS";
     public static final String DELETE_SPECIAL_HOURS = "DELETE_SPECIAL_HOURS";
+    
+ // Staff
+    public static final String GET_NOTIFICATION_LOG = "GET_NOTIFICATION_LOG";
+    public static final String GET_TIME_REPORT = "GET_TIME_REPORT";
+    public static final String GET_SUBSCRIBERS_REPORT = "GET_SUBSCRIBERS_REPORT";
+
+    // Reports (Manager/Staff)
+    public static final String GET_MONTHLY_REPORTS_LIST = "GET_MONTHLY_REPORTS_LIST";
+    public static final String GENERATE_REPORTS = "GENERATE_REPORTS";
 }

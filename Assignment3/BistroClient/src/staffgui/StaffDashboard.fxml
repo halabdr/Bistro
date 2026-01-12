@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
@@ -8,7 +9,8 @@
 
     <top>
         <HBox spacing="10" style="-fx-padding: 10;">
-            <Label fx:id="welcomeLabel" text="Staff Dashboard" style="-fx-font-size: 16; -fx-font-weight: bold;"/>
+            <Label fx:id="welcomeLabel" text="Staff Dashboard"
+                   style="-fx-font-size: 16; -fx-font-weight: bold;"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Button text="Logout" onAction="#onLogout"/>
         </HBox>
@@ -117,6 +119,40 @@
                                     <TableColumn fx:id="sDateCol" text="Date" prefWidth="130"/>
                                     <TableColumn fx:id="sOpenCol" text="Open" prefWidth="120"/>
                                     <TableColumn fx:id="sCloseCol" text="Close" prefWidth="120"/>
+                                </columns>
+                            </TableView>
+                        </center>
+                    </BorderPane>
+                </Tab>
+
+                <!-- ✅ NEW TAB: Reports -->
+                <Tab text="Reports" closable="false">
+                    <BorderPane style="-fx-padding: 10;">
+                        <top>
+                            <VBox spacing="10">
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <Label text="Month:"/>
+                                    <ComboBox fx:id="reportMonthCombo" prefWidth="170"/>
+
+                                    <Label text="Year:"/>
+                                    <TextField fx:id="reportYearField" prefWidth="90" promptText="2026"/>
+
+                                    <Region HBox.hgrow="ALWAYS"/>
+                                </HBox>
+
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <Button text="Notification Log" onAction="#onFetchNotificationLog"/>
+                                    <Button text="Time Report" onAction="#onFetchTimeReport"/>
+                                    <Button text="Subscribers Report" onAction="#onFetchSubscribersReport"/>
+                                </HBox>
+                            </VBox>
+                        </top>
+
+                        <center>
+                            <TableView fx:id="reportTable">
+                                <columns>
+                                    <TableColumn fx:id="repCol1" text="Field" prefWidth="260"/>
+                                    <TableColumn fx:id="repCol2" text="Value" prefWidth="520"/>
                                 </columns>
                             </TableView>
                         </center>

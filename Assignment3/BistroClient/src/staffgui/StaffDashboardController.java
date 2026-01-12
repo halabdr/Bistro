@@ -1,9 +1,10 @@
 package staffgui;
 
 import client.ClientController;
-import client.MessageListener;
 import client.Commands;
+import client.MessageListener;
 import common.Message;
+import entities.MonthlyReport;
 import entities.OpeningHours;
 import entities.Reservation;
 import entities.SpecialHours;
@@ -12,11 +13,16 @@ import entities.User;
 import entities.WaitlistEntry;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Month;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,6 +35,7 @@ public class StaffDashboardController implements MessageListener {
 
     @FXML private Label welcomeLabel;
     @FXML private Label statusLabel;
+    @FXML private TabPane tabs;
 
     // Reservations
     @FXML private TableView<Reservation> reservationsTable;
@@ -64,8 +71,34 @@ public class StaffDashboardController implements MessageListener {
     @FXML private TableColumn<SpecialHours, Object> sOpenCol;
     @FXML private TableColumn<SpecialHours, Object> sCloseCol;
 
+    // ---------------- Reports ----------------
+    @FXML private ComboBox<String> reportMonthCombo;
+    @FXML private TextField reportYearField;
+
+    @FXML private TableView<ReportRow> reportTable;
+    @FXML private TableColumn<ReportRow, String> repCol1;
+    @FXML private TableColumn<ReportRow, String> repCol2;
+
+    private String activeReportCommand; // כדי לדעת איזה דוח חזר (אופציונלי לשימוש)
+
     private ClientController controller;
     private User staffUser;
+
+    /**
+     * Report table row (field-value).
+     */
+    public static class ReportRow {
+        private final String field;
+        private final String value;
+
+        public ReportRow(String field, String value) {
+            this.field = field;
+            this.value = value;
+        }
+
+        public String getField() { return field; }
+        public String getValue() { return value; }
+    }
 
     /**
      * Initializes the dashboard after successful staff login.
@@ -80,8 +113,12 @@ public class StaffDashboardController implements MessageListener {
         // Register for server responses
         this.controller.setListener(this);
 
-        welcomeLabel.setText("Staff Dashboard - " + staffUser.getName() + " (" + staffUser.getUserRole() + ")");
+        if (welcomeLabel != null && staffUser != null) {
+            welcomeLabel.setText("Staff Dashboard - " + staffUser.getName() + " (" + staffUser.getUserRole() + ")");
+        }
+
         setupColumns();
+        setupReportsUI(); // NEW
 
         refreshReservations();
         refreshWaitlist();
@@ -95,33 +132,109 @@ public class StaffDashboardController implements MessageListener {
      */
     private void setupColumns() {
         // Reservations
-        resCodeCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getConfirmationCode()));
-        resDateCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(String.valueOf(c.getValue().getBookingDate())));
-        resTimeCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(String.valueOf(c.getValue().getBookingTime())));
-        resGuestsCol.setCellValueFactory(c -> new javafx.beans.property.SimpleIntegerProperty(c.getValue().getGuestCount()));
-        resSubCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getSubscriberNumber()));
+        if (resCodeCol != null) {
+            resCodeCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleStringProperty(c.getValue().getConfirmationCode()));
+        }
+        if (resDateCol != null) {
+            resDateCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleStringProperty(String.valueOf(c.getValue().getBookingDate())));
+        }
+        if (resTimeCol != null) {
+            resTimeCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleStringProperty(String.valueOf(c.getValue().getBookingTime())));
+        }
+        if (resGuestsCol != null) {
+            resGuestsCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleIntegerProperty(c.getValue().getGuestCount()));
+        }
+        if (resSubCol != null) {
+            resSubCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleStringProperty(c.getValue().getSubscriberNumber()));
+        }
 
         // Waitlist
-        wlCodeCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getEntryCode()));
-        wlGuestsCol.setCellValueFactory(c -> new javafx.beans.property.SimpleIntegerProperty(c.getValue().getNumberOfDiners()));
-        wlSubCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getSubscriberNumber()));
+        if (wlCodeCol != null) {
+            wlCodeCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleStringProperty(c.getValue().getEntryCode()));
+        }
+        if (wlGuestsCol != null) {
+            wlGuestsCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleIntegerProperty(c.getValue().getNumberOfDiners()));
+        }
+        if (wlSubCol != null) {
+            wlSubCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleStringProperty(c.getValue().getSubscriberNumber()));
+        }
 
         // Tables
-        tNumCol.setCellValueFactory(c -> new javafx.beans.property.SimpleIntegerProperty(c.getValue().getTableNumber()));
-        tCapCol.setCellValueFactory(c -> new javafx.beans.property.SimpleIntegerProperty(c.getValue().getSeatCapacity()));
-        tLocCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getTableLocation()));
-        tStatusCol.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getTableStatus()));
+        if (tNumCol != null) {
+            tNumCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleIntegerProperty(c.getValue().getTableNumber()));
+        }
+        if (tCapCol != null) {
+            tCapCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleIntegerProperty(c.getValue().getSeatCapacity()));
+        }
+        if (tLocCol != null) {
+            tLocCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleStringProperty(c.getValue().getTableLocation()));
+        }
+        if (tStatusCol != null) {
+            tStatusCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getTableStatus()));
+        }
 
-        // OpeningHours (based on your entity)
-        hDayCol.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getWeekday()));
-        hOpenCol.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getOpeningTime()));
-        hCloseCol.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getClosingTime()));
+        // OpeningHours
+        if (hDayCol != null) {
+            hDayCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getWeekday()));
+        }
+        if (hOpenCol != null) {
+            hOpenCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getOpeningTime()));
+        }
+        if (hCloseCol != null) {
+            hCloseCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getClosingTime()));
+        }
 
-        // SpecialHours (based on your entity)
-        sIdCol.setCellValueFactory(c -> new javafx.beans.property.SimpleIntegerProperty(c.getValue().getSpecialId()));
-        sDateCol.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getSpecialDate()));
-        sOpenCol.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getOpeningTime()));
-        sCloseCol.setCellValueFactory(c -> new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getClosingTime()));
+        // SpecialHours
+        if (sIdCol != null) {
+            sIdCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleIntegerProperty(c.getValue().getSpecialId()));
+        }
+        if (sDateCol != null) {
+            sDateCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getSpecialDate()));
+        }
+        if (sOpenCol != null) {
+            sOpenCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getOpeningTime()));
+        }
+        if (sCloseCol != null) {
+            sCloseCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getClosingTime()));
+        }
+
+        // Reports table (NEW)
+        if (repCol1 != null && repCol2 != null) {
+            repCol1.setCellValueFactory(new PropertyValueFactory<>("field"));
+            repCol2.setCellValueFactory(new PropertyValueFactory<>("value"));
+        }
+    }
+
+    // NEW
+    private void setupReportsUI() {
+        if (reportMonthCombo == null || reportYearField == null) return;
+
+        ObservableList<String> months = FXCollections.observableArrayList(
+                "JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE",
+                "JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"
+        );
+        reportMonthCombo.setItems(months);
+        reportMonthCombo.getSelectionModel().select(LocalDate.now().getMonthValue() - 1);
+        reportYearField.setText(String.valueOf(LocalDate.now().getYear()));
     }
 
     /**
@@ -191,20 +304,71 @@ public class StaffDashboardController implements MessageListener {
         }
     }
 
-    /**
-     * Opens a dialog and sends ADD_TABLE request.
-     */
+    // ---------------- Reports actions ----------------
+
+    @FXML
+    private void onFetchNotificationLog() {
+        fetchReport(Commands.GET_NOTIFICATION_LOG);
+    }
+
+    @FXML
+    private void onFetchTimeReport() {
+        fetchReport(Commands.GET_TIME_REPORT);
+    }
+
+    @FXML
+    private void onFetchSubscribersReport() {
+        fetchReport(Commands.GET_SUBSCRIBERS_REPORT);
+    }
+
+    private void fetchReport(String command) {
+        try {
+            if (reportYearField == null || reportMonthCombo == null) {
+                showError("Reports UI not loaded (missing FXML ids).");
+                return;
+            }
+
+            int year = Integer.parseInt(reportYearField.getText().trim());
+            String monthName = reportMonthCombo.getValue();
+            if (monthName == null || monthName.isBlank()) {
+                showError("Choose month first.");
+                return;
+            }
+            int month = Month.valueOf(monthName).getValue();
+
+            activeReportCommand = command;
+            status("Loading report...");
+
+            switch (command) {
+                case Commands.GET_NOTIFICATION_LOG -> controller.getNotificationLogReport(year, month);
+                case Commands.GET_TIME_REPORT -> controller.getTimeReport(year, month);
+                case Commands.GET_SUBSCRIBERS_REPORT -> controller.getSubscribersReport(year, month);
+                default -> throw new IllegalStateException("Unknown report command: " + command);
+            }
+
+        } catch (NumberFormatException e) {
+            showError("Year must be a number (e.g., 2026).");
+        } catch (Exception e) {
+            showError("Failed to request report: " + e.getMessage());
+        }
+    }
+
+    // ---------------- Table actions ----------------
+
     @FXML
     private void onAddTable() {
         Dialog<TableInput> d = new Dialog<>();
         d.setTitle("Add Table");
+
         ButtonType ok = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
         d.getDialogPane().getButtonTypes().addAll(ok, ButtonType.CANCEL);
 
         TextField num = new TextField();
         num.setPromptText("Table number");
+
         TextField cap = new TextField();
         cap.setPromptText("Seat capacity");
+
         TextField loc = new TextField();
         loc.setPromptText("Location");
 
@@ -214,6 +378,7 @@ public class StaffDashboardController implements MessageListener {
         g.addRow(0, new Label("Number:"), num);
         g.addRow(1, new Label("Seats:"), cap);
         g.addRow(2, new Label("Location:"), loc);
+
         d.getDialogPane().setContent(g);
 
         d.setResultConverter(btn -> (btn == ok)
@@ -232,9 +397,6 @@ public class StaffDashboardController implements MessageListener {
         });
     }
 
-    /**
-     * Updates the selected table and sends UPDATE_TABLE request.
-     */
     @FXML
     private void onUpdateTable() {
         Table sel = tablesTable.getSelectionModel().getSelectedItem();
@@ -245,6 +407,7 @@ public class StaffDashboardController implements MessageListener {
 
         Dialog<TableInput> d = new Dialog<>();
         d.setTitle("Update Table");
+
         ButtonType ok = new ButtonType("Update", ButtonBar.ButtonData.OK_DONE);
         d.getDialogPane().getButtonTypes().addAll(ok, ButtonType.CANCEL);
 
@@ -257,6 +420,7 @@ public class StaffDashboardController implements MessageListener {
         g.addRow(0, new Label("Table #:"), new Label(String.valueOf(sel.getTableNumber())));
         g.addRow(1, new Label("Seats:"), cap);
         g.addRow(2, new Label("Location:"), loc);
+
         d.getDialogPane().setContent(g);
 
         d.setResultConverter(btn -> (btn == ok)
@@ -275,9 +439,6 @@ public class StaffDashboardController implements MessageListener {
         });
     }
 
-    /**
-     * Sends DELETE_TABLE request for the selected table.
-     */
     @FXML
     private void onDeleteTable() {
         Table sel = tablesTable.getSelectionModel().getSelectedItem();
@@ -303,18 +464,8 @@ public class StaffDashboardController implements MessageListener {
         });
     }
 
-    /**
-     * Small value object used by table add/update dialogs.
-     *
-     * @param number table number
-     * @param capacity seat capacity
-     * @param location table location
-     */
     private record TableInput(String number, String capacity, String location) { }
-    
-    /**
-     * Updates opening/closing time for the selected weekday and sends UPDATE_OPENING_HOURS request.
-     */
+
     @FXML
     private void onUpdateOpeningHours() {
         OpeningHours sel = hoursTable.getSelectionModel().getSelectedItem();
@@ -347,12 +498,9 @@ public class StaffDashboardController implements MessageListener {
         }
     }
 
-    /**
-     * Adds a special hours entry and sends ADD_SPECIAL_HOURS request.
-     */
     @FXML
     private void onAddSpecialHours() {
-        TextInputDialog dateD = new TextInputDialog("2026-01-01");
+        TextInputDialog dateD = new TextInputDialog(LocalDate.now().toString());
         dateD.setTitle("Add Special Hours");
         dateD.setHeaderText(null);
         dateD.setContentText("Date (YYYY-MM-DD):");
@@ -375,7 +523,7 @@ public class StaffDashboardController implements MessageListener {
 
         try {
             SpecialHours s = new SpecialHours();
-            s.setSpecialDate(java.time.LocalDate.parse(dateOpt.get().trim()));
+            s.setSpecialDate(LocalDate.parse(dateOpt.get().trim()));
             s.setOpeningTime(LocalTime.parse(openOpt.get().trim()));
             s.setClosingTime(LocalTime.parse(closeOpt.get().trim()));
             s.setClosedFlag(false);
@@ -387,9 +535,6 @@ public class StaffDashboardController implements MessageListener {
         }
     }
 
-    /**
-     * Deletes the selected special hours entry and sends DELETE_SPECIAL_HOURS request.
-     */
     @FXML
     private void onDeleteSpecialHours() {
         SpecialHours sel = specialTable.getSelectionModel().getSelectedItem();
@@ -406,7 +551,7 @@ public class StaffDashboardController implements MessageListener {
         a.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
                 try {
-                	controller.deleteSpecialHours(sel.getSpecialDate());
+                    controller.deleteSpecialHours(sel.getSpecialDate());
                     status("Deleting special hours...");
                 } catch (Exception e) {
                     showError("Delete failed: " + e.getMessage());
@@ -417,42 +562,49 @@ public class StaffDashboardController implements MessageListener {
 
     /**
      * Handles server responses and updates the UI.
-     *
-     * @param m server message response
      */
     @Override
     public void onMessage(Message m) {
         Platform.runLater(() -> {
+            if (m == null) {
+                showError("Received null message from server.");
+                return;
+            }
             if (!m.isSuccess()) {
                 showError(m.getCommand() + " failed: " + m.getError());
                 return;
             }
 
             switch (m.getCommand()) {
+
                 case Commands.GET_RESERVATIONS -> {
                     @SuppressWarnings("unchecked")
                     List<Reservation> list = (List<Reservation>) m.getData();
                     reservationsTable.setItems(FXCollections.observableArrayList(list));
                     status("Reservations loaded: " + list.size());
                 }
+
                 case Commands.GET_WAITLIST -> {
                     @SuppressWarnings("unchecked")
                     List<WaitlistEntry> list = (List<WaitlistEntry>) m.getData();
                     waitlistTable.setItems(FXCollections.observableArrayList(list));
                     status("Waitlist loaded: " + list.size());
                 }
+
                 case Commands.GET_TABLES -> {
                     @SuppressWarnings("unchecked")
                     List<Table> list = (List<Table>) m.getData();
                     tablesTable.setItems(FXCollections.observableArrayList(list));
                     status("Tables loaded: " + list.size());
                 }
+
                 case Commands.GET_OPENING_HOURS -> {
                     @SuppressWarnings("unchecked")
                     List<OpeningHours> list = (List<OpeningHours>) m.getData();
                     hoursTable.setItems(FXCollections.observableArrayList(list));
                     status("Opening hours loaded: " + list.size());
                 }
+
                 case Commands.GET_SPECIAL_HOURS -> {
                     @SuppressWarnings("unchecked")
                     List<SpecialHours> list = (List<SpecialHours>) m.getData();
@@ -464,13 +616,43 @@ public class StaffDashboardController implements MessageListener {
                     status("Tables updated.");
                     refreshTables();
                 }
+
                 case Commands.UPDATE_OPENING_HOURS -> {
                     status("Opening hours updated.");
                     refreshOpeningHours();
                 }
+
                 case Commands.ADD_SPECIAL_HOURS, Commands.DELETE_SPECIAL_HOURS -> {
                     status("Special hours updated.");
                     refreshSpecialHours();
+                }
+
+                // Reports (NEW)
+                case Commands.GET_NOTIFICATION_LOG, Commands.GET_TIME_REPORT, Commands.GET_SUBSCRIBERS_REPORT -> {
+                    Object data = m.getData();
+                    List<ReportRow> rows = new ArrayList<>();
+
+                    if (data == null) {
+                        rows.add(new ReportRow("Result", "No data returned"));
+                    } else if (data instanceof List<?> list) {
+                        rows.add(new ReportRow("Items", String.valueOf(list.size())));
+                        int i = 1;
+                        for (Object item : list) {
+                            rows.add(new ReportRow("Item " + (i++), String.valueOf(item)));
+                        }
+                    } else if (data instanceof java.util.Map<?, ?> map) {
+                        rows.add(new ReportRow("Entries", String.valueOf(map.size())));
+                        for (var e : map.entrySet()) {
+                            rows.add(new ReportRow(String.valueOf(e.getKey()), String.valueOf(e.getValue())));
+                        }
+                    } else {
+                        rows.add(new ReportRow("Result", String.valueOf(data)));
+                    }
+
+                    if (reportTable != null) {
+                        reportTable.setItems(FXCollections.observableArrayList(rows));
+                    }
+                    status("Report loaded: " + m.getCommand());
                 }
 
                 default -> status("OK: " + m.getCommand());
@@ -478,21 +660,11 @@ public class StaffDashboardController implements MessageListener {
         });
     }
 
-    /**
-     * Writes an informational message to the status label.
-     *
-     * @param s status text
-     */
     private void status(String s) {
-        statusLabel.setText(s);
+        if (statusLabel != null) statusLabel.setText(s);
     }
 
-    /**
-     * Writes an error message to the status label.
-     *
-     * @param s error text
-     */
     private void showError(String s) {
-        statusLabel.setText(s);
+        if (statusLabel != null) statusLabel.setText("Error: " + s);
     }
 }
