@@ -21,7 +21,7 @@ public class ConnectController implements MessageListener {
     public void initialize() {
         statusLabel.setText("");
 
-        hostField.setText("127.0.0.1");
+        hostField.setText("");
         portField.setText("5555");
 
         hostField.setOnAction(e -> onConnect());

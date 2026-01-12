@@ -1,17 +1,107 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 
-<VBox xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml"
+<HBox xmlns="http://javafx.com/javafx/17" 
+      xmlns:fx="http://javafx.com/fxml/1" 
       fx:controller="subscribergui.SubscriberMenuController"
-      spacing="12" alignment="CENTER" prefWidth="420" prefHeight="320">
+      styleClass="login-split-container"
+      stylesheets="@/styles/bistro_main.css"
+      prefHeight="700" prefWidth="1000">
 
-    <Button text="Book a reservation" onAction="#onBook" prefWidth="260"/>
-    <Button text="Cancel reservation (by code)" onAction="#onCancel" prefWidth="260"/>
-    <Button text="Lost confirmation code" onAction="#onLostCode" prefWidth="260"/>
-    <Button text="Pay bill" onAction="#onPayBill" prefWidth="260"/>
+    <VBox styleClass="login-left-panel" 
+          prefWidth="450"
+          alignment="CENTER"
+          spacing="25">
+        
+        <Region VBox.vgrow="ALWAYS"/>
+        
+        <ImageView fitHeight="200" fitWidth="200" preserveRatio="true">
+            <image>
+                <Image url="@/styles/bistro_logo.png"/>
+            </image>
+        </ImageView>
+        
+        <Label text="BISTRO" styleClass="welcome-logo-text"/>
+        
+        <Label text="Member Dashboard" 
+               styleClass="welcome-subtitle"/>
+        
+        <Label fx:id="welcomeLabel" 
+               text="Welcome back!"
+               style="-fx-text-fill: rgba(255,255,255,0.9); -fx-font-size: 16px; -fx-font-weight: 500;"/>
+        
+        <Region VBox.vgrow="ALWAYS"/>
+        
+        <VBox alignment="CENTER" spacing="3">
+            <Label text="© 2026 Bistro Restaurant" 
+                   style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 11px;"/>
+        </VBox>
+        
+    </VBox>
 
-    <Button text="Back" onAction="#onBack" prefWidth="260"/>
-</VBox>
+    <VBox styleClass="menu-page" 
+          prefWidth="550"
+          alignment="CENTER"
+          spacing="0"
+          HBox.hgrow="ALWAYS">
+        
+        <Region VBox.vgrow="ALWAYS"/>
+        
+        <VBox alignment="CENTER" spacing="8">
+            <Label text="What would you like to do?" 
+                   styleClass="menu-title"/>
+        </VBox>
+        
+        <Region prefHeight="30"/>
+        
+        <VBox alignment="CENTER" spacing="16" maxWidth="400">
+            
+            <Button text="📅  Book a Reservation"
+                    onAction="#onBook"
+                    styleClass="welcome-action-button"
+                    style="-fx-min-width: 380px; -fx-font-size: 16px;"/>
+            
+            <Button text="📋  My Reservations"
+                    onAction="#onViewReservations"
+                    styleClass="welcome-action-button-secondary"
+                    style="-fx-min-width: 380px; -fx-font-size: 16px;"/>
+            
+            <Button text="❌  Cancel Reservation"
+                    onAction="#onCancel"
+                    styleClass="welcome-action-button-secondary"
+                    style="-fx-min-width: 380px; -fx-font-size: 16px;"/>
+            
+            <Button text="💳  Pay Bill"
+                    onAction="#onPayBill"
+                    styleClass="welcome-action-button-secondary"
+                    style="-fx-min-width: 380px; -fx-font-size: 16px;"/>
+            
+            <Button text="⚙️  Update Personal Info"
+                    onAction="#onUpdateInfo"
+                    styleClass="welcome-action-button-secondary"
+                    style="-fx-min-width: 380px; -fx-font-size: 16px;"/>
+            
+        </VBox>
+        
+        <Region VBox.vgrow="ALWAYS"/>
+        
+        <Button text="Logout"
+                onAction="#onBack"
+                styleClass="welcome-action-button-accent"
+                style="-fx-min-width: 180px; -fx-font-size: 15px;">
+            <VBox.margin>
+                <Insets bottom="40"/>
+            </VBox.margin>
+        </Button>
+        
+    </VBox>
+
+</HBox>

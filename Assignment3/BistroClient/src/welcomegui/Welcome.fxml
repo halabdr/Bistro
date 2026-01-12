@@ -38,7 +38,7 @@
         
         <ImageView fitHeight="250" fitWidth="250" preserveRatio="true">
             <image>
-                <Image url="@bistro_logo.png"/>
+                <Image url="@/styles/bistro_logo.png"/>
             </image>
         </ImageView>
         

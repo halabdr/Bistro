@@ -28,7 +28,7 @@
         
         <ImageView fitHeight="200" fitWidth="200" preserveRatio="true">
             <image>
-                <Image url="@/welcomegui/bistro_logo.png"/>
+                <Image url="@/styles/bistro_logo.png"/>
             </image>
         </ImageView>
         
