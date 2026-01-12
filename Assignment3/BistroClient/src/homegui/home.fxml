@@ -82,14 +82,25 @@
                            wrapText="true"
                            style="-fx-text-fill: #475569; -fx-font-size: 13px;"/>
 
-                    <Button text="Enter Code"
-                            onAction="#onTerminalClicked"
-                            style="-fx-background-radius: 12;
-                                   -fx-font-size: 14px;
-                                   -fx-font-weight: 700;
-                                   -fx-padding: 10 18;
-                                   -fx-background-color: #16a34a;
-                                   -fx-text-fill: white;"/>
+                    <HBox spacing="10">
+                        <Button text="Enter Code"
+                                onAction="#onTerminalClicked"
+                                style="-fx-background-radius: 12;
+                                       -fx-font-size: 14px;
+                                       -fx-font-weight: 700;
+                                       -fx-padding: 10 18;
+                                       -fx-background-color: #16a34a;
+                                       -fx-text-fill: white;"/>
+
+                        <Button text="Lost Code"
+                                onAction="#onTerminalLostCode"
+                                style="-fx-background-radius: 12;
+                                       -fx-font-size: 14px;
+                                       -fx-font-weight: 700;
+                                       -fx-padding: 10 18;
+                                       -fx-background-color: #16a34a;
+                                       -fx-text-fill: white;"/>
+                    </HBox>
                 </children>
             </VBox>
 

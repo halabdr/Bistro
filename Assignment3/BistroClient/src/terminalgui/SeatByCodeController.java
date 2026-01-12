@@ -13,11 +13,8 @@ import javafx.scene.control.TextField;
 
 /**
  * Terminal screen controller.
- * <p>
  * Allows a terminal worker to "seat" a reservation by entering a confirmation code.
- * Sends {@link Commands#SEAT_BY_CODE} request and displays the returned result.
- * <p>
- * Note: This client flow requires a matching server-side command handler.
+ * Sends command SEAT_BY_CODE request and displays the returned result.
  */
 public class SeatByCodeController implements MessageListener {
 
@@ -34,7 +31,7 @@ public class SeatByCodeController implements MessageListener {
     private ClientController controller;
 
     /**
-     * Initializes this screen with the shared {@link ClientController}
+     * Initializes this screen with the shared ClientController
      * and registers this controller as the active message listener.
      *
      * @param controller shared client controller
@@ -72,7 +69,7 @@ public class SeatByCodeController implements MessageListener {
 
     /**
      * Receives server messages.
-     * Only handles responses for {@link Commands#SEAT_BY_CODE}.
+     * Only handles responses for command SEAT_BY_CODE
      *
      * @param m message received from the server
      */
@@ -93,8 +90,13 @@ public class SeatByCodeController implements MessageListener {
 
             // If server returns Reservation, show table number
             if (data instanceof Reservation r) {
-                resultLabel.setText("Table number: " + r.getTableNumber());
-                return;
+            	int table = r.getTableNumber();
+            	if (table > 0) {
+            	    resultLabel.setText("Table number: " + table);
+            	} else {
+            	    resultLabel.setText("Reservation found, but no table assigned yet.");
+            	}
+            	return;
             }
 
             // Otherwise show any result

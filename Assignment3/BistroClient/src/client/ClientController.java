@@ -265,6 +265,19 @@ public class ClientController {
         data.put("identifier", identifier);
         client.sendToServer(new Message(Commands.LOST_CODE, data));
     }
+    
+    /**
+     * Sends a LOST_CODE_WAITLIST request to the server.
+     *
+     * @param identifier email or phone entered by the user
+     * @throws IOException if sending fails
+     */
+    public void lostCodeWaitlist(String identifier) throws IOException {
+        Map<String, Object> data = new HashMap<>();
+        data.put("identifier", identifier);
+        client.sendToServer(new Message(Commands.LOST_CODE_WAITLIST, data));
+    }
+
 
 
     /**

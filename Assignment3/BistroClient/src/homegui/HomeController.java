@@ -31,6 +31,11 @@ public class HomeController implements MessageListener {
     private void onTerminalClicked() throws Exception {
         ConnectApp.showTerminalSeatByCode();
     }
+    
+    @FXML
+    private void onTerminalLostCode() throws Exception {
+        ConnectApp.showTerminalLostCode();
+    }
 
     /**
      * Opens a login dialog and sends a LOGIN request to the server.

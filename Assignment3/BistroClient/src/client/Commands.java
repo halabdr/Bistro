@@ -37,6 +37,7 @@ public final class Commands {
     public static final String OCCUPY_TABLE = "OCCUPY_TABLE";
     public static final String RELEASE_TABLE = "RELEASE_TABLE";
     public static final String SEAT_BY_CODE = "SEAT_BY_CODE";
+    public static final String LOST_CODE_WAITLIST = "LOST_CODE_WAITLIST";
 
     // Bills
     public static final String CREATE_BILL = "CREATE_BILL";

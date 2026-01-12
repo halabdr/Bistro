@@ -100,6 +100,17 @@ public final class ConnectApp {
 
         primaryStage.setScene(scene);
     }
+    
+    public static void showTerminalLostCode() throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/terminalgui/TerminalLostCode.fxml"));
+        Scene scene = new Scene(loader.load());
+
+        terminalgui.TerminalLostCodeController c = loader.getController();
+        c.init(controller);
+
+        primaryStage.setScene(scene);
+    }
+
 
     public static void showTerminalSeatByCode() throws Exception {
         FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/terminalgui/SeatByCode.fxml"));
