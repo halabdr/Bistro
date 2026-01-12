@@ -2,14 +2,21 @@ package subscribergui;
 
 import client.ClientController;
 import clientgui.ConnectApp;
+import entities.Subscriber;
 import javafx.fxml.FXML;
 
 public class SubscriberMenuController {
 
     private ClientController controller;
+    private Subscriber subscriber;
 
     public void init(ClientController controller) {
         this.controller = controller;
+    }
+
+    public void init(ClientController controller, Subscriber subscriber) {
+        this.controller = controller;
+        this.subscriber = subscriber;
     }
 
     @FXML
@@ -34,6 +41,6 @@ public class SubscriberMenuController {
 
     @FXML
     private void onBack() throws Exception {
-        ConnectApp.showHome();
+        ConnectApp.showWelcome();
     }
 }

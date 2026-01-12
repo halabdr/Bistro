@@ -4,27 +4,20 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import welcomegui.WelcomeController;
 
 /**
  * Main entry point for the Bistro Client application.
+ * Shows the connection screen first, then navigates to Welcome after connecting.
  */
 public class ClientMain extends Application {
 
-    public static final String SERVER_HOST = "localhost";
-    public static final int SERVER_PORT = 5555;
-
     @Override
     public void start(Stage primaryStage) throws Exception {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/welcomegui/Welcome.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/clientgui/connect.fxml"));
         Scene scene = new Scene(loader.load());
         
-        WelcomeController controller = loader.getController();
-        controller.setStage(primaryStage);
-        
         primaryStage.setScene(scene);
-        primaryStage.setTitle("Bistro Restaurant - Welcome");
-        primaryStage.setResizable(false);
+        primaryStage.setTitle("Connect to Bistro Server");
         primaryStage.show();
     }
 

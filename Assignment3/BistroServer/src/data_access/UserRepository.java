@@ -75,6 +75,57 @@ public class UserRepository {
             pool.releaseConnection(pConn);
         }
     }
+    
+    /**
+     * Authenticates a subscriber using subscriber number only.
+     * 
+     * @param request Message containing subscriber number
+     * @return Message with Subscriber object if successful
+     */
+    public Message loginBySubscriberNumber(Message request) {
+        MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+        PooledConnection pConn = null;
+
+        try {
+            String subscriberNumber = (String) request.getData();
+
+            if (subscriberNumber == null || subscriberNumber.trim().isEmpty()) {
+                return Message.fail("LOGIN_BY_SUBSCRIBER_NUMBER", "Subscriber number is required");
+            }
+
+            pConn = pool.getConnection();
+            if (pConn == null) {
+                return Message.fail("LOGIN_BY_SUBSCRIBER_NUMBER", "Database connection failed");
+            }
+
+            Connection conn = pConn.getConnection();
+            String sql = "SELECT u.* FROM users u " +
+                        "JOIN subscribers s ON u.user_id = s.user_id " +
+                        "WHERE s.subscriber_number = ? AND u.account_status = 1";
+            
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, subscriberNumber.trim());
+            
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                Subscriber subscriber = loadSubscriberWithDetails(rs, conn);
+                rs.close();
+                ps.close();
+                return Message.ok("LOGIN_BY_SUBSCRIBER_NUMBER", subscriber);
+            } else {
+                rs.close();
+                ps.close();
+                return Message.fail("LOGIN_BY_SUBSCRIBER_NUMBER", "Invalid subscriber number");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return Message.fail("LOGIN_BY_SUBSCRIBER_NUMBER", "Database error: " + e.getMessage());
+        } finally {
+            pool.releaseConnection(pConn);
+        }
+    }
 
     /**
      * Registers a new subscriber through a representative.

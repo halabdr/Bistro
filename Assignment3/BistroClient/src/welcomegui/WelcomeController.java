@@ -1,16 +1,11 @@
 package welcomegui;
 
+import client.ClientController;
+import clientgui.ConnectApp;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.stage.Stage;
 
-/**
- * Controller for the Welcome/Landing screen.
- * This is the first screen users see when launching the Bistro application.
- */
 public class WelcomeController {
 
     @FXML private Button subscriberLoginBtn;
@@ -18,69 +13,54 @@ public class WelcomeController {
     @FXML private Button terminalBtn;
     @FXML private Button staffLoginBtn;
 
-    private Stage primaryStage;
+    private ClientController controller;
 
-    /**
-     * Sets the primary stage for scene navigation.
-     * 
-     * @param stage the primary stage
-     */
-    public void setStage(Stage stage) {
-        this.primaryStage = stage;
+    public void init(ClientController controller) {
+        this.controller = controller;
     }
 
-    /**
-     * Handles Subscriber Login button click.
-     */
     @FXML
     private void handleSubscriberLogin() {
-        showComingSoon("Subscriber Login");
-        //  Will be implemented in next screen
+        try {
+            ConnectApp.showSubscriberLogin();
+        } catch (Exception e) {
+            showAlert(Alert.AlertType.ERROR, "Navigation Error", e.getMessage());
+        }
     }
 
-    /**
-     * Handles Walk-in Customer button click.
-     */
     @FXML
     private void handleWalkInCustomer() {
-        showComingSoon("Walk-in Customer Reservation");
-        // Will be implemented in next screen
+        try {
+            ConnectApp.showReservationSearch();
+        } catch (Exception e) {
+            showAlert(Alert.AlertType.ERROR, "Navigation Error", e.getMessage());
+        }
     }
 
-    /**
-     * Handles Terminal Check-in button click.
-     */
     @FXML
     private void handleTerminalCheckIn() {
-        showComingSoon("Terminal Check-in");
-        //  Will be implemented in next screen
+        try {
+            ConnectApp.showTerminalSeatByCode();
+        } catch (Exception e) {
+            showAlert(Alert.AlertType.ERROR, "Navigation Error", e.getMessage());
+        }
     }
 
-    /**
-     * Handles Staff Login button click.
-     */
     @FXML
     private void handleStaffLogin() {
-        showComingSoon("Staff Login");
-        //  Will be implemented in next screen
+        showAlert(Alert.AlertType.INFORMATION, "Coming Soon", "Staff Login - will be implemented soon!");
     }
 
-    /**
-     * Shows a "coming soon" alert (temporary for testing).
-     */
-    private void showComingSoon(String feature) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Coming Soon");
-        alert.setHeaderText(null);
-        alert.setContentText(feature + " - will be implemented soon!");
-        alert.showAndWait();
-    }
-    
-    /**
-     * Handles Exit button click.
-     */
     @FXML
     private void handleExit() {
         System.exit(0);
+    }
+
+    private void showAlert(Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

@@ -149,6 +149,10 @@ public class BistroServer extends AbstractServer {
                 response = userRepository.login(request);
                 safeSend(client, response);
             }
+            case "LOGIN_BY_SUBSCRIBER_NUMBER" -> {
+                response = userRepository.loginBySubscriberNumber(request);
+                safeSend(client, response);
+            }
             case "REGISTER_SUBSCRIBER" -> {
                 response = userRepository.registerSubscriber(request);
                 safeSend(client, response);

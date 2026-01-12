@@ -10,6 +10,7 @@ public final class Commands {
 
     // User
     public static final String LOGIN = "LOGIN";
+    public static final String LOGIN_BY_SUBSCRIBER_NUMBER = "LOGIN_BY_SUBSCRIBER_NUMBER";
     public static final String REGISTER_SUBSCRIBER = "REGISTER_SUBSCRIBER";
     public static final String GET_USER = "GET_USER";
     public static final String UPDATE_USER = "UPDATE_USER";

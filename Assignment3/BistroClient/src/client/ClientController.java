@@ -384,5 +384,16 @@ public class ClientController {
         MonthlyReport report = MonthlyReport.createForMonth(year, month);
         client.sendToServer(new Message(Commands.GENERATE_REPORTS, report));
     }
+    
+    /**
+     * Sends a generic message to the server.
+     * Use this for commands that don't have a dedicated method yet.
+     *
+     * @param message the message to send
+     * @throws IOException if sending fails
+     */
+    public void sendToServer(Message message) throws IOException {
+        client.sendToServer(message);
+    }
 
 }

@@ -26,18 +26,39 @@ public final class ConnectApp {
         return controller;
     }
 
-    public static void showHome() throws Exception {
-        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/homegui/Home.fxml"));
+    public static void showWelcome() throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/welcomegui/Welcome.fxml"));
         Scene scene = new Scene(loader.load());
 
-        homegui.HomeController c = loader.getController();
-        c.init(controller); 
+        welcomegui.WelcomeController c = loader.getController();
+        c.init(controller);
 
         primaryStage.setScene(scene);
-        primaryStage.setTitle("Bistro Client");
+        primaryStage.setTitle("Bistro Restaurant");
         primaryStage.show();
     }
 
+    public static void showSubscriberLogin() throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/subscribergui/SubscriberLogin.fxml"));
+        Scene scene = new Scene(loader.load());
+
+        subscribergui.SubscriberLoginController c = loader.getController();
+        c.init(controller);
+
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("Subscriber Login - Bistro");
+    }
+
+    public static void showSubscriberMenu(entities.Subscriber subscriber) throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/subscribergui/CustomerMenu.fxml"));
+        Scene scene = new Scene(loader.load());
+
+        subscribergui.SubscriberMenuController c = loader.getController();
+        c.init(controller, subscriber);
+
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("Subscriber Menu - Bistro");
+    }
 
     public static void showCustomerMenu() throws Exception {
         FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/subscribergui/CustomerMenu.fxml"));
@@ -110,7 +131,6 @@ public final class ConnectApp {
 
         primaryStage.setScene(scene);
     }
-
 
     public static void showTerminalSeatByCode() throws Exception {
         FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/terminalgui/SeatByCode.fxml"));

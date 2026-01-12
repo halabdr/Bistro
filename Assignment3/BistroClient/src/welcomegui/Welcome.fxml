@@ -8,6 +8,8 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 
 <HBox xmlns="http://javafx.com/javafx/17" 
       xmlns:fx="http://javafx.com/fxml/1" 
@@ -16,13 +18,11 @@
       stylesheets="@/styles/bistro_main.css"
       prefHeight="700" prefWidth="1000">
 
-    <!-- LEFT PANEL - Brand & Info -->
     <VBox styleClass="welcome-left-panel" 
           prefWidth="450"
           alignment="CENTER"
           spacing="25">
         
-        <!-- Exit Button (top-left corner with lighter background) -->
         <StackPane>
             <Button text="Exit" 
                     styleClass="exit-button"
@@ -36,22 +36,19 @@
         
         <Region VBox.vgrow="ALWAYS"/>
         
-        <!-- Logo -->
+        <ImageView fitHeight="250" fitWidth="250" preserveRatio="true">
+            <image>
+                <Image url="@bistro_logo.png"/>
+            </image>
+        </ImageView>
+        
         <Label text="BISTRO" styleClass="welcome-logo-text"/>
         
-        <!-- Subtitle -->
         <Label text="Your Restaurant Experience" 
                styleClass="welcome-subtitle"/>
         
-        <!-- Description - NEW UNIQUE TEXT -->
-        <Label text="Streamline your dining journey with our smart reservation platform. Book tables, manage waitlists, and enjoy seamless service." 
-               styleClass="welcome-description"
-               wrapText="true"
-               textAlignment="CENTER"/>
-        
         <Region VBox.vgrow="ALWAYS"/>
         
-        <!-- Footer -->
         <VBox alignment="CENTER" spacing="3">
             <Label text="© 2026 Bistro Restaurant" 
                    style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 11px;"/>
@@ -59,7 +56,6 @@
         
     </VBox>
 
-    <!-- RIGHT PANEL - Actions -->
     <VBox styleClass="welcome-right-panel" 
           prefWidth="550"
           alignment="CENTER"
@@ -68,7 +64,6 @@
         
         <Region VBox.vgrow="ALWAYS"/>
         
-        <!-- Title -->
         <VBox alignment="CENTER" spacing="8">
             <Label text="Get Started" 
                    styleClass="welcome-action-title"/>
@@ -76,13 +71,10 @@
                    styleClass="welcome-action-subtitle"/>
         </VBox>
         
-        <!-- Divider -->
         <Separator prefWidth="300" styleClass="welcome-divider"/>
         
-        <!-- Action Buttons - NEW ORDER -->
         <VBox alignment="CENTER" spacing="14">
             
-            <!-- Subscriber Login at the top -->
             <Button fx:id="subscriberLoginBtn" 
                     text="Subscriber Login"
                     styleClass="welcome-action-button"
@@ -92,7 +84,6 @@
                 </graphic>
             </Button>
             
-            <!-- Walk-in Customer -->
             <Button fx:id="walkInBtn" 
                     text="Walk-in Customer"
                     styleClass="welcome-action-button-secondary"
@@ -102,7 +93,6 @@
                 </graphic>
             </Button>
             
-            <!-- Staff Login (moved up from bottom) -->
             <Button fx:id="staffLoginBtn" 
                     text="Staff Login"
                     styleClass="welcome-action-button-accent"
@@ -114,10 +104,8 @@
             
         </VBox>
         
-        <!-- Divider -->
         <Separator prefWidth="300" styleClass="welcome-divider"/>
         
-        <!-- Terminal at the bottom -->
         <VBox alignment="CENTER" spacing="10">
             <Label text="At the restaurant?" 
                    style="-fx-font-size: 12px; -fx-text-fill: #718096;"/>
