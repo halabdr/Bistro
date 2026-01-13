@@ -151,14 +151,4 @@ public final class ConnectApp {
 
         primaryStage.setScene(scene);
     }
-    
-    public static void showManagerDashboard(entities.User managerUser) throws Exception {
-        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/managergui/ManagerDashboard.fxml"));
-        Scene scene = new Scene(loader.load());
-
-        managergui.ManagerDashboardController c = loader.getController();
-        c.init(controller, managerUser);
-
-        primaryStage.setScene(scene);
-    }
 }
