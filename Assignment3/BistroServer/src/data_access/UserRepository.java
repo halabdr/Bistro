@@ -77,9 +77,9 @@ public class UserRepository {
     }
     
     /**
-     * Authenticates a subscriber using subscriber number only.
+     * Logs in a subscriber using their subscriber number only.
      * 
-     * @param request Message containing subscriber number
+     * @param request Message containing subscriberNumber as String
      * @return Message with Subscriber object if successful
      */
     public Message loginBySubscriberNumber(Message request) {
@@ -88,7 +88,7 @@ public class UserRepository {
 
         try {
             String subscriberNumber = (String) request.getData();
-
+            
             if (subscriberNumber == null || subscriberNumber.trim().isEmpty()) {
                 return Message.fail("LOGIN_BY_SUBSCRIBER_NUMBER", "Subscriber number is required");
             }
@@ -99,25 +99,39 @@ public class UserRepository {
             }
 
             Connection conn = pConn.getConnection();
-            String sql = "SELECT u.* FROM users u " +
-                        "JOIN subscribers s ON u.user_id = s.user_id " +
-                        "WHERE s.subscriber_number = ? AND u.account_status = 1";
+            
+            // Query to get subscriber with all user information
+            String sql = "SELECT u.*, s.subscriber_number, s.membership_card " +
+                         "FROM users u " +
+                         "INNER JOIN subscribers s ON u.user_id = s.user_id " +
+                         "WHERE s.subscriber_number = ? AND u.account_status = 1";
             
             PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setString(1, subscriberNumber.trim());
-            
+            ps.setString(1, subscriberNumber);
             ResultSet rs = ps.executeQuery();
 
-            if (rs.next()) {
-                Subscriber subscriber = loadSubscriberWithDetails(rs, conn);
+            if (!rs.next()) {
                 rs.close();
                 ps.close();
-                return Message.ok("LOGIN_BY_SUBSCRIBER_NUMBER", subscriber);
-            } else {
-                rs.close();
-                ps.close();
-                return Message.fail("LOGIN_BY_SUBSCRIBER_NUMBER", "Invalid subscriber number");
+                return Message.fail("LOGIN_BY_SUBSCRIBER_NUMBER", "Subscriber not found or account is inactive");
             }
+
+            // Build Subscriber object
+            Subscriber subscriber = new Subscriber();
+            subscriber.setUserId(rs.getInt("user_id"));
+            subscriber.setName(rs.getString("name"));
+            subscriber.setEmailAddress(rs.getString("email_address"));
+            subscriber.setPhoneNumber(rs.getString("phone_number"));
+            subscriber.setUserPassword(rs.getString("user_password"));
+            subscriber.setAccountStatus(rs.getBoolean("account_status"));
+            subscriber.setRegistrationDate(rs.getTimestamp("registration_date"));
+            subscriber.setSubscriberNumber(rs.getString("subscriber_number"));
+            subscriber.setMembershipCard(rs.getString("membership_card"));
+
+            rs.close();
+            ps.close();
+
+            return Message.ok("LOGIN_BY_SUBSCRIBER_NUMBER", subscriber);
 
         } catch (SQLException e) {
             e.printStackTrace();

@@ -74,11 +74,6 @@
                     styleClass="welcome-action-button-secondary"
                     style="-fx-min-width: 380px; -fx-font-size: 16px;"/>
             
-            <Button text="❌  Cancel Reservation"
-                    onAction="#onCancel"
-                    styleClass="welcome-action-button-secondary"
-                    style="-fx-min-width: 380px; -fx-font-size: 16px;"/>
-            
             <Button text="💳  Pay Bill"
                     onAction="#onPayBill"
                     styleClass="welcome-action-button-secondary"

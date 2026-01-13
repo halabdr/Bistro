@@ -90,8 +90,7 @@ public class SubscriberLoginController implements MessageListener {
                 return;
             }
 
-            Message request = new Message(Commands.LOGIN_BY_SUBSCRIBER_NUMBER, subscriberNumber);
-            controller.sendToServer(request);
+            controller.loginBySubscriberNumber(subscriberNumber);
 
         } catch (Exception e) {
             showAlert(Alert.AlertType.ERROR, "Login Error", e.getMessage());

@@ -1,11 +1,9 @@
 package clientgui;
-
 import client.BistroClient;
 import client.ClientController;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-
 import java.io.IOException;
 import java.time.LocalDate;
 
@@ -150,5 +148,16 @@ public final class ConnectApp {
         c.init(controller, staffUser);
 
         primaryStage.setScene(scene);
+    }
+    
+    public static void showViewReservations(entities.Subscriber subscriber) throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/subscribergui/ViewReservations.fxml"));
+        Scene scene = new Scene(loader.load());
+
+        subscribergui.ViewReservationsController c = loader.getController();
+        c.init(controller, subscriber);
+
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("My Reservations - Bistro");
     }
 }

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17"
+	xmlns:fx="http://javafx.com/fxml/1"
+	fx:controller="subscribergui.ViewReservationsController"
+	styleClass="action-container" stylesheets="@/styles/bistro_action.css"
+	prefHeight="700" prefWidth="1050">
+
+	<!-- Header Section - ENHANCED -->
+	<VBox styleClass="action-header-enhanced">
+		<Label text="My Reservations"
+			styleClass="action-header-title-large" />
+		<Label text="View and manage your reservation history"
+			styleClass="action-header-subtitle" />
+	</VBox>
+
+	<!-- Content Area -->
+	<VBox styleClass="action-content" VBox.vgrow="ALWAYS">
+
+		<!-- Controls Card -->
+		<HBox spacing="15" alignment="CENTER_LEFT"
+			styleClass="action-card" maxWidth="950">
+			<Label text="Filter:" styleClass="action-form-label" />
+			<CheckBox fx:id="showActiveOnlyCheckBox"
+				text="Show Active Only" selected="false" />
+			<Region HBox.hgrow="ALWAYS" />
+			<Label fx:id="statusLabel" text=""
+				styleClass="action-status-label" />
+		</HBox>
+
+		<!-- Table Card -->
+		<VBox styleClass="action-card" spacing="18" maxWidth="950"
+			VBox.vgrow="ALWAYS">
+
+			<!-- Simple Title without Icon -->
+			<Label text="Reservation History"
+				styleClass="action-section-title" />
+
+			<!-- Reservations Table -->
+			<TableView fx:id="reservationsTable" prefHeight="400"
+				styleClass="modern-table" VBox.vgrow="ALWAYS">
+				<columns>
+					<TableColumn fx:id="codeCol" text="Confirmation Code"
+						prefWidth="150" />
+					<TableColumn fx:id="dateCol" text="Date"
+						prefWidth="120" />
+					<TableColumn fx:id="timeCol" text="Time"
+						prefWidth="100" />
+					<TableColumn fx:id="guestsCol" text="Guests"
+						prefWidth="90" />
+					<TableColumn fx:id="statusCol" text="Status"
+						prefWidth="120" />
+					<TableColumn fx:id="tableCol" text="Table #"
+						prefWidth="100" />
+					<TableColumn fx:id="actionsCol" text="Actions"
+						prefWidth="120" sortable="false" resizable="false" />
+				</columns>
+			</TableView>
+
+			<Label fx:id="emptyLabel" text="No reservations found"
+				visible="false" styleClass="empty-state-label" alignment="CENTER"
+				maxWidth="Infinity" />
+		</VBox>
+
+		<!-- Buttons -->
+
+		<HBox spacing="15" alignment="CENTER" maxWidth="950">
+			<Button text="Back to Menu" onAction="#onBack"
+				styleClass="action-success-button" prefWidth="220" />
+		</HBox>
+
+	</VBox>
+
+</VBox>

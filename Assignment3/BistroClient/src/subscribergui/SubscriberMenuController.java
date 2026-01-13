@@ -38,12 +38,11 @@ public class SubscriberMenuController {
 
     @FXML
     private void onViewReservations() throws Exception {
-        showComingSoon("My Reservations - View your reservation history");
-    }
-
-    @FXML
-    private void onCancel() throws Exception {
-        ConnectApp.showCancelReservation();
+        if (subscriber != null) {
+            ConnectApp.showViewReservations(subscriber);
+        } else {
+            showComingSoon("My Reservations - View your reservation history");
+        }
     }
 
     @FXML

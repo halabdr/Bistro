@@ -78,7 +78,7 @@ public class ClientController {
         }
     }
 
-    // ---------------- User ----------------
+    // User 
 
     /**
      * Sends a LOGIN request to the server.
@@ -93,8 +93,18 @@ public class ClientController {
         data.put("password", password);
         client.sendToServer(new Message(Commands.LOGIN, data));
     }
+    
+    /**
+     * Sends a LOGIN_BY_SUBSCRIBER_NUMBER request to the server.
+     *
+     * @param subscriberNumber subscriber number
+     * @throws IOException if sending fails
+     */
+    public void loginBySubscriberNumber(String subscriberNumber) throws IOException {
+        client.sendToServer(new Message(Commands.LOGIN_BY_SUBSCRIBER_NUMBER, subscriberNumber));
+    }
 
-    // ---------------- Reservation (customer + staff) ----------------
+    //Reservation (customer + staff)
 
     /**
      * Requests available time slots for a specific date and guest count.
