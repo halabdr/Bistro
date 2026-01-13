@@ -27,6 +27,8 @@ public class ReservationSearchController implements MessageListener {
     @FXML private Label resultLabel;
     @FXML private ListView<String> timesList;
 
+    @FXML private Button continueBtn;
+
     private ClientController controller;
     private final DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
 
@@ -42,17 +44,23 @@ public class ReservationSearchController implements MessageListener {
         datePicker.setValue(LocalDate.now().plusDays(1));
         dinersSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 20, 2));
 
+        datePicker.setDayCellFactory(dp -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) return;
+                setDisable(item.isBefore(LocalDate.now().plusDays(1)));
+            }
+        });
+
         resultLabel.setText("");
         timesList.getItems().clear();
 
-        timesList.setOnMouseClicked(e -> {
-            String hhmm = timesList.getSelectionModel().getSelectedItem();
-            if (hhmm == null) return;
+        if (continueBtn != null) continueBtn.setDisable(true);
 
-            try {
-                ConnectApp.showCreateReservation(datePicker.getValue(), hhmm, dinersSpinner.getValue());
-            } catch (Exception ex) {
-                resultLabel.setText("Navigation error: " + ex.getMessage());
+        timesList.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
+            if (continueBtn != null) {
+                continueBtn.setDisable(newV == null || newV.isBlank());
             }
         });
     }
@@ -63,11 +71,38 @@ public class ReservationSearchController implements MessageListener {
     @FXML
     public void onCheck() {
         try {
+            // reset UI before loading
             resultLabel.setText("Loading...");
             timesList.getItems().clear();
+            if (continueBtn != null) continueBtn.setDisable(true);
+
+            // simple validation
+            if (datePicker.getValue() == null) {
+                resultLabel.setText("Please choose a date.");
+                return;
+            }
+
             controller.getAvailableSlots(datePicker.getValue(), dinersSpinner.getValue());
         } catch (IOException e) {
             resultLabel.setText("Failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Continue to reservation creation (after choosing time).
+     */
+    @FXML
+    public void onContinue() {
+        String hhmm = timesList.getSelectionModel().getSelectedItem();
+        if (hhmm == null || hhmm.isBlank()) {
+            resultLabel.setText("Please choose a time first.");
+            return;
+        }
+
+        try {
+            ConnectApp.showCreateReservation(datePicker.getValue(), hhmm, dinersSpinner.getValue());
+        } catch (Exception ex) {
+            resultLabel.setText("Navigation error: " + ex.getMessage());
         }
     }
 
@@ -106,7 +141,13 @@ public class ReservationSearchController implements MessageListener {
                     .toList();
 
             timesList.setItems(FXCollections.observableArrayList(times));
-            resultLabel.setText(times.isEmpty() ? "No available times" : "Choose a time");
+
+            if (times.isEmpty()) {
+                resultLabel.setText("No available times");
+                if (continueBtn != null) continueBtn.setDisable(true);
+            } else {
+                resultLabel.setText("Choose a time, then press Continue");
+            }
         });
     }
 }

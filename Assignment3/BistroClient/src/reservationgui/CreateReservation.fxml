@@ -2,31 +2,90 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
 
-<VBox spacing="10" padding="12"
-      xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:controller="reservationgui.CreateReservationController">
+<HBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="reservationgui.CreateReservationController"
+      styleClass="login-split-container"
+      stylesheets="@/styles/bistro_main.css"
+      prefHeight="700" prefWidth="1000">
 
-    <Label text="Reservation - Step 2 (Details &amp; Confirm)" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+    <!-- Left panel -->
+    <VBox styleClass="login-left-panel" prefWidth="450" alignment="CENTER" spacing="25">
+        <Region VBox.vgrow="ALWAYS"/>
 
-    <Label fx:id="summaryLabel" />
+        <ImageView fitHeight="200" fitWidth="200" preserveRatio="true">
+            <image><Image url="@/styles/bistro_logo.png"/></image>
+        </ImageView>
 
-    <HBox spacing="10">
-        <Label text="Type:"/>
-        <RadioButton fx:id="guestRadio" text="Guest" toggleGroup="$typeGroup"/>
-        <RadioButton fx:id="subscriberRadio" text="Subscriber" toggleGroup="$typeGroup"/>
-    </HBox>
+        <Label text="BISTRO" styleClass="welcome-logo-text"/>
+        <Label text="Confirm Reservation" styleClass="welcome-subtitle"/>
 
-    <HBox spacing="10">
-        <Label text="Subscriber number:"/>
-        <TextField fx:id="subscriberNumberField" promptText="Only for subscriber"/>
-    </HBox>
+        <Label text="Review your details, then confirm"
+               style="-fx-text-fill: rgba(255,255,255,0.9); -fx-font-size: 16px; -fx-font-weight: 500;"/>
 
-    <Label fx:id="statusLabel"/>
+        <Region VBox.vgrow="ALWAYS"/>
 
-    <HBox spacing="10">
-        <Button text="Back" onAction="#onBack"/>
-        <Button text="Confirm reservation" onAction="#onConfirm"/>
-    </HBox>
-</VBox>
+        <Label text="© 2026 Bistro Restaurant"
+               style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 11px;"/>
+    </VBox>
+
+    <!-- Right panel -->
+    <VBox styleClass="menu-page" prefWidth="550" alignment="CENTER" spacing="16" HBox.hgrow="ALWAYS">
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <VBox maxWidth="520" styleClass="form-box" spacing="12">
+            <Label text="Reservation Summary" styleClass="login-title"/>
+
+            <!-- Summary "card" -->
+            <VBox spacing="10"
+                  style="-fx-background-color: #f8fafc; -fx-background-radius: 14; -fx-padding: 16; -fx-border-color: #e2e8f0; -fx-border-radius: 14;">
+                <HBox spacing="10">
+                    <Label text="Date:" style="-fx-text-fill: #334155; -fx-font-weight: 700;"/>
+                    <Label fx:id="dateValue" text="-" style="-fx-text-fill: #0f172a; -fx-font-weight: 700;"/>
+                </HBox>
+                <HBox spacing="10">
+                    <Label text="Time:" style="-fx-text-fill: #334155; -fx-font-weight: 700;"/>
+                    <Label fx:id="timeValue" text="-" style="-fx-text-fill: #0f172a; -fx-font-weight: 700;"/>
+                </HBox>
+                <HBox spacing="10">
+                    <Label text="Guests:" style="-fx-text-fill: #334155; -fx-font-weight: 700;"/>
+                    <Label fx:id="guestsValue" text="-" style="-fx-text-fill: #0f172a; -fx-font-weight: 700;"/>
+                </HBox>
+                <HBox spacing="10">
+                    <Label text="Subscriber:" style="-fx-text-fill: #334155; -fx-font-weight: 700;"/>
+                    <Label fx:id="subscriberValue" text="-" style="-fx-text-fill: #0f172a; -fx-font-weight: 700;"/>
+                </HBox>
+            </VBox>
+
+            <Separator/>
+
+            <!-- Optional note -->
+            <Label text="Notes (optional)" styleClass="form-label-text"/>
+            <TextArea fx:id="notesArea"
+                      promptText="Any requests? (e.g., birthday, quiet table...)"
+                      wrapText="true"
+                      prefRowCount="3"
+                      style="-fx-background-radius: 12; -fx-border-radius: 12;"/>
+
+            <Label fx:id="statusLabel"
+                   text=""
+                   style="-fx-text-fill: #718096; -fx-font-size: 12px;"/>
+        </VBox>
+
+        <HBox spacing="12" alignment="CENTER">
+            <Button text="Back"
+                    onAction="#onBack"
+                    styleClass="welcome-action-button-secondary"
+                    style="-fx-min-width: 200px;"/>
+            <Button text="Confirm"
+                    onAction="#onConfirm"
+                    styleClass="welcome-action-button"
+                    style="-fx-min-width: 200px;"/>
+        </HBox>
+
+        <Region VBox.vgrow="ALWAYS"/>
+    </VBox>
+
+</HBox>

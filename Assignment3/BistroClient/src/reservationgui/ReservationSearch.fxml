@@ -2,46 +2,80 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
 
-<VBox spacing="12" alignment="CENTER"
-      xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml"
+<HBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="reservationgui.ReservationSearchController"
-      prefWidth="720" prefHeight="420">
+      styleClass="login-split-container"
+      stylesheets="@/styles/bistro_main.css"
+      prefHeight="700" prefWidth="1000">
 
-    <Label text="Find Available Dates &amp; Times" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+    <!-- Left panel -->
+    <VBox styleClass="login-left-panel" prefWidth="450" alignment="CENTER" spacing="25">
+        <Region VBox.vgrow="ALWAYS"/>
 
-    <HBox spacing="10" alignment="CENTER">
-        <Label text="Start date:"/>
-        <DatePicker fx:id="datePicker"/>
+        <ImageView fitHeight="200" fitWidth="200" preserveRatio="true">
+            <image><Image url="@/styles/bistro_logo.png"/></image>
+        </ImageView>
 
-        <Label text="Days:"/>
-        <Spinner fx:id="daysSpinner" prefWidth="90"/>
+        <Label text="BISTRO" styleClass="welcome-logo-text"/>
+        <Label text="Book a Reservation" styleClass="welcome-subtitle"/>
 
-        <Label text="Diners:"/>
-        <Spinner fx:id="dinersSpinner" prefWidth="90"/>
+        <Label text="Pick date + guests, then choose a time"
+               style="-fx-text-fill: rgba(255,255,255,0.9); -fx-font-size: 16px; -fx-font-weight: 500;"/>
 
-        <Button text="Check" onAction="#onCheck"/>
-        <Button text="Back" onAction="#onBack"/>
-    </HBox>
+        <Region VBox.vgrow="ALWAYS"/>
 
-    <Label fx:id="resultLabel" text=""/>
+        <Label text="© 2026 Bistro Restaurant"
+               style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 11px;"/>
+    </VBox>
 
-    <HBox spacing="12" alignment="CENTER">
+    <!-- Right panel -->
+    <VBox styleClass="menu-page" prefWidth="550" alignment="CENTER" spacing="16" HBox.hgrow="ALWAYS">
+        <Region VBox.vgrow="ALWAYS"/>
 
-        <VBox spacing="8">
-            <Label text="Available dates"/>
-            <ListView fx:id="datesList" prefWidth="260" prefHeight="260"/>
+        <VBox maxWidth="520" styleClass="form-box" spacing="10">
+            <Label text="Find Available Times" styleClass="login-title"/>
+
+            <HBox spacing="12" alignment="CENTER_LEFT">
+                <VBox spacing="6">
+                    <Label text="Date" styleClass="form-label-text"/>
+                    <DatePicker fx:id="datePicker" />
+                </VBox>
+
+                <VBox spacing="6">
+                    <Label text="Guests" styleClass="form-label-text"/>
+                    <Spinner fx:id="dinersSpinner" prefWidth="140"/>
+                </VBox>
+
+                <Button text="Check"
+                        onAction="#onCheck"
+                        styleClass="welcome-action-button"
+                        style="-fx-min-width: 140px; -fx-min-height: 38px;"/>
+            </HBox>
+
+            <Label fx:id="resultLabel"
+                   text=""
+                   style="-fx-text-fill: #718096; -fx-font-size: 12px;"/>
+
+            <ListView fx:id="timesList" prefHeight="320"/>
         </VBox>
 
-        <VBox spacing="8">
-            <Label text="Available times"/>
-            <ListView fx:id="timeList" prefWidth="360" prefHeight="260"/>
-        </VBox>
+        <HBox spacing="12" alignment="CENTER">
+            <Button text="Back"
+                    onAction="#onBack"
+                    styleClass="welcome-action-button-secondary"
+                    style="-fx-min-width: 200px;"/>
+            <Button fx:id="continueBtn"
+                    text="Continue"
+                    onAction="#onContinue"
+                    disable="true"
+                    styleClass="welcome-action-button"
+                    style="-fx-min-width: 200px;"/>
+        </HBox>
 
-    </HBox>
+        <Region VBox.vgrow="ALWAYS"/>
+    </VBox>
 
-    <HBox spacing="10" alignment="CENTER">
-        <Button fx:id="continueBtn" text="Continue" onAction="#onContinue" disable="true" prefWidth="140"/>
-    </HBox>
-</VBox>
+</HBox>

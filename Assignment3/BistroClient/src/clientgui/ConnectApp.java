@@ -161,5 +161,4 @@ public final class ConnectApp {
 
         primaryStage.setScene(scene);
     }
-
 }
