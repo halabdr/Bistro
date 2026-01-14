@@ -454,3 +454,23 @@
     -fx-text-fill: rgba(255, 255, 255, 0.9);
     -fx-font-size: 15px;
 }
+
+/* 
+   REFRESH BUTTON
+  */
+
+.action-refresh-button {
+    -fx-background-color: #3D7A9E;
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-padding: 8 18;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(61, 122, 158, 0.3), 6, 0, 0, 2);
+}
+
+.action-refresh-button:hover {
+    -fx-background-color: #2C5F7C;
+    -fx-effect: dropshadow(gaussian, rgba(61, 122, 158, 0.4), 8, 0, 0, 3);
+}

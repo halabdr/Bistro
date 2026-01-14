@@ -160,4 +160,15 @@ public final class ConnectApp {
         primaryStage.setScene(scene);
         primaryStage.setTitle("My Reservations - Bistro");
     }
+    
+    public static void showUpdatePersonalInfo(entities.Subscriber subscriber) throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/subscribergui/UpdatePersonalInfo.fxml"));
+        Scene scene = new Scene(loader.load());
+
+        subscribergui.UpdatePersonalInfoController c = loader.getController();
+        c.init(controller, subscriber);
+
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("Update Personal Info - Bistro");
+    }
 }

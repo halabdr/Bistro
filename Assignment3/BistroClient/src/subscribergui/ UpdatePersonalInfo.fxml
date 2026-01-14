@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="subscribergui.UpdatePersonalInfoController"
+      styleClass="action-container"
+      stylesheets="@/styles/bistro_action.css"
+      prefHeight="750" prefWidth="900">
+
+    <!-- Header Section -->
+    <VBox styleClass="action-header-enhanced">
+        <Label text="Update Personal Information" styleClass="action-header-title-large"/>
+        <Label text="Update your contact information and password" styleClass="action-header-subtitle"/>
+    </VBox>
+
+    <!-- Content Area -->
+    <VBox styleClass="action-content" VBox.vgrow="ALWAYS">
+        
+        <!-- Info Card -->
+        <VBox styleClass="action-card" spacing="25" maxWidth="650">
+            
+            <Label text="Personal Information" styleClass="action-card-title"/>
+            
+            <!-- Read-Only Fields -->
+            <VBox spacing="15">
+                <Label text="Account Information (Read Only)" 
+                       styleClass="action-section-title"
+                       style="-fx-font-size: 14px; -fx-text-fill: #718096;"/>
+                
+                <HBox spacing="15" alignment="CENTER_LEFT">
+                    <VBox spacing="6" HBox.hgrow="ALWAYS">
+                        <Label text="Full Name" styleClass="action-form-label"/>
+                        <TextField fx:id="nameField" 
+                                   styleClass="action-input-field"
+                                   editable="false"
+                                   style="-fx-opacity: 0.7; -fx-background-color: #EDF2F7;"/>
+                    </VBox>
+                    
+                    <VBox spacing="6" HBox.hgrow="ALWAYS">
+                        <Label text="Subscriber Number" styleClass="action-form-label"/>
+                        <TextField fx:id="subscriberNumberField" 
+                                   styleClass="action-input-field"
+                                   editable="false"
+                                   style="-fx-opacity: 0.7; -fx-background-color: #EDF2F7;"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+            
+            <Separator styleClass="action-divider"/>
+            
+            <!-- Editable Fields - Contact Info -->
+            <VBox spacing="15">
+                <Label text="Contact Information (Editable)" 
+                       styleClass="action-section-title"
+                       style="-fx-font-size: 14px; -fx-text-fill: #2D3748;"/>
+                
+                <HBox spacing="15" alignment="CENTER_LEFT">
+                    <VBox spacing="6" HBox.hgrow="ALWAYS">
+                        <Label text="Phone Number" styleClass="action-form-label"/>
+                        <TextField fx:id="phoneField" 
+                                   styleClass="action-input-field"
+                                   promptText="e.g., 0501234567"/>
+                    </VBox>
+                    
+                    <VBox spacing="6" HBox.hgrow="ALWAYS">
+                        <Label text="Email Address" styleClass="action-form-label"/>
+                        <TextField fx:id="emailField" 
+                                   styleClass="action-input-field"
+                                   promptText="your.email@example.com"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+            
+            <Separator styleClass="action-divider"/>
+            
+            <!-- Password Change Section -->
+            <VBox spacing="15">
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Change Password (Optional)" 
+                           styleClass="action-section-title"
+                           style="-fx-font-size: 14px; -fx-text-fill: #2D3748;"/>
+                    <Label text="🔒" style="-fx-font-size: 16px;"/>
+                </HBox>
+                
+                <Label text="Leave blank if you don't want to change your password" 
+                       style="-fx-text-fill: #718096; -fx-font-size: 12px; -fx-font-style: italic;"/>
+                
+                <VBox spacing="6">
+                    <Label text="Current Password" styleClass="action-form-label"/>
+                    <PasswordField fx:id="currentPasswordField" 
+                                   styleClass="action-input-field"
+                                   promptText="Enter current password"/>
+                </VBox>
+                
+                <HBox spacing="15" alignment="CENTER_LEFT">
+                    <VBox spacing="6" HBox.hgrow="ALWAYS">
+                        <Label text="New Password" styleClass="action-form-label"/>
+                        <PasswordField fx:id="newPasswordField" 
+                                       styleClass="action-input-field"
+                                       promptText="Enter new password"/>
+                    </VBox>
+                    
+                    <VBox spacing="6" HBox.hgrow="ALWAYS">
+                        <Label text="Confirm New Password" styleClass="action-form-label"/>
+                        <PasswordField fx:id="confirmPasswordField" 
+                                       styleClass="action-input-field"
+                                       promptText="Confirm new password"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+            
+            <Separator styleClass="action-divider"/>
+            
+            <!-- Status Label -->
+            <Label fx:id="statusLabel" 
+                   text="" 
+                   styleClass="action-status-label"
+                   style="-fx-font-size: 14px;"
+                   wrapText="true"/>
+        </VBox>
+        
+        <!-- Buttons -->
+        <HBox spacing="15" alignment="CENTER" maxWidth="650">
+            <Button text="Back to Menu"
+                    onAction="#onBack"
+                    styleClass="action-back-button"
+                    prefWidth="200"/>
+            <Button text="Save Changes"
+                    onAction="#onSave"
+                    styleClass="action-primary-button"
+                    prefWidth="200"/>
+        </HBox>
+        
+    </VBox>
+
+</VBox>

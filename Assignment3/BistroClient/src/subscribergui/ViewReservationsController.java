@@ -50,7 +50,11 @@ public class ViewReservationsController implements MessageListener {
     public void init(ClientController controller, Subscriber subscriber) {
         this.controller = controller;
         this.subscriber = subscriber;
-        this.controller.setListener(this);
+        
+        // CRITICAL: Always set listener first, before any server communication
+        if (this.controller != null) {
+            this.controller.setListener(this);
+        }
 
         setupTableColumns();
         setupActionsColumn();
@@ -245,6 +249,20 @@ public class ViewReservationsController implements MessageListener {
             statusLabel.setText("Failed to load reservations: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Manually refreshes the reservations table.
+     * Called when user clicks the Refresh button.
+     */
+    @FXML
+    private void onRefresh() {
+        // Re-register listener before refreshing
+        if (controller != null) {
+            controller.setListener(this);
+        }
+        statusLabel.setText("Refreshing...");
+        loadReservations();
     }
 
     /**

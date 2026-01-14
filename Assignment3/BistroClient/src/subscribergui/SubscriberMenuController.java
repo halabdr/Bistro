@@ -4,7 +4,6 @@ import client.ClientController;
 import clientgui.ConnectApp;
 import entities.Subscriber;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 
 /**
@@ -40,8 +39,6 @@ public class SubscriberMenuController {
     private void onViewReservations() throws Exception {
         if (subscriber != null) {
             ConnectApp.showViewReservations(subscriber);
-        } else {
-            showComingSoon("My Reservations - View your reservation history");
         }
     }
 
@@ -52,19 +49,13 @@ public class SubscriberMenuController {
 
     @FXML
     private void onUpdateInfo() throws Exception {
-        showComingSoon("Update Personal Info - Edit phone and email");
+        if (subscriber != null) {
+            ConnectApp.showUpdatePersonalInfo(subscriber);
+        }
     }
 
     @FXML
     private void onBack() throws Exception {
         ConnectApp.showWelcome();
-    }
-
-    private void showComingSoon(String feature) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Coming Soon");
-        alert.setHeaderText(null);
-        alert.setContentText(feature + " will be implemented soon!");
-        alert.showAndWait();
     }
 }
