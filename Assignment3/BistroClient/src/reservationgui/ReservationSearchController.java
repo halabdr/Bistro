@@ -5,6 +5,7 @@ import client.Commands;
 import client.MessageListener;
 import clientgui.ConnectApp;
 import common.Message;
+import entities.Subscriber;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -31,6 +32,13 @@ public class ReservationSearchController implements MessageListener {
 
     private ClientController controller;
     private final DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
+    
+    private Subscriber subscriber;
+
+    public void init(ClientController controller, Subscriber subscriber) {
+        this.subscriber = subscriber;
+        init(controller);
+    }
 
     /**
      * Initializes this screen with a connected {@link ClientController}.
@@ -49,7 +57,11 @@ public class ReservationSearchController implements MessageListener {
             public void updateItem(LocalDate item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) return;
-                setDisable(item.isBefore(LocalDate.now().plusDays(1)));
+
+                LocalDate today = LocalDate.now();
+                LocalDate max = today.plusMonths(1);
+
+                setDisable(item.isBefore(today) || item.isAfter(max));
             }
         });
 
@@ -75,10 +87,19 @@ public class ReservationSearchController implements MessageListener {
             resultLabel.setText("Loading...");
             timesList.getItems().clear();
             if (continueBtn != null) continueBtn.setDisable(true);
-
+            
             // simple validation
             if (datePicker.getValue() == null) {
                 resultLabel.setText("Please choose a date.");
+                return;
+            }
+            
+            LocalDate d = datePicker.getValue();
+            LocalDate today = LocalDate.now();
+            LocalDate max = today.plusMonths(1);
+
+            if (d.isBefore(today) || d.isAfter(max)) {
+                resultLabel.setText("You can book from today up to one month ahead.");
                 return;
             }
 
@@ -100,7 +121,7 @@ public class ReservationSearchController implements MessageListener {
         }
 
         try {
-            ConnectApp.showCreateReservation(datePicker.getValue(), hhmm, dinersSpinner.getValue());
+            ConnectApp.showCreateReservation(subscriber, datePicker.getValue(), hhmm, dinersSpinner.getValue());
         } catch (Exception ex) {
             resultLabel.setText("Navigation error: " + ex.getMessage());
         }
@@ -112,7 +133,7 @@ public class ReservationSearchController implements MessageListener {
     @FXML
     public void onBack() {
         try {
-            ConnectApp.showCustomerMenu();
+            ConnectApp.showSubscriberMenu(subscriber);
         } catch (Exception e) {
             resultLabel.setText("Navigation error: " + e.getMessage());
         }
@@ -135,9 +156,14 @@ public class ReservationSearchController implements MessageListener {
                 return;
             }
 
+            LocalDateTime minAllowed = LocalDateTime.now().plusHours(1);
+            LocalDateTime maxAllowed = LocalDateTime.now().plusMonths(1);
+
             List<String> times = list.stream()
                     .filter(o -> o instanceof LocalDateTime)
-                    .map(o -> ((LocalDateTime) o).toLocalTime().format(timeFmt))
+                    .map(o -> (LocalDateTime) o)
+                    .filter(dt -> !dt.isBefore(minAllowed) && !dt.isAfter(maxAllowed))
+                    .map(dt -> dt.toLocalTime().format(timeFmt))
                     .toList();
 
             timesList.setItems(FXCollections.observableArrayList(times));

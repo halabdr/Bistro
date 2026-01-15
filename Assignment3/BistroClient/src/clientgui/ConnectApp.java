@@ -1,6 +1,7 @@
 package clientgui;
 import client.BistroClient;
 import client.ClientController;
+import entities.Subscriber;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -11,6 +12,8 @@ public final class ConnectApp {
 
     private static Stage primaryStage;
     private static ClientController controller;
+    
+    private static Subscriber currentSubscriber;
 
     private ConnectApp() {}
 
@@ -48,6 +51,8 @@ public final class ConnectApp {
     }
 
     public static void showSubscriberMenu(entities.Subscriber subscriber) throws Exception {
+    	currentSubscriber = subscriber;
+    	
         FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/subscribergui/CustomerMenu.fxml"));
         Scene scene = new Scene(loader.load());
 
@@ -57,16 +62,24 @@ public final class ConnectApp {
         primaryStage.setScene(scene);
         primaryStage.setTitle("Subscriber Menu - Bistro");
     }
-
+    
     public static void showCustomerMenu() throws Exception {
-        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/subscribergui/CustomerMenu.fxml"));
-        Scene scene = new Scene(loader.load());
-
-        subscribergui.SubscriberMenuController c = loader.getController();
-        c.init(controller);
-
-        primaryStage.setScene(scene);
+        if (currentSubscriber != null) {
+            showSubscriberMenu(currentSubscriber);
+        } else {
+        	showSubscriberLogin();
+        }
     }
+    
+    //public static void showCustomerMenu() throws Exception {
+        //FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/subscribergui/CustomerMenu.fxml"));
+        //Scene scene = new Scene(loader.load());
+
+        //subscribergui.SubscriberMenuController c = loader.getController();
+        //c.init(controller);
+
+        //primaryStage.setScene(scene);
+    //}
 
     public static void showCancelReservation() throws Exception {
         FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/subscribergui/CancelReservation.fxml"));
@@ -88,6 +101,18 @@ public final class ConnectApp {
         primaryStage.setScene(scene);
     }
     
+    public static void showReservationSearch(Subscriber subscriber) throws Exception {
+        FXMLLoader loader = new FXMLLoader(
+                ConnectApp.class.getResource("/reservationgui/ReservationSearch.fxml")
+        );
+        Scene scene = new Scene(loader.load());
+
+        reservationgui.ReservationSearchController c = loader.getController();
+        c.init(controller, subscriber);
+
+        primaryStage.setScene(scene);
+    }
+    
     public static void showReservationSearch() throws Exception {
         FXMLLoader loader = new FXMLLoader(
                 ConnectApp.class.getResource("/reservationgui/ReservationSearch.fxml")
@@ -95,21 +120,23 @@ public final class ConnectApp {
         Scene scene = new Scene(loader.load());
 
         reservationgui.ReservationSearchController c = loader.getController();
-        c.init(controller);
+        c.init(controller, null); // Walk-in
 
         primaryStage.setScene(scene);
     }
 
-    public static void showCreateReservation(LocalDate date, String hhmm, int guests) throws Exception {
+
+    public static void showCreateReservation(entities.Subscriber subscriber, LocalDate date, String hhmm, int guests) throws Exception {
         FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/reservationgui/CreateReservation.fxml"));
         Scene scene = new Scene(loader.load());
 
         reservationgui.CreateReservationController c = loader.getController();
-        c.init(controller, date, hhmm, guests);
+        c.init(controller, subscriber, date, hhmm, guests);
 
         primaryStage.setScene(scene);
     }
 
+    
     public static void showLostCode() throws Exception {
         FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/subscribergui/LostCode.fxml"));
         Scene scene = new Scene(loader.load());

@@ -32,7 +32,7 @@ public class SubscriberMenuController {
 
     @FXML
     private void onBook() throws Exception {
-        ConnectApp.showReservationSearch();
+        ConnectApp.showReservationSearch(subscriber);
     }
 
     @FXML
