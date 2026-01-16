@@ -1,11 +1,9 @@
 package client;
-
 import client.Commands;
 import common.Message;
 import entities.OpeningHours;
 import entities.SpecialHours;
 import entities.Table;
-
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -78,7 +76,7 @@ public class ClientController {
         }
     }
 
-    // User 
+    // ==================== User ====================
 
     /**
      * Sends a LOGIN request to the server.
@@ -104,7 +102,7 @@ public class ClientController {
         client.sendToServer(new Message(Commands.LOGIN_BY_SUBSCRIBER_NUMBER, subscriberNumber));
     }
 
-    //Reservation (customer + staff)
+    // ==================== Reservation (customer + staff) ====================
 
     /**
      * Requests available time slots for a specific date and guest count.
@@ -121,7 +119,7 @@ public class ClientController {
     }
 
     /**
-     * Sends a CREATE_RESERVATION request.
+     * Sends a CREATE_RESERVATION request for a subscriber.
      *
      * @param date             booking date
      * @param time             booking time
@@ -129,12 +127,31 @@ public class ClientController {
      * @param subscriberNumber subscriber id/number
      * @throws IOException if sending fails
      */
-    public void createReservation(LocalDate date, LocalTime time, int guestCount, String subscriberNumber) throws IOException {
+    public void createReservation(LocalDate date, LocalTime time, int guestCount, 
+            String subscriberNumber) throws IOException {
+        createReservation(date, time, guestCount, subscriberNumber, null, null);
+    }
+
+    /**
+     * Sends a CREATE_RESERVATION request with full walk-in support.
+     *
+     * @param date             booking date
+     * @param time             booking time
+     * @param guestCount       number of guests
+     * @param subscriberNumber subscriber id/number (null for walk-in)
+     * @param walkInPhone      walk-in customer phone (null for subscriber)
+     * @param walkInEmail      walk-in customer email (null for subscriber)
+     * @throws IOException if sending fails
+     */
+    public void createReservation(LocalDate date, LocalTime time, int guestCount, 
+            String subscriberNumber, String walkInPhone, String walkInEmail) throws IOException {
         Map<String, Object> data = new HashMap<>();
         data.put("bookingDate", date.toString());
         data.put("bookingTime", time.toString());
         data.put("guestCount", guestCount);
         data.put("subscriberNumber", subscriberNumber);
+        data.put("walkInPhone", walkInPhone);
+        data.put("walkInEmail", walkInEmail);
         client.sendToServer(new Message(Commands.CREATE_RESERVATION, data));
     }
 
@@ -171,7 +188,7 @@ public class ClientController {
         client.sendToServer(new Message(Commands.GET_USER_RESERVATIONS, data));
     }
 
-    // ---------------- Waitlist ----------------
+    // ==================== Waitlist ====================
 
     /**
      * Requests the current waitlist.
@@ -182,34 +199,69 @@ public class ClientController {
         client.sendToServer(new Message(Commands.GET_WAITLIST, null));
     }
     
+    /**
+     * Adds a subscriber to the waitlist.
+     *
+     * @param numberOfDiners   number of people in party
+     * @param subscriberNumber subscriber number
+     * @throws IOException if sending fails
+     */
     public void joinWaitlist(int numberOfDiners, String subscriberNumber) throws IOException {
+        joinWaitlist(numberOfDiners, subscriberNumber, null, null);
+    }
+
+    /**
+     * Adds a customer to the waitlist with full walk-in support.
+     *
+     * @param numberOfDiners   number of people in party
+     * @param subscriberNumber subscriber number (null for walk-in)
+     * @param walkInPhone      walk-in customer phone (null for subscriber)
+     * @param walkInEmail      walk-in customer email (null for subscriber)
+     * @throws IOException if sending fails
+     */
+    public void joinWaitlist(int numberOfDiners, String subscriberNumber, 
+            String walkInPhone, String walkInEmail) throws IOException {
         Map<String, Object> data = new HashMap<>();
         data.put("numberOfDiners", numberOfDiners);
-        data.put("subscriberNumber", subscriberNumber); 
+        data.put("subscriberNumber", subscriberNumber);
+        data.put("walkInPhone", walkInPhone);
+        data.put("walkInEmail", walkInEmail);
         client.sendToServer(new Message(Commands.JOIN_WAITLIST, data));
     }
 
+    /**
+     * Removes a customer from the waitlist.
+     *
+     * @param entryCode waitlist entry code
+     * @throws IOException if sending fails
+     */
     public void leaveWaitlist(String entryCode) throws IOException {
         Map<String, Object> data = new HashMap<>();
         data.put("entryCode", entryCode);
         client.sendToServer(new Message(Commands.LEAVE_WAITLIST, data));
     }
     
-    public void checkAvailabilityTerminal(int numberOfDiners,
-            String subscriberNumber,
-            String guestPhone,
-            String guestEmail) throws IOException {
-    			java.util.Map<String, Object> data = new java.util.HashMap<>();
-    			data.put("numberOfDiners", numberOfDiners);
-    			data.put("subscriberNumber", subscriberNumber); // null אם guest
-    			data.put("guestPhone", guestPhone);             // null אם subscriber/לא הוזן
-    			data.put("guestEmail", guestEmail);             // null אם subscriber/לא הוזן
+    /**
+     * Checks table availability at terminal for immediate seating or waitlist.
+     *
+     * @param numberOfDiners   number of people in party
+     * @param subscriberNumber subscriber number (null for walk-in)
+     * @param guestPhone       walk-in customer phone (null for subscriber)
+     * @param guestEmail       walk-in customer email (null for subscriber)
+     * @throws IOException if sending fails
+     */
+    public void checkAvailabilityTerminal(int numberOfDiners, String subscriberNumber,
+            String guestPhone, String guestEmail) throws IOException {
+        Map<String, Object> data = new HashMap<>();
+        data.put("numberOfDiners", numberOfDiners);
+        data.put("subscriberNumber", subscriberNumber);
+        data.put("guestPhone", guestPhone);
+        data.put("guestEmail", guestEmail);
+        client.sendToServer(new Message(Commands.CHECK_AVAILABILITY_TERMINAL, data));
+    }
 
-    			client.sendToServer(new Message(Commands.CHECK_AVAILABILITY_TERMINAL, data));
-}
 
-
-    // ---------------- Tables ----------------
+    // ==================== Tables ====================
 
     /**
      * Requests all tables.
@@ -258,7 +310,7 @@ public class ClientController {
         client.sendToServer(new Message(Commands.DELETE_TABLE, data));
     }
 
-    // ---------------- Opening hours ----------------
+    // ==================== Opening hours ====================
 
     /**
      * Requests weekly opening hours list.
@@ -279,7 +331,7 @@ public class ClientController {
         client.sendToServer(new Message(Commands.UPDATE_OPENING_HOURS, hours));
     }
 
-    // ---------------- Special hours ----------------
+    // ==================== Special hours ====================
 
     /**
      * Requests special hours list.
@@ -292,10 +344,8 @@ public class ClientController {
     
     /**
      * Sends a LOST_CODE request to the server.
-     * <p>
-     * The request payload is a map containing:
-     *   identifier: String (email or phone)
-     *   
+     * Searches for both subscriber and walk-in reservations.
+     *
      * @param identifier email or phone entered by the user
      * @throws IOException if sending fails
      */
@@ -307,6 +357,7 @@ public class ClientController {
     
     /**
      * Sends a LOST_CODE_WAITLIST request to the server.
+     * Searches for both subscriber and walk-in waitlist entries.
      *
      * @param identifier email or phone entered by the user
      * @throws IOException if sending fails
@@ -329,7 +380,6 @@ public class ClientController {
     
     /**
      * Sends a PAY_BILL request to the server.
-     * The server expects a map containing "billNumber".
      *
      * @param billNumber bill identifier
      * @throws IOException if sending fails
@@ -342,7 +392,7 @@ public class ClientController {
     
     /**
      * Sends a SEAT_BY_CODE request to the server.
-     * Server is expected to locate a reservation by confirmation code and seat it.
+     * Server locates a reservation by confirmation code and assigns a table.
      *
      * @param confirmationCode reservation confirmation code
      * @throws IOException if sending fails
@@ -356,7 +406,7 @@ public class ClientController {
     /**
      * Sends a DELETE_SPECIAL_HOURS request to the server.
      *
-     * @param specialDate to delete special hours for
+     * @param specialDate date to delete special hours for
      * @throws IOException if sending fails
      */
     public void deleteSpecialHours(LocalDate specialDate) throws IOException {
@@ -365,7 +415,7 @@ public class ClientController {
         client.sendToServer(new Message(Commands.DELETE_SPECIAL_HOURS, data));
     }
     
- // ---------------- Reports (Manager/Staff) ----------------
+    // ==================== Reports (Manager/Staff) ====================
 
     /**
      * Requests notification log report for a specific month.
@@ -404,14 +454,16 @@ public class ClientController {
     }
     
     /**
-     * Requests a list of available months that have reports or that can be generated.
+     * Requests a list of available months that have reports.
+     *
+     * @throws IOException if sending fails
      */
     public void getMonthlyReportsList() throws IOException {
         client.sendToServer(new Message(Commands.GET_MONTHLY_REPORTS_LIST, null));
     }
 
     /**
-     * Triggers report generation for a specific month for manager action.
+     * Triggers report generation for a specific month.
      *
      * @param year  report year
      * @param month report month (1-12)
@@ -424,7 +476,6 @@ public class ClientController {
     
     /**
      * Sends a generic message to the server.
-     * Use this for commands that don't have a dedicated method yet.
      *
      * @param message the message to send
      * @throws IOException if sending fails
@@ -432,5 +483,4 @@ public class ClientController {
     public void sendToServer(Message message) throws IOException {
         client.sendToServer(message);
     }
-
 }

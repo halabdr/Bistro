@@ -1,5 +1,4 @@
 package entities;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Duration;
@@ -28,8 +27,14 @@ public class Reservation implements Serializable {
     private String subscriberNumber;         
     private ReservationStatus status;
 
-    /** Assigned table number after seating. */
-    private int tableNumber;
+    /** Assigned table number after check-in. NULL until customer arrives. */
+    private Integer assignedTableNumber;
+
+    /** Walk-in customer phone number (used when subscriberNumber is null). */
+    private String walkInPhone;
+
+    /** Walk-in customer email address (used when subscriberNumber is null). */
+    private String walkInEmail;
 
     /**
      * Enum represents the status of a reservation.
@@ -49,18 +54,21 @@ public class Reservation implements Serializable {
 
     /** Full constructor used for loading reservations from database. */
     public Reservation(int reservationId, String confirmationCode, LocalDate bookingDate, LocalTime bookingTime,
-            int guestCount, String subscriberNumber, ReservationStatus status, int tableNumber) {
+            int guestCount, String subscriberNumber, ReservationStatus status, Integer assignedTableNumber,
+            String walkInPhone, String walkInEmail) {
 
-    	setReservationId(reservationId);
-    	setConfirmationCode(confirmationCode);
-    	setBookingDate(bookingDate);
-    	setBookingTime(bookingTime);
-    	setGuestCount(guestCount);
-    	setSubscriberNumber(subscriberNumber);
-    	setReservationStatus(status);
-    	setTableNumber(tableNumber);
+        setReservationId(reservationId);
+        setConfirmationCode(confirmationCode);
+        setBookingDate(bookingDate);
+        setBookingTime(bookingTime);
+        setGuestCount(guestCount);
+        setSubscriberNumber(subscriberNumber);
+        setReservationStatus(status);
+        setAssignedTableNumber(assignedTableNumber);
+        setWalkInPhone(walkInPhone);
+        setWalkInEmail(walkInEmail);
 
-    	validate();
+        validate();
     }
 
 
@@ -75,7 +83,8 @@ public class Reservation implements Serializable {
      * 
      * @throws IllegalArgumentException if input data is invalid
      */
-    public static Reservation createForSubscriber(LocalDate bookingDate, LocalTime bookingTime, int guestCount, String subscriberNumber) {
+    public static Reservation createForSubscriber(LocalDate bookingDate, LocalTime bookingTime, 
+            int guestCount, String subscriberNumber) {
         Reservation r = new Reservation();
         
         r.setBookingDate(bookingDate);
@@ -85,7 +94,9 @@ public class Reservation implements Serializable {
         r.setReservationStatus(ReservationStatus.ACTIVE);
 
         r.confirmationCode = generateCode();
-        r.tableNumber = 0;
+        r.assignedTableNumber = null;
+        r.walkInPhone = null;
+        r.walkInEmail = null;
 
         r.validate();
         return r;
@@ -93,26 +104,31 @@ public class Reservation implements Serializable {
 
 
     /**
-     * Creates a reservation for a guest.
+     * Creates a reservation for a walk-in guest.
      *
      * @param bookingDate reservation date
      * @param bookingTime reservation time
      * @param guestCount number of diners
+     * @param walkInPhone guest phone number (at least one contact required)
+     * @param walkInEmail guest email address (at least one contact required)
      * @return an active reservation for a guest
      * 
      * @throws IllegalArgumentException if input data is invalid
      */
-    public static Reservation createForGuest(LocalDate bookingDate, LocalTime bookingTime, int guestCount) {
+    public static Reservation createForGuest(LocalDate bookingDate, LocalTime bookingTime, 
+            int guestCount, String walkInPhone, String walkInEmail) {
         Reservation r = new Reservation();
         
         r.setBookingDate(bookingDate);
         r.setBookingTime(bookingTime);
         r.setGuestCount(guestCount);
         r.setSubscriberNumber(null);
+        r.setWalkInPhone(walkInPhone);
+        r.setWalkInEmail(walkInEmail);
         r.setReservationStatus(ReservationStatus.ACTIVE);
 
         r.confirmationCode = generateCode();
-        r.tableNumber = 0;
+        r.assignedTableNumber = null;
 
         r.validate();
         return r;
@@ -159,6 +175,15 @@ public class Reservation implements Serializable {
         return !isSubscriber();
     }
 
+    /**
+     * Checks if the reservation has a table assigned.
+     * 
+     * @return true if a table has been assigned (after check-in)
+     */
+    public boolean hasTableAssigned() {
+        return assignedTableNumber != null && assignedTableNumber > 0;
+    }
+
     /** Cancels the reservation.
      *  The reservation status is updated to CANCELLED 
      */
@@ -174,6 +199,28 @@ public class Reservation implements Serializable {
     /** Marks the reservation as completed. */
     public void complete() {
         setReservationStatus(ReservationStatus.COMPLETED);
+    }
+
+    /**
+     * Returns the contact phone for this reservation.
+     * For subscribers, returns null (phone is in User entity).
+     * For walk-in guests, returns the walkInPhone.
+     * 
+     * @return contact phone or null
+     */
+    public String getContactPhone() {
+        return walkInPhone;
+    }
+
+    /**
+     * Returns the contact email for this reservation.
+     * For subscribers, returns null (email is in User entity).
+     * For walk-in guests, returns the walkInEmail.
+     * 
+     * @return contact email or null
+     */
+    public String getContactEmail() {
+        return walkInEmail;
     }
 
     /**
@@ -197,11 +244,17 @@ public class Reservation implements Serializable {
         if (confirmationCode == null || confirmationCode.trim().isEmpty()) {
             throw new IllegalArgumentException("Confirmation code must not be empty");
         }
-        if (tableNumber < 0) {
-            throw new IllegalArgumentException("Table number must not be negative");
+        if (assignedTableNumber != null && assignedTableNumber < 0) {
+            throw new IllegalArgumentException("Assigned table number must not be negative");
         }
         if (reservationId < 0) {
             throw new IllegalArgumentException("Reservation ID must not be negative");
+        }
+        // Validate walk-in guest has at least one contact method
+        if (!isSubscriber() && 
+            (walkInPhone == null || walkInPhone.trim().isEmpty()) && 
+            (walkInEmail == null || walkInEmail.trim().isEmpty())) {
+            throw new IllegalArgumentException("Walk-in guest must provide phone or email");
         }
     }
     
@@ -359,25 +412,61 @@ public class Reservation implements Serializable {
     }
 
     /** 
-     * Returns the table number.
+     * Returns the assigned table number (null until check-in).
      * 
-     * @return the table number
+     * @return the assigned table number or null
      */
-    public int getTableNumber() {
-        return tableNumber;
+    public Integer getAssignedTableNumber() {
+        return assignedTableNumber;
     }
 
     /**
-     * Sets the table number.
+     * Sets the assigned table number.
      * 
-     * @param tableNumber the table number
+     * @param assignedTableNumber the table number (can be null before check-in)
      * @throws IllegalArgumentException if the table number is negative
      */
-    public void setTableNumber(int tableNumber) {
-        if (tableNumber < 0) {
-            throw new IllegalArgumentException("Table number must not be negative");
+    public void setAssignedTableNumber(Integer assignedTableNumber) {
+        if (assignedTableNumber != null && assignedTableNumber < 0) {
+            throw new IllegalArgumentException("Assigned table number must not be negative");
         }
-        this.tableNumber = tableNumber;
+        this.assignedTableNumber = assignedTableNumber;
+    }
+
+    /** 
+     * Returns the walk-in customer phone number.
+     * 
+     * @return walk-in phone or null
+     */
+    public String getWalkInPhone() {
+        return walkInPhone;
+    }
+
+    /**
+     * Sets the walk-in customer phone number.
+     * 
+     * @param walkInPhone the phone number (can be null for subscribers)
+     */
+    public void setWalkInPhone(String walkInPhone) {
+        this.walkInPhone = walkInPhone;
+    }
+
+    /** 
+     * Returns the walk-in customer email address.
+     * 
+     * @return walk-in email or null
+     */
+    public String getWalkInEmail() {
+        return walkInEmail;
+    }
+
+    /**
+     * Sets the walk-in customer email address.
+     * 
+     * @param walkInEmail the email address (can be null for subscribers)
+     */
+    public void setWalkInEmail(String walkInEmail) {
+        this.walkInEmail = walkInEmail;
     }
 
     /**
@@ -422,7 +511,9 @@ public class Reservation implements Serializable {
                 ", guestCount=" + guestCount +
                 ", subscriberNumber='" + subscriberNumber + '\'' +
                 ", status=" + status +
-                ", tableNumber=" + tableNumber +
+                ", assignedTableNumber=" + assignedTableNumber +
+                ", walkInPhone='" + walkInPhone + '\'' +
+                ", walkInEmail='" + walkInEmail + '\'' +
                 '}';
     }
 }

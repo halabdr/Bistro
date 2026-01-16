@@ -1,5 +1,4 @@
 package terminalgui;
-
 import client.ClientController;
 import client.Commands;
 import client.MessageListener;
@@ -11,13 +10,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 
@@ -72,11 +69,11 @@ public class SeatByCodeController implements MessageListener {
                 String status = r.getStatus() != null ? r.getStatus().name() : "-";
 
                 setText(
-                	    d + "  " + t
-                	    + "   | guests: " + r.getGuestCount()
-                	    + "   | status: " + status
-                	    + "   | code: " + code
-                	);
+                        d + "  " + t
+                        + "   | guests: " + r.getGuestCount()
+                        + "   | status: " + status
+                        + "   | code: " + code
+                    );
             }
         });
 
@@ -232,7 +229,7 @@ public class SeatByCodeController implements MessageListener {
 
                 Object data = m.getData();
 
-                // ✅ STRICT: must be Reservation
+                // STRICT: must be Reservation
                 if (!(data instanceof Reservation r)) {
                     setStatus(statusLabel, "Server response mismatch: expected Reservation.", "status-error");
                     setStatus(statusLabel2, "Server response mismatch: expected Reservation.", "status-error");
@@ -240,10 +237,11 @@ public class SeatByCodeController implements MessageListener {
                     return;
                 }
 
-                int table = r.getTableNumber();
+                // Get assigned table number (Integer, may be null)
+                Integer tableNumber = r.getAssignedTableNumber();
 
-                // ✅ STRICT: must have assigned table number (>0)
-                if (table <= 0) {
+                // STRICT: must have assigned table number (not null and > 0)
+                if (tableNumber == null || tableNumber <= 0) {
                     setStatus(statusLabel, "Server response mismatch: table number not assigned.", "status-error");
                     setStatus(statusLabel2, "Server response mismatch: table number not assigned.", "status-error");
                     resultLabel.setText("");
@@ -254,8 +252,8 @@ public class SeatByCodeController implements MessageListener {
                 setStatus(statusLabel, "Seated successfully.", "status-ok");
                 setStatus(statusLabel2, "Seated successfully.", "status-ok");
 
-                resultLabel.setText("Table number: " + table);
-                showTablePopup(table);
+                resultLabel.setText("Table number: " + tableNumber);
+                showTablePopup(tableNumber);
 
                 // Clear after popup
                 codeField.clear();

@@ -1,5 +1,4 @@
 package entities;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -21,6 +20,12 @@ public class WaitlistEntry implements Serializable {
     private String entryCode;
     private String subscriberNumber;
 
+    /** Walk-in customer phone number (used when subscriberNumber is null). */
+    private String walkInPhone;
+
+    /** Walk-in customer email address (used when subscriberNumber is null). */
+    private String walkInEmail;
+
     /**
      * Default constructor.
      */
@@ -30,19 +35,24 @@ public class WaitlistEntry implements Serializable {
     /**
      * Full constructor used for loading entries from database.
      *
-     * @param entryId         Unique entry identifier
-     * @param requestTime     Time when entry was created
-     * @param numberOfDiners  Number of people in the party
-     * @param entryCode       Unique entry code
+     * @param entryId          Unique entry identifier
+     * @param requestTime      Time when entry was created
+     * @param numberOfDiners   Number of people in the party
+     * @param entryCode        Unique entry code
      * @param subscriberNumber Subscriber number (null for guests)
+     * @param walkInPhone      Walk-in phone (null for subscribers)
+     * @param walkInEmail      Walk-in email (null for subscribers)
      */
     public WaitlistEntry(int entryId, LocalDateTime requestTime, int numberOfDiners, 
-                         String entryCode, String subscriberNumber) {
+                         String entryCode, String subscriberNumber,
+                         String walkInPhone, String walkInEmail) {
         setEntryId(entryId);
         setRequestTime(requestTime);
         setNumberOfDiners(numberOfDiners);
         setEntryCode(entryCode);
         setSubscriberNumber(subscriberNumber);
+        setWalkInPhone(walkInPhone);
+        setWalkInEmail(walkInEmail);
         
         validate();
     }
@@ -60,6 +70,8 @@ public class WaitlistEntry implements Serializable {
         
         entry.setNumberOfDiners(numberOfDiners);
         entry.setSubscriberNumber(subscriberNumber);
+        entry.walkInPhone = null;
+        entry.walkInEmail = null;
         entry.requestTime = LocalDateTime.now();
         entry.entryCode = generateCode();
         
@@ -68,17 +80,21 @@ public class WaitlistEntry implements Serializable {
     }
 
     /**
-     * Creates a waitlist entry for a guest (non-subscriber).
+     * Creates a waitlist entry for a walk-in guest.
      *
      * @param numberOfDiners Number of people in the party
+     * @param walkInPhone    Guest phone number (at least one contact required)
+     * @param walkInEmail    Guest email address (at least one contact required)
      * @return A new waitlist entry for a guest
      * @throws IllegalArgumentException if input data is invalid
      */
-    public static WaitlistEntry createForGuest(int numberOfDiners) {
+    public static WaitlistEntry createForGuest(int numberOfDiners, String walkInPhone, String walkInEmail) {
         WaitlistEntry entry = new WaitlistEntry();
         
         entry.setNumberOfDiners(numberOfDiners);
         entry.subscriberNumber = null;
+        entry.setWalkInPhone(walkInPhone);
+        entry.setWalkInEmail(walkInEmail);
         entry.requestTime = LocalDateTime.now();
         entry.entryCode = generateCode();
         
@@ -105,6 +121,24 @@ public class WaitlistEntry implements Serializable {
     }
 
     /**
+     * Returns the contact phone for this entry.
+     * 
+     * @return contact phone or null
+     */
+    public String getContactPhone() {
+        return walkInPhone;
+    }
+
+    /**
+     * Returns the contact email for this entry.
+     * 
+     * @return contact email or null
+     */
+    public String getContactEmail() {
+        return walkInEmail;
+    }
+
+    /**
      * Validates the waitlist entry state.
      * 
      * @throws IllegalArgumentException if the entry isn't valid
@@ -121,6 +155,12 @@ public class WaitlistEntry implements Serializable {
         }
         if (entryId < 0) {
             throw new IllegalArgumentException("Entry ID must not be negative");
+        }
+        // Validate walk-in guest has at least one contact method
+        if (!isSubscriber() && 
+            (walkInPhone == null || walkInPhone.trim().isEmpty()) && 
+            (walkInEmail == null || walkInEmail.trim().isEmpty())) {
+            throw new IllegalArgumentException("Walk-in guest must provide phone or email");
         }
     }
 
@@ -239,6 +279,42 @@ public class WaitlistEntry implements Serializable {
         this.subscriberNumber = subscriberNumber;
     }
 
+    /** 
+     * Returns the walk-in customer phone number.
+     * 
+     * @return walk-in phone or null
+     */
+    public String getWalkInPhone() {
+        return walkInPhone;
+    }
+
+    /**
+     * Sets the walk-in customer phone number.
+     * 
+     * @param walkInPhone the phone number (can be null for subscribers)
+     */
+    public void setWalkInPhone(String walkInPhone) {
+        this.walkInPhone = walkInPhone;
+    }
+
+    /** 
+     * Returns the walk-in customer email address.
+     * 
+     * @return walk-in email or null
+     */
+    public String getWalkInEmail() {
+        return walkInEmail;
+    }
+
+    /**
+     * Sets the walk-in customer email address.
+     * 
+     * @param walkInEmail the email address (can be null for subscribers)
+     */
+    public void setWalkInEmail(String walkInEmail) {
+        this.walkInEmail = walkInEmail;
+    }
+
     /**
      * Compares two waitlist entries.
      * 
@@ -283,6 +359,8 @@ public class WaitlistEntry implements Serializable {
                 ", numberOfDiners=" + numberOfDiners +
                 ", entryCode='" + entryCode + '\'' +
                 ", subscriberNumber='" + subscriberNumber + '\'' +
+                ", walkInPhone='" + walkInPhone + '\'' +
+                ", walkInEmail='" + walkInEmail + '\'' +
                 '}';
     }
 }

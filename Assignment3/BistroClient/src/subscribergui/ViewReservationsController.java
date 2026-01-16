@@ -102,8 +102,8 @@ public class ViewReservationsController implements MessageListener {
 
         if (tableCol != null) {
             tableCol.setCellValueFactory(cellData -> {
-                int tableNum = cellData.getValue().getTableNumber();
-                String display = (tableNum > 0) ? String.valueOf(tableNum) : "-";
+                Integer tableNum = cellData.getValue().getAssignedTableNumber();
+                String display = (tableNum != null && tableNum > 0) ? String.valueOf(tableNum) : "-";
                 return new javafx.beans.property.SimpleStringProperty(display);
             });
         }
@@ -215,7 +215,6 @@ public class ViewReservationsController implements MessageListener {
         Optional<ButtonType> result = confirmDialog.showAndWait();
         
         if (result.isPresent() && result.get() == yesButton) {
-            // User confirmed - send cancellation request
             try {
                 statusLabel.setText("Cancelling reservation...");
                 controller.cancelReservation(reservation.getConfirmationCode());

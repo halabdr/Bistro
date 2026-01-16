@@ -1,5 +1,4 @@
 package terminalgui;
-
 import client.ClientController;
 import client.Commands;
 import client.MessageListener;
@@ -8,15 +7,23 @@ import common.Message;
 import entities.WaitlistEntry;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
-import javafx.scene.control.Spinner;
-import javafx.scene.control.SpinnerValueFactory;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 
 public class TerminalJoinWaitlistController implements MessageListener {
 
     @FXML private Spinner<Integer> dinersSpinner;
+    
+    @FXML private RadioButton subscriberRadio;
+    @FXML private RadioButton guestRadio;
+    
+    @FXML private VBox subscriberBox;
     @FXML private TextField subscriberField;
+    
+    @FXML private VBox guestBox;
+    @FXML private TextField phoneField;
+    @FXML private TextField emailField;
+    
     @FXML private Label statusLabel;
     @FXML private Label resultLabel;
 
@@ -26,14 +33,39 @@ public class TerminalJoinWaitlistController implements MessageListener {
         this.controller = controller;
         this.controller.setListener(this);
 
+        // Diners spinner
         dinersSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 20, 2));
+        
+        // Toggle group (Subscriber / Guest)
+        ToggleGroup tg = new ToggleGroup();
+        subscriberRadio.setToggleGroup(tg);
+        guestRadio.setToggleGroup(tg);
+        
+        subscriberRadio.setSelected(true);
+        updateModeUI();
+        
+        tg.selectedToggleProperty().addListener((obs, oldT, newT) -> updateModeUI());
+        
         resultLabel.setText("");
         setStatus("", null);
     }
 
+    private void updateModeUI() {
+        boolean isSubscriber = subscriberRadio.isSelected();
+        
+        subscriberBox.setVisible(isSubscriber);
+        subscriberBox.setManaged(isSubscriber);
+        
+        guestBox.setVisible(!isSubscriber);
+        guestBox.setManaged(!isSubscriber);
+        
+        setStatus("", null);
+        resultLabel.setText("");
+    }
+
     private void setStatus(String text, String styleClass) {
         statusLabel.setText(text == null ? "" : text);
-        statusLabel.getStyleClass().removeAll("status-ok","status-bad","status-error");
+        statusLabel.getStyleClass().removeAll("status-ok", "status-bad", "status-error");
         if (styleClass != null && !styleClass.isBlank()) {
             statusLabel.getStyleClass().add(styleClass);
         }
@@ -43,13 +75,41 @@ public class TerminalJoinWaitlistController implements MessageListener {
     private void onJoin() {
         try {
             int diners = dinersSpinner.getValue();
-            String sub = subscriberField.getText() == null ? null : subscriberField.getText().trim();
-            if (sub != null && sub.isEmpty()) sub = null;
+            boolean isSubscriber = subscriberRadio.isSelected();
+            
+            String subscriberNumber = null;
+            String walkInPhone = null;
+            String walkInEmail = null;
+            
+            if (isSubscriber) {
+                subscriberNumber = safeTrim(subscriberField.getText());
+                if (subscriberNumber.isEmpty()) {
+                    setStatus("Please enter subscriber number.", "status-error");
+                    return;
+                }
+            } else {
+                walkInPhone = safeTrim(phoneField.getText());
+                walkInEmail = safeTrim(emailField.getText());
+                
+                if (walkInPhone.isEmpty() && walkInEmail.isEmpty()) {
+                    setStatus("Please enter at least one contact: phone or email.", "status-error");
+                    return;
+                }
+                if (!walkInEmail.isEmpty() && !walkInEmail.contains("@")) {
+                    setStatus("Email looks invalid.", "status-error");
+                    return;
+                }
+                
+                // Convert empty strings to null
+                if (walkInPhone.isEmpty()) walkInPhone = null;
+                if (walkInEmail.isEmpty()) walkInEmail = null;
+            }
 
             resultLabel.setText("");
             setStatus("Joining waitlist...", "status-bad");
 
-            controller.joinWaitlist(diners, sub);
+            controller.joinWaitlist(diners, subscriberNumber, walkInPhone, walkInEmail);
+            
         } catch (Exception e) {
             setStatus("Error: " + e.getMessage(), "status-error");
         }
@@ -80,5 +140,9 @@ public class TerminalJoinWaitlistController implements MessageListener {
     @FXML
     private void onBack() throws Exception {
         ConnectApp.showTerminalMenu();
+    }
+    
+    private static String safeTrim(String s) {
+        return s == null ? "" : s.trim();
     }
 }

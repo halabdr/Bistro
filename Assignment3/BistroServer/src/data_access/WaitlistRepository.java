@@ -24,6 +24,7 @@ public class WaitlistRepository {
      * Adds a customer to the waitlist.
      * 
      * @param request Message containing "numberOfDiners" and optional "subscriberNumber"
+     *                or "walkInPhone"/"walkInEmail" for walk-in guests
      * @return Message with created WaitlistEntry object if successful
      */
     public Message joinWaitlist(Message request) {
@@ -36,6 +37,8 @@ public class WaitlistRepository {
             
             int numberOfDiners = (Integer) data.get("numberOfDiners");
             String subscriberNumber = (String) data.get("subscriberNumber");
+            String walkInPhone = (String) data.get("walkInPhone");
+            String walkInEmail = (String) data.get("walkInEmail");
 
             pConn = pool.getConnection();
             if (pConn == null) {
@@ -48,13 +51,16 @@ public class WaitlistRepository {
             String entryCode = generateEntryCode();
 
             // Insert into waitlist
-            String sql = "INSERT INTO waiting_list (number_of_diners, entry_code, subscriber_number) " +
-                        "VALUES (?, ?, ?)";
+            String sql = "INSERT INTO waiting_list (number_of_diners, entry_code, " +
+                        "subscriber_number, walk_in_phone, walk_in_email) " +
+                        "VALUES (?, ?, ?, ?, ?)";
             
             PreparedStatement ps = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
             ps.setInt(1, numberOfDiners);
             ps.setString(2, entryCode);
             ps.setString(3, subscriberNumber);
+            ps.setString(4, walkInPhone);
+            ps.setString(5, walkInEmail);
             
             ps.executeUpdate();
 
@@ -72,6 +78,8 @@ public class WaitlistRepository {
             entry.setNumberOfDiners(numberOfDiners);
             entry.setEntryCode(entryCode);
             entry.setSubscriberNumber(subscriberNumber);
+            entry.setWalkInPhone(walkInPhone);
+            entry.setWalkInEmail(walkInEmail);
             entry.setRequestTime(LocalDateTime.now());
 
             return Message.ok("JOIN_WAITLIST", entry);
@@ -172,6 +180,7 @@ public class WaitlistRepository {
     /**
      * Retrieves a lost entry code by searching for a waitlist entry 
      * using an identifier (phone number or email).
+     * Searches both subscribers and walk-in customers.
      * 
      * @param request Message containing "identifier" (phone or email)
      * @return Message with entry code if found, or error message
@@ -196,8 +205,10 @@ public class WaitlistRepository {
 
             Connection conn = pConn.getConnection();
             
-            // Find waitlist entry by phone or email through users table
-            String sql = "SELECT w.entry_code " +
+            String entryCode = null;
+
+            // First try: find by subscriber phone/email
+            String sqlSubscriber = "SELECT w.entry_code " +
                         "FROM waiting_list w " +
                         "JOIN subscribers s ON w.subscriber_number = s.subscriber_number " +
                         "JOIN users u ON s.user_id = u.user_id " +
@@ -205,22 +216,38 @@ public class WaitlistRepository {
                         "ORDER BY w.request_time DESC " +
                         "LIMIT 1";
             
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setString(1, identifier);
-            ps.setString(2, identifier);
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                String entryCode = rs.getString("entry_code");
-                rs.close();
-                ps.close();
-                
-                // Simulate sending the code via email/SMS
-                return Message.ok("LOST_CODE", entryCode);
+            try (PreparedStatement ps = conn.prepareStatement(sqlSubscriber)) {
+                ps.setString(1, identifier);
+                ps.setString(2, identifier);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        entryCode = rs.getString("entry_code");
+                    }
+                }
             }
 
-            rs.close();
-            ps.close();
+            // Second try: find by walk-in phone/email
+            if (entryCode == null) {
+                String sqlWalkIn = "SELECT entry_code " +
+                            "FROM waiting_list " +
+                            "WHERE (walk_in_phone = ? OR walk_in_email = ?) " +
+                            "ORDER BY request_time DESC " +
+                            "LIMIT 1";
+                
+                try (PreparedStatement ps = conn.prepareStatement(sqlWalkIn)) {
+                    ps.setString(1, identifier);
+                    ps.setString(2, identifier);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            entryCode = rs.getString("entry_code");
+                        }
+                    }
+                }
+            }
+
+            if (entryCode != null) {
+                return Message.ok("LOST_CODE", entryCode);
+            }
 
             return Message.fail("LOST_CODE", "No waitlist entry found for this identifier");
 
@@ -232,7 +259,7 @@ public class WaitlistRepository {
         }
     }
 
-    //methods to keep code clean 
+    // ==================== Helper methods ====================
 
     /**
      * Generates a unique entry code for waitlist.
@@ -258,9 +285,13 @@ public class WaitlistRepository {
         entry.setEntryCode(rs.getString("entry_code"));
         
         String subscriberNumber = rs.getString("subscriber_number");
-        if (subscriberNumber != null) {
-            entry.setSubscriberNumber(subscriberNumber);
-        }
+        entry.setSubscriberNumber(subscriberNumber);
+        
+        String walkInPhone = rs.getString("walk_in_phone");
+        entry.setWalkInPhone(walkInPhone);
+        
+        String walkInEmail = rs.getString("walk_in_email");
+        entry.setWalkInEmail(walkInEmail);
         
         return entry;
     }
