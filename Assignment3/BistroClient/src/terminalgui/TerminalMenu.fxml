@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="terminalgui.TerminalMenuController"
+            stylesheets="@/terminalgui/styles/terminal.css"
+            styleClass="terminal-bg">
+
+    <top>
+        <HBox styleClass="terminal-topbar" alignment="CENTER_LEFT" spacing="10">
+            <VBox spacing="2">
+                <Label text="Terminal Check-In" styleClass="terminal-title"/>
+                <Label text="Quick actions at the restaurant" styleClass="terminal-subtitle"/>
+            </VBox>
+
+            <Pane HBox.hgrow="ALWAYS"/>
+
+            <Button text="Exit" onAction="#onBack" styleClass="btn-danger"/>
+        </HBox>
+    </top>
+
+    <center>
+        <VBox alignment="CENTER" spacing="18" padding="30">
+            <VBox styleClass="terminal-card" spacing="14" maxWidth="520">
+
+                <Label text="Choose an action" styleClass="section-title"/>
+
+                <GridPane hgap="12" vgap="12">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="50"/>
+                        <ColumnConstraints percentWidth="50"/>
+                    </columnConstraints>
+
+                    <Button text="Seat by Code" onAction="#onSeatByCode"
+                            styleClass="btn-primary" prefHeight="48" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+
+                    <Button text="Join Waitlist" onAction="#onJoinWaitlist"
+                            styleClass="btn-secondary" prefHeight="48" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                    <Button text="Leave Waitlist" onAction="#onLeaveWaitlist"
+                            styleClass="btn-secondary" prefHeight="48" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+
+                    <Button text="Lost Code" onAction="#onLostCode"
+                            styleClass="btn-secondary" prefHeight="48" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                </GridPane>
+
+                <Label text="Tip: If you received an SMS/Email that your table is ready, use 'Seat by Code'."
+                       wrapText="true" styleClass="terminal-hint"/>
+
+            </VBox>
+        </VBox>
+    </center>
+</BorderPane>

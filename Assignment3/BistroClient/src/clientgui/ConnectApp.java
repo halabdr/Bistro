@@ -198,4 +198,39 @@ public final class ConnectApp {
         primaryStage.setScene(scene);
         primaryStage.setTitle("Update Personal Info - Bistro");
     }
+    
+    public static void showTerminalMenu() throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/terminalgui/TerminalMenu.fxml"));
+        Scene scene = new Scene(loader.load());
+
+        terminalgui.TerminalMenuController c = loader.getController();
+        c.init(controller);
+
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("Terminal - Bistro");
+    }
+
+    
+    public static void showTerminalJoinWaitlist() throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/terminalgui/TerminalJoinWaitlist.fxml"));
+        Scene scene = new Scene(loader.load());
+
+        terminalgui.TerminalJoinWaitlistController c = loader.getController();
+        c.init(controller);
+
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("Terminal - Join Waitlist");
+    }
+
+    public static void showTerminalLeaveWaitlist() throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/terminalgui/TerminalLeaveWaitlist.fxml"));
+        Scene scene = new Scene(loader.load());
+
+        terminalgui.TerminalLeaveWaitlistController c = loader.getController();
+        c.init(controller);
+
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("Terminal - Leave Waitlist");
+    }
+
 }

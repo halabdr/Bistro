@@ -157,12 +157,13 @@ public class ReservationSearchController implements MessageListener {
             }
 
             LocalDateTime minAllowed = LocalDateTime.now().plusHours(1);
-            LocalDateTime maxAllowed = LocalDateTime.now().plusMonths(1);
+            LocalDate maxAllowedDate = LocalDate.now().plusMonths(1);
 
             List<String> times = list.stream()
                     .filter(o -> o instanceof LocalDateTime)
-                    .map(o -> (LocalDateTime) o)
-                    .filter(dt -> !dt.isBefore(minAllowed) && !dt.isAfter(maxAllowed))
+                    .map(o -> (LocalDateTime) o)                    
+                    .filter(dt -> !dt.toLocalDate().isAfter(maxAllowedDate))
+                    .filter(dt -> !dt.toLocalDate().isEqual(LocalDate.now()) || !dt.isBefore(minAllowed))
                     .map(dt -> dt.toLocalTime().format(timeFmt))
                     .toList();
 

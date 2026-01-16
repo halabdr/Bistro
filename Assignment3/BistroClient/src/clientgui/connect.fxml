@@ -60,7 +60,7 @@
 
                 <!-- Buttons -->
                 <HBox spacing="12" alignment="CENTER">
-                    <Button text="Connect" onAction="#onConnect"
+                    <Button fx:id="connectBtn" text="Connect" onAction="#onConnect"
                             style="-fx-background-radius: 10;
                                    -fx-font-size: 14px;
                                    -fx-font-weight: bold;
@@ -80,6 +80,40 @@
                 <Label fx:id="statusLabel" text=""
                        style="-fx-text-fill: #fca5a5; -fx-font-size: 12px;"/>
             </VBox>
+
+            <!-- ===== Fancy Error Modal Overlay (hidden by default) ===== -->
+            <StackPane fx:id="errorOverlay"
+                       visible="false" managed="false"
+                       style="-fx-background-color: rgba(0,0,0,0.55);">
+
+                <VBox alignment="CENTER" spacing="10"
+                      maxWidth="440"
+                      style="-fx-background-color: rgba(255,255,255,0.10);
+                             -fx-background-radius: 18;
+                             -fx-border-radius: 18;
+                             -fx-border-color: rgba(255,255,255,0.22);
+                             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 20, 0.2, 0, 10);">
+                    <padding>
+                        <Insets top="18" right="18" bottom="18" left="18"/>
+                    </padding>
+
+                    <Label text="Connection Failed"
+                           style="-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: 800;"/>
+
+                    <Label fx:id="errorMessageLabel"
+                           wrapText="true"
+                           style="-fx-text-fill: rgba(255,255,255,0.85); -fx-font-size: 13px;"/>
+
+                    <Button text="OK" onAction="#onCloseError"
+                            style="-fx-background-radius: 10;
+                                   -fx-font-size: 14px;
+                                   -fx-font-weight: bold;
+                                   -fx-padding: 10 26;
+                                   -fx-background-color: #22c55e;
+                                   -fx-text-fill: #06210f;"/>
+                </VBox>
+
+            </StackPane>
 
         </children>
     </StackPane>

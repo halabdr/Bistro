@@ -5,15 +5,15 @@
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="terminalgui.SeatByCodeController"
+            fx:controller="terminalgui.TerminalLeaveWaitlistController"
             stylesheets="@/terminalgui/styles/terminal.css"
             styleClass="terminal-bg">
 
     <top>
         <HBox styleClass="terminal-topbar" alignment="CENTER_LEFT" spacing="10">
             <VBox spacing="2">
-                <Label text="Seat by Code" styleClass="terminal-title"/>
-                <Label text="Enter your confirmation code to get seated" styleClass="terminal-subtitle"/>
+                <Label text="Leave Waitlist" styleClass="terminal-title"/>
+                <Label text="If you no longer want to wait, remove yourself" styleClass="terminal-subtitle"/>
             </VBox>
             <Pane HBox.hgrow="ALWAYS"/>
             <Button text="Back" onAction="#onBack" styleClass="btn-secondary"/>
@@ -24,20 +24,17 @@
         <VBox alignment="CENTER" padding="30">
             <VBox styleClass="terminal-card" spacing="14" maxWidth="520">
 
-                <Label text="Confirmation Code" styleClass="section-title"/>
+                <Label text="Waitlist code" styleClass="section-title"/>
 
-                <TextField fx:id="codeField"
-                           promptText="e.g., ABC123"
+                <TextField fx:id="codeField" promptText="Enter your code"
                            styleClass="terminal-field"/>
 
                 <Label fx:id="statusLabel" styleClass="terminal-hint"/>
                 <Label fx:id="resultLabel" wrapText="true" styleClass="terminal-hint"/>
 
                 <HBox spacing="10">
-                    <Button text="Seat" onAction="#onSeat"
-                            styleClass="btn-primary" prefHeight="44" prefWidth="180"/>
-                    <Button text="Cancel" onAction="#onBack"
-                            styleClass="btn-secondary" prefHeight="44" prefWidth="180"/>
+                    <Button text="Leave" onAction="#onLeave" styleClass="btn-danger" prefHeight="44" prefWidth="180"/>
+                    <Button text="Cancel" onAction="#onBack" styleClass="btn-secondary" prefHeight="44" prefWidth="180"/>
                 </HBox>
 
             </VBox>

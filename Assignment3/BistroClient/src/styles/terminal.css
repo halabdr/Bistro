@@ -1,0 +1,125 @@
+/* ===== Terminal Theme (Modern / Premium) ===== */
+
+.root {
+    -fx-font-family: "Segoe UI", "Assistant", "Arial";
+}
+
+/* Background */
+.terminal-bg {
+    -fx-background-color: linear-gradient(to bottom right, #0f172a, #1e293b);
+}
+
+/* Top bar */
+.terminal-topbar {
+    -fx-padding: 18 22 18 22;
+    -fx-background-color: rgba(255,255,255,0.06);
+    -fx-border-color: rgba(255,255,255,0.10);
+    -fx-border-width: 0 0 1 0;
+}
+
+.terminal-title {
+    -fx-text-fill: #e2e8f0;
+    -fx-font-size: 22px;
+    -fx-font-weight: 800;
+}
+
+.terminal-subtitle {
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 12px;
+}
+
+/* Card container */
+.terminal-card {
+    -fx-background-color: rgba(255,255,255,0.08);
+    -fx-background-radius: 18;
+    -fx-padding: 22;
+    -fx-border-color: rgba(255,255,255,0.12);
+    -fx-border-radius: 18;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 22, 0.25, 0, 10);
+}
+
+/* Section title inside card */
+.section-title {
+    -fx-text-fill: #e2e8f0;
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+}
+
+/* Inputs */
+.terminal-field {
+    -fx-background-color: rgba(15, 23, 42, 0.65);
+    -fx-text-fill: #e2e8f0;
+    -fx-prompt-text-fill: rgba(226,232,240,0.55);
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: rgba(148,163,184,0.28);
+    -fx-padding: 10 12;
+}
+
+.spinner .text-field {
+    -fx-background-color: rgba(15, 23, 42, 0.65);
+    -fx-text-fill: #e2e8f0;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: rgba(148,163,184,0.28);
+}
+
+/* Buttons */
+.btn-primary {
+    -fx-background-color: #2563eb;
+    -fx-text-fill: white;
+    -fx-font-weight: 700;
+    -fx-background-radius: 14;
+    -fx-padding: 12 16;
+}
+
+.btn-primary:hover {
+    -fx-background-color: #1d4ed8;
+}
+
+.btn-secondary {
+    -fx-background-color: rgba(255,255,255,0.10);
+    -fx-text-fill: #e2e8f0;
+    -fx-font-weight: 700;
+    -fx-background-radius: 14;
+    -fx-padding: 12 16;
+    -fx-border-color: rgba(255,255,255,0.18);
+    -fx-border-radius: 14;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: rgba(255,255,255,0.14);
+}
+
+.btn-danger {
+    -fx-background-color: #ef4444;
+    -fx-text-fill: white;
+    -fx-font-weight: 800;
+    -fx-background-radius: 14;
+    -fx-padding: 12 16;
+}
+
+.btn-danger:hover {
+    -fx-background-color: #dc2626;
+}
+
+/* Small helper labels */
+.terminal-hint {
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 11px;
+}
+
+.status-ok {
+    -fx-text-fill: #22c55e;
+    -fx-font-weight: 700;
+}
+
+.status-bad {
+    -fx-text-fill: #f97316;
+    -fx-font-weight: 700;
+}
+
+.status-error {
+    -fx-text-fill: #ef4444;
+    -fx-font-weight: 700;
+}

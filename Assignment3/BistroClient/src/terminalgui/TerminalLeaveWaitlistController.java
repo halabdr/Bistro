@@ -5,35 +5,22 @@ import client.Commands;
 import client.MessageListener;
 import clientgui.ConnectApp;
 import common.Message;
-import entities.Reservation;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
-/**
- * Terminal screen controller.
- * Allows a terminal worker to "seat" a reservation by entering a confirmation code.
- * Sends command SEAT_BY_CODE request and displays the returned result.
- */
-public class SeatByCodeController implements MessageListener {
+public class TerminalLeaveWaitlistController implements MessageListener {
 
-    /** Input for reservation confirmation code. */
     @FXML private TextField codeField;
-
-    /** Status label for showing progress/errors. */
     @FXML private Label statusLabel;
-
-    /** Result label for showing returned data (table number / message). */
     @FXML private Label resultLabel;
 
-    /** Shared client controller. */
     private ClientController controller;
 
     public void init(ClientController controller) {
         this.controller = controller;
         this.controller.setListener(this);
-
         resultLabel.setText("");
         setStatus("", null);
     }
@@ -47,19 +34,18 @@ public class SeatByCodeController implements MessageListener {
     }
 
     @FXML
-    private void onSeat() {
+    private void onLeave() {
         try {
             String code = codeField.getText() == null ? "" : codeField.getText().trim();
             if (code.isEmpty()) {
-                setStatus("Please enter confirmation code.", "status-bad");
+                setStatus("Please enter waitlist code.", "status-bad");
                 return;
             }
 
             resultLabel.setText("");
-            setStatus("Seating...", "status-bad");
+            setStatus("Leaving waitlist...", "status-bad");
 
-            controller.seatByCode(code);
-
+            controller.leaveWaitlist(code);
         } catch (Exception e) {
             setStatus("Error: " + e.getMessage(), "status-error");
         }
@@ -68,7 +54,7 @@ public class SeatByCodeController implements MessageListener {
     @Override
     public void onMessage(Message m) {
         if (m == null) return;
-        if (!Commands.SEAT_BY_CODE.equals(m.getCommand())) return;
+        if (!Commands.LEAVE_WAITLIST.equals(m.getCommand())) return;
 
         Platform.runLater(() -> {
             if (!m.isSuccess()) {
@@ -77,27 +63,12 @@ public class SeatByCodeController implements MessageListener {
             }
 
             setStatus("Done.", "status-ok");
-
-            Object data = m.getData();
-
-            // If server returns Reservation, show table number
-            if (data instanceof Reservation r) {
-                int table = r.getTableNumber();
-                if (table > 0) {
-                    resultLabel.setText("Table number: " + table);
-                } else {
-                    resultLabel.setText("Reservation found, but no table assigned yet.");
-                }
-                return;
-            }
-
-            // Otherwise show any result
-            resultLabel.setText("Result: " + String.valueOf(data));
+            resultLabel.setText(String.valueOf(m.getData()));
         });
     }
 
     @FXML
     private void onBack() throws Exception {
-        ConnectApp.showWelcome();
+        ConnectApp.showTerminalMenu();
     }
 }

@@ -3,27 +3,49 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:controller="terminalgui.TerminalLostCodeController"
-      spacing="12" alignment="CENTER" prefWidth="420" prefHeight="320">
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="terminalgui.TerminalLostCodeController"
+            stylesheets="@/terminalgui/styles/terminal.css"
+            styleClass="terminal-bg">
 
-    <Label text="Terminal - Lost Code" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+    <top>
+        <HBox styleClass="terminal-topbar" alignment="CENTER_LEFT" spacing="10">
+            <VBox spacing="2">
+                <Label text="Lost Code" styleClass="terminal-title"/>
+                <Label text="Retrieve your reservation or waitlist code" styleClass="terminal-subtitle"/>
+            </VBox>
+            <Pane HBox.hgrow="ALWAYS"/>
+            <Button text="Back" onAction="#onBack" styleClass="btn-secondary"/>
+        </HBox>
+    </top>
 
-    <Label text="Enter phone or email:"/>
-    <TextField fx:id="identifierField" prefWidth="260"/>
+    <center>
+        <VBox alignment="CENTER" padding="30">
+            <VBox styleClass="terminal-card" spacing="14" maxWidth="520">
 
-    <HBox spacing="10" alignment="CENTER">
-        <Label text="Search in:"/>
-        <ChoiceBox fx:id="typeChoice" prefWidth="180"/>
-    </HBox>
+                <Label text="Your identifier" styleClass="section-title"/>
 
-    <Label fx:id="statusLabel"/>
-    <Label fx:id="resultLabel"/>
+                <TextField fx:id="identifierField"
+                           promptText="Phone or email"
+                           styleClass="terminal-field"/>
 
-    <HBox spacing="10">
-        <Button text="Back" onAction="#onBack"/>
-        <Button text="Send code" onAction="#onSend"/>
-    </HBox>
+                <HBox spacing="12" alignment="CENTER_LEFT">
+                    <Label text="Search in" styleClass="terminal-subtitle"/>
+                    <ChoiceBox fx:id="typeChoice" prefWidth="200" />
+                </HBox>
 
-</VBox>
+                <Label fx:id="statusLabel" styleClass="terminal-hint"/>
+                <Label fx:id="resultLabel" wrapText="true" styleClass="terminal-hint"/>
+
+                <HBox spacing="10">
+                    <Button text="Send Code" onAction="#onSend"
+                            styleClass="btn-primary" prefHeight="44" prefWidth="180"/>
+                    <Button text="Cancel" onAction="#onBack"
+                            styleClass="btn-secondary" prefHeight="44" prefWidth="180"/>
+                </HBox>
+
+            </VBox>
+        </VBox>
+    </center>
+</BorderPane>

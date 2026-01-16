@@ -181,6 +181,19 @@ public class ClientController {
     public void getWaitlist() throws IOException {
         client.sendToServer(new Message(Commands.GET_WAITLIST, null));
     }
+    
+    public void joinWaitlist(int numberOfDiners, String subscriberNumber) throws IOException {
+        Map<String, Object> data = new HashMap<>();
+        data.put("numberOfDiners", numberOfDiners);
+        data.put("subscriberNumber", subscriberNumber); 
+        client.sendToServer(new Message(Commands.JOIN_WAITLIST, data));
+    }
+
+    public void leaveWaitlist(String entryCode) throws IOException {
+        Map<String, Object> data = new HashMap<>();
+        data.put("entryCode", entryCode);
+        client.sendToServer(new Message(Commands.LEAVE_WAITLIST, data));
+    }
 
     // ---------------- Tables ----------------
 

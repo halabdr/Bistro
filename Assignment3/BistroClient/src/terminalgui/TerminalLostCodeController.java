@@ -24,11 +24,19 @@ public class TerminalLostCodeController implements MessageListener {
         this.controller = controller;
         this.controller.setListener(this);
 
-        statusLabel.setText("");
         resultLabel.setText("");
+        setStatus("", null);
 
         typeChoice.getItems().setAll("Reservation", "Waitlist");
         typeChoice.setValue("Reservation");
+    }
+
+    private void setStatus(String text, String styleClass) {
+        statusLabel.setText(text == null ? "" : text);
+        statusLabel.getStyleClass().removeAll("status-ok","status-bad","status-error");
+        if (styleClass != null && !styleClass.isBlank()) {
+            statusLabel.getStyleClass().add(styleClass);
+        }
     }
 
     @FXML
@@ -36,12 +44,12 @@ public class TerminalLostCodeController implements MessageListener {
         try {
             String identifier = identifierField.getText() == null ? "" : identifierField.getText().trim();
             if (identifier.isEmpty()) {
-                statusLabel.setText("Please enter phone or email.");
+                setStatus("Please enter phone or email.", "status-bad");
                 return;
             }
 
-            statusLabel.setText("Searching...");
             resultLabel.setText("");
+            setStatus("Searching...", "status-bad");
 
             if ("Waitlist".equals(typeChoice.getValue())) {
                 controller.lostCodeWaitlist(identifier);
@@ -49,7 +57,7 @@ public class TerminalLostCodeController implements MessageListener {
                 controller.lostCode(identifier);
             }
         } catch (Exception e) {
-            statusLabel.setText("Error: " + e.getMessage());
+            setStatus("Error: " + e.getMessage(), "status-error");
         }
     }
 
@@ -62,16 +70,17 @@ public class TerminalLostCodeController implements MessageListener {
 
         Platform.runLater(() -> {
             if (!m.isSuccess()) {
-                statusLabel.setText("Failed: " + m.getError());
+                setStatus("Failed: " + m.getError(), "status-error");
                 return;
             }
-            statusLabel.setText("Done.");
+
+            setStatus("Done.", "status-ok");
             resultLabel.setText("Code: " + String.valueOf(m.getData()));
         });
     }
 
     @FXML
     private void onBack() throws Exception {
-        ConnectApp.showHome();
+        ConnectApp.showWelcome();
     }
 }

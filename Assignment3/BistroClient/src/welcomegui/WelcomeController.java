@@ -40,11 +40,12 @@ public class WelcomeController {
     @FXML
     private void handleTerminalCheckIn() {
         try {
-            ConnectApp.showTerminalSeatByCode();
+            ConnectApp.showTerminalMenu();
         } catch (Exception e) {
             showAlert(Alert.AlertType.ERROR, "Navigation Error", e.getMessage());
         }
     }
+
 
     @FXML
     private void handleStaffLogin() {

@@ -58,6 +58,10 @@ public class ViewReservationsController implements MessageListener {
 
         setupTableColumns();
         setupActionsColumn();
+        
+        //Take all existing columns and split them so they fill the entire width of the table (My Reservations)
+        reservationsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        
         setupCheckBoxListener();
         loadReservations();
     }
