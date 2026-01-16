@@ -6,7 +6,7 @@
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="terminalgui.TerminalJoinWaitlistController"
-            stylesheets="@/terminalgui/styles/terminal.css"
+            stylesheets="@/styles/terminal.css"
             styleClass="terminal-bg">
 
     <top>
