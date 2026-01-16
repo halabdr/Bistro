@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
@@ -21,7 +22,11 @@
     </top>
 
     <center>
-        <VBox alignment="CENTER" padding="30">
+        <VBox alignment="CENTER">
+            <padding>
+                <Insets top="30" right="30" bottom="30" left="30"/>
+            </padding>
+
             <VBox styleClass="terminal-card" spacing="14" maxWidth="520">
 
                 <Label text="Details" styleClass="section-title"/>

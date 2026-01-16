@@ -208,6 +208,7 @@ public final class ConnectApp {
 
         primaryStage.setScene(scene);
         primaryStage.setTitle("Terminal - Bistro");
+        primaryStage.show();
     }
 
     

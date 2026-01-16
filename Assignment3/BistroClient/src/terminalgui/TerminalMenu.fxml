@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
@@ -7,50 +8,122 @@
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="terminalgui.TerminalMenuController"
             stylesheets="@/styles/terminal.css"
-            styleClass="terminal-bg">
+            styleClass="terminal-bg"
+            prefWidth="1100" prefHeight="720">
 
+    <!-- Top bar -->
     <top>
-        <HBox styleClass="terminal-topbar" alignment="CENTER_LEFT" spacing="10">
-            <VBox spacing="2">
+        <HBox alignment="CENTER_LEFT" spacing="12" styleClass="terminal-topbar">
+            <padding>
+                <Insets top="18" right="26" bottom="18" left="26"/>
+            </padding>
+
+            <VBox spacing="4">
                 <Label text="Terminal Check-In" styleClass="terminal-title"/>
                 <Label text="Quick actions at the restaurant" styleClass="terminal-subtitle"/>
             </VBox>
 
             <Pane HBox.hgrow="ALWAYS"/>
 
-            <Button text="Exit" onAction="#onBack" styleClass="btn-danger"/>
+            <Button text="Back" onAction="#onBack" styleClass="btn-danger" prefHeight="42"/>
         </HBox>
     </top>
 
+    <!-- Center (bigger centered card) -->
     <center>
-        <VBox alignment="CENTER" spacing="18" padding="30">
-            <VBox styleClass="terminal-card" spacing="14" maxWidth="520">
+        <StackPane alignment="CENTER">
+            <padding>
+                <Insets top="20" right="30" bottom="30" left="30"/>
+            </padding>
 
-                <Label text="Choose an action" styleClass="section-title"/>
+            <VBox styleClass="terminal-card"
+                  alignment="TOP_LEFT"
+                  spacing="22"
+                  maxWidth="980"
+                  prefWidth="980"
+                  minHeight="520">
+                <padding>
+                    <Insets top="40" right="40" bottom="40" left="40"/>
+                </padding>
 
-                <GridPane hgap="12" vgap="12">
+                <!-- Card header -->
+                <VBox spacing="8">
+                    <Label text="Choose an action" styleClass="section-title"/>
+                    <Separator opacity="0.18"/>
+                </VBox>
+
+                <!-- Actions grid -->
+                <GridPane hgap="26" vgap="26">
                     <columnConstraints>
                         <ColumnConstraints percentWidth="50"/>
                         <ColumnConstraints percentWidth="50"/>
                     </columnConstraints>
 
-                    <Button text="Seat by Code" onAction="#onSeatByCode"
-                            styleClass="btn-primary" prefHeight="48" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <!-- 1) No reservation -->
+                    <VBox spacing="10" GridPane.rowIndex="0" GridPane.columnIndex="0">
+                        <Label text="No reservation?" styleClass="action-question"/>
+                        <Button onAction="#onJoinWaitlist"
+                                text="Check Availability"
+                                styleClass="btn-primary"
+                                prefHeight="70"
+                                maxWidth="1.7976931348623157E308">
+                            <graphic>
+                                <Label text="🔎" style="-fx-font-size: 20px; -fx-padding: 0 12 0 0;"/>
+                            </graphic>
+                        </Button>
+                    </VBox>
 
-                    <Button text="Join Waitlist" onAction="#onJoinWaitlist"
-                            styleClass="btn-secondary" prefHeight="48" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                    <!-- 2) Have reservation -->
+                    <VBox spacing="10" GridPane.rowIndex="0" GridPane.columnIndex="1">
+                        <Label text="Have a reservation?" styleClass="action-question"/>
+                        <Button onAction="#onSeatByCode"
+                                text="Seat by Code"
+                                styleClass="btn-primary"
+                                prefHeight="70"
+                                maxWidth="1.7976931348623157E308">
+                            <graphic>
+                                <Label text="🎟️" style="-fx-font-size: 20px; -fx-padding: 0 12 0 0;"/>
+                            </graphic>
+                        </Button>
+                    </VBox>
 
-                    <Button text="Leave Waitlist" onAction="#onLeaveWaitlist"
-                            styleClass="btn-secondary" prefHeight="48" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <!-- 3) Leave waitlist -->
+                    <VBox spacing="10" GridPane.rowIndex="1" GridPane.columnIndex="0">
+                        <Label text="Already on the waitlist?" styleClass="action-question"/>
+                        <Button onAction="#onLeaveWaitlist"
+                                text="Leave Waitlist"
+                                styleClass="btn-secondary"
+                                prefHeight="70"
+                                maxWidth="1.7976931348623157E308">
+                            <graphic>
+                                <Label text="🚪" style="-fx-font-size: 20px; -fx-padding: 0 12 0 0;"/>
+                            </graphic>
+                        </Button>
+                    </VBox>
 
-                    <Button text="Lost Code" onAction="#onLostCode"
-                            styleClass="btn-secondary" prefHeight="48" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                    <!-- 4) Lost code -->
+                    <VBox spacing="10" GridPane.rowIndex="1" GridPane.columnIndex="1">
+                        <Label text="Forgot your code?" styleClass="action-question"/>
+                        <Button onAction="#onLostCode"
+                                text="Lost Code"
+                                styleClass="btn-secondary"
+                                prefHeight="70"
+                                maxWidth="1.7976931348623157E308">
+                            <graphic>
+                                <Label text="❓" style="-fx-font-size: 20px; -fx-padding: 0 12 0 0;"/>
+                            </graphic>
+                        </Button>
+                    </VBox>
                 </GridPane>
 
-                <Label text="Tip: If you received an SMS/Email that your table is ready, use 'Seat by Code'."
-                       wrapText="true" styleClass="terminal-hint"/>
+                <Pane VBox.vgrow="ALWAYS"/>
 
+                <!-- Hint -->
+                <Label text="Tip: If you were notified your table is ready, use 'Seat by Code'."
+                       wrapText="true"
+                       styleClass="terminal-hint"
+                       maxWidth="880"/>
             </VBox>
-        </VBox>
+        </StackPane>
     </center>
 </BorderPane>

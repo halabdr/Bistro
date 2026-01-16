@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
@@ -7,45 +8,64 @@
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="terminalgui.TerminalLostCodeController"
             stylesheets="@/styles/terminal.css"
-            styleClass="terminal-bg">
+            styleClass="terminal-bg"
+            prefWidth="640" prefHeight="520">
 
+    <!-- Top -->
     <top>
-        <HBox styleClass="terminal-topbar" alignment="CENTER_LEFT" spacing="10">
-            <VBox spacing="2">
+        <HBox alignment="CENTER_LEFT" spacing="12" styleClass="terminal-topbar">
+            <padding>
+                <Insets top="18" right="26" bottom="18" left="26"/>
+            </padding>
+
+            <VBox spacing="4">
                 <Label text="Lost Code" styleClass="terminal-title"/>
                 <Label text="Retrieve your reservation or waitlist code" styleClass="terminal-subtitle"/>
             </VBox>
+
             <Pane HBox.hgrow="ALWAYS"/>
-            <Button text="Back" onAction="#onBack" styleClass="btn-secondary"/>
+
+            <!-- Back should return to Seat by Code -->
+            <Button text="Back" onAction="#onBack"
+                    styleClass="btn-secondary" prefHeight="42"/>
         </HBox>
     </top>
 
+    <!-- Center -->
     <center>
-        <VBox alignment="CENTER" padding="30">
-            <VBox styleClass="terminal-card" spacing="14" maxWidth="520">
+        <StackPane alignment="CENTER">
+            <padding>
+                <Insets top="18" right="30" bottom="30" left="30"/>
+            </padding>
 
-                <Label text="Your identifier" styleClass="section-title"/>
+            <VBox styleClass="terminal-card" maxWidth="560" spacing="16">
+                <padding>
+                    <Insets top="26" right="26" bottom="26" left="26"/>
+                </padding>
+
+                <VBox spacing="8">
+                    <Label text="Your identifier" styleClass="section-title"/>
+                    <Label text="Enter phone/email and we’ll send your code" styleClass="terminal-hint"/>
+                    <Separator opacity="0.18"/>
+                </VBox>
 
                 <TextField fx:id="identifierField"
                            promptText="Phone or email"
                            styleClass="terminal-field"/>
 
-                <HBox spacing="12" alignment="CENTER_LEFT">
-                    <Label text="Search in" styleClass="terminal-subtitle"/>
-                    <ChoiceBox fx:id="typeChoice" prefWidth="200" />
-                </HBox>
-
                 <Label fx:id="statusLabel" styleClass="terminal-hint"/>
                 <Label fx:id="resultLabel" wrapText="true" styleClass="terminal-hint"/>
 
-                <HBox spacing="10">
+                <HBox spacing="12" alignment="CENTER_LEFT" style="-fx-padding: 6 0 0 0;">
                     <Button text="Send Code" onAction="#onSend"
-                            styleClass="btn-primary" prefHeight="44" prefWidth="180"/>
+                            prefHeight="52" prefWidth="220" styleClass="btn-primary"/>
                     <Button text="Cancel" onAction="#onBack"
-                            styleClass="btn-secondary" prefHeight="44" prefWidth="180"/>
+                            prefHeight="52" prefWidth="220" styleClass="btn-secondary"/>
                 </HBox>
 
+                <Label text="Tip: Reservation = latest ACTIVE code. Waitlist = latest ACTIVE waitlist code."
+                       wrapText="true" styleClass="terminal-hint"/>
             </VBox>
-        </VBox>
+        </StackPane>
     </center>
 </BorderPane>
