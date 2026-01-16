@@ -18,12 +18,29 @@ public class TerminalLostCodeController implements MessageListener {
 
     private ClientController controller;
 
+    /**
+     * Controls where the Back button returns.
+     * MENU = TerminalMenu, SEAT_BY_CODE = SeatByCode screen.
+     */
+    private BackTarget backTarget = BackTarget.MENU;
+
+    public enum BackTarget {
+        MENU,
+        SEAT_BY_CODE
+    }
+
     // state: first try reservation, if not found -> try waitlist
     private boolean waitingForWaitlist = false;
 
     public void init(ClientController controller) {
+        init(controller, BackTarget.MENU);
+    }
+
+    public void init(ClientController controller, BackTarget backTarget) {
         this.controller = controller;
         this.controller.setListener(this);
+
+        this.backTarget = (backTarget == null) ? BackTarget.MENU : backTarget;
 
         resultLabel.setText("");
         setStatus("", null);
@@ -140,23 +157,31 @@ public class TerminalLostCodeController implements MessageListener {
 
     @FXML
     private void onBack() throws Exception {
-        ConnectApp.showTerminalSeatByCode();
+        if (backTarget == BackTarget.SEAT_BY_CODE) {
+            ConnectApp.showTerminalSeatByCode();
+        } else {
+            ConnectApp.showTerminalMenu();
+        }
     }
-    
+
     private boolean isEmail(String s) {
-        // simple & practical email validation (enough for UI)
         return s.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
     }
 
     private boolean isPhone(String s) {
-        // allow digits, spaces, +, -, parentheses
         String cleaned = s.replaceAll("[\\s\\-()]", "");
         if (cleaned.startsWith("+")) cleaned = cleaned.substring(1);
-        return cleaned.matches("^\\d{8,15}$"); // 8-15 digits typical
+
+        if (cleaned.startsWith("972")) {
+            String rest = cleaned.substring(3);
+            return rest.matches("^\\d{8,9}$");
+        }
+
+        return cleaned.matches("^05\\d{8}$")
+                || (cleaned.startsWith("972") && cleaned.substring(3).matches("^5\\d{8}$"));
     }
 
     private String normalizePhone(String s) {
-        // keep + if exists, else digits only
         String trimmed = s.trim();
         boolean plus = trimmed.startsWith("+");
         String digits = trimmed.replaceAll("\\D", "");

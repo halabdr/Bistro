@@ -167,7 +167,7 @@ public class SeatByCodeController implements MessageListener {
 
     @FXML
     private void onForgotCode() throws Exception {
-        ConnectApp.showTerminalLostCode();
+        ConnectApp.showTerminalLostCodeFromSeatByCode();
     }
 
     @Override

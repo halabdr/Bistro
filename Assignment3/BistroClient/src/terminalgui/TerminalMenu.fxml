@@ -62,7 +62,7 @@
                     <!-- 1) No reservation -->
                     <VBox spacing="10" GridPane.rowIndex="0" GridPane.columnIndex="0">
                         <Label text="No reservation?" styleClass="action-question"/>
-                        <Button onAction="#onJoinWaitlist"
+                        <Button onAction="#onCheckAvailability"
                                 text="Check Availability"
                                 styleClass="btn-primary"
                                 prefHeight="70"

@@ -24,10 +24,10 @@ public class TerminalMenuController {
     }
 
     @FXML
-    private void onJoinWaitlist() {
+    private void onCheckAvailability() {
         try {
-            System.out.println("CLICK: Join Waitlist");
-            ConnectApp.showTerminalJoinWaitlist();
+            System.out.println("CLICK: Check Availability");
+            ConnectApp.showTerminalCheckAvailability();
         } catch (Exception e) {
             showNavError(e);
         }

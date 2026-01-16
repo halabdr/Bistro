@@ -348,11 +348,14 @@ public class ReservationRepository {
     }
     
     /**
-     * Retrieves a lost confirmation code by searching for a reservation 
-     * using an identifier (phone number or email).
+     * Retrieves a lost reservation confirmation code using a user identifier.
      * 
-     * @param request Message containing "identifier" (phone or email)
-     * @return Message with confirmation code if found, or error message
+     * The identifier can be either a phone number or an email address.
+     * The method attempts to locate the most relevant reservation for the user
+     * 
+     * @param request a Message containing a data map with the key
+     *                "identifier" representing the user's phone number or email address
+     * @return a Message containing if a matching reservation is found
      */
     public Message retrieveLostCode(Message request) {
         MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
@@ -372,33 +375,58 @@ public class ReservationRepository {
             }
 
             Connection conn = pConn.getConnection();
-            
-            // First, try to find active reservation by phone or email through users table
-            String sql = "SELECT r.confirmation_code " +
-                        "FROM reservations r " +
-                        "JOIN subscribers s ON r.subscriber_number = s.subscriber_number " +
-                        "JOIN users u ON s.user_id = u.user_id " +
-                        "WHERE r.reservation_status = 'ACTIVE' " +
-                        "AND (u.phone_number = ? OR u.email_address = ?) " +
-                        "ORDER BY r.booking_date DESC, r.booking_time DESC " +
-                        "LIMIT 1";
-            
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setString(1, identifier);
-            ps.setString(2, identifier);
-            ResultSet rs = ps.executeQuery();
 
-            if (rs.next()) {
-                String confirmationCode = rs.getString("confirmation_code");
-                rs.close();
-                ps.close();
-                
-                // Simulate sending the code via email/SMS
-                return Message.ok("LOST_CODE", confirmationCode);
+            //Nearest upcoming ACTIVE reservation
+            String sqlUpcoming =
+                    "SELECT r.confirmation_code " +
+                    "FROM reservations r " +
+                    "JOIN subscribers s ON r.subscriber_number = s.subscriber_number " +
+                    "JOIN users u ON s.user_id = u.user_id " +
+                    "WHERE r.reservation_status = 'ACTIVE' " +
+                    "AND (u.phone_number = ? OR u.email_address = ?) " +
+                    "AND (r.booking_date > CURDATE() " +
+                    "     OR (r.booking_date = CURDATE() AND r.booking_time >= CURTIME())) " +
+                    "ORDER BY r.booking_date ASC, r.booking_time ASC " +
+                    "LIMIT 1";
+
+            //Fallback: most recent ACTIVE reservation
+            String sqlLatest =
+                    "SELECT r.confirmation_code " +
+                    "FROM reservations r " +
+                    "JOIN subscribers s ON r.subscriber_number = s.subscriber_number " +
+                    "JOIN users u ON s.user_id = u.user_id " +
+                    "WHERE r.reservation_status = 'ACTIVE' " +
+                    "AND (u.phone_number = ? OR u.email_address = ?) " +
+                    "ORDER BY r.booking_date DESC, r.booking_time DESC " +
+                    "LIMIT 1";
+
+            String confirmationCode = null;
+
+            try (PreparedStatement ps = conn.prepareStatement(sqlUpcoming)) {
+                ps.setString(1, identifier);
+                ps.setString(2, identifier);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        confirmationCode = rs.getString("confirmation_code");
+                    }
+                }
             }
 
-            rs.close();
-            ps.close();
+            if (confirmationCode == null) {
+                try (PreparedStatement ps = conn.prepareStatement(sqlLatest)) {
+                    ps.setString(1, identifier);
+                    ps.setString(2, identifier);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            confirmationCode = rs.getString("confirmation_code");
+                        }
+                    }
+                }
+            }
+
+            if (confirmationCode != null) {
+                return Message.ok("LOST_CODE", confirmationCode);
+            }
 
             return Message.fail("LOST_CODE", "No active reservation found for this identifier");
 

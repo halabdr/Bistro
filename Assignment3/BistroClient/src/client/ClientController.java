@@ -194,6 +194,20 @@ public class ClientController {
         data.put("entryCode", entryCode);
         client.sendToServer(new Message(Commands.LEAVE_WAITLIST, data));
     }
+    
+    public void checkAvailabilityTerminal(int numberOfDiners,
+            String subscriberNumber,
+            String guestPhone,
+            String guestEmail) throws IOException {
+    			java.util.Map<String, Object> data = new java.util.HashMap<>();
+    			data.put("numberOfDiners", numberOfDiners);
+    			data.put("subscriberNumber", subscriberNumber); // null אם guest
+    			data.put("guestPhone", guestPhone);             // null אם subscriber/לא הוזן
+    			data.put("guestEmail", guestEmail);             // null אם subscriber/לא הוזן
+
+    			client.sendToServer(new Message(Commands.CHECK_AVAILABILITY_TERMINAL, data));
+}
+
 
     // ---------------- Tables ----------------
 

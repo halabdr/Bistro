@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="terminalgui.TerminalCheckAvailabilityController"
+            stylesheets="@/styles/terminal.css"
+            styleClass="terminal-bg"
+            prefWidth="1100" prefHeight="720">
+
+    <!-- Top bar -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="12" styleClass="terminal-topbar">
+            <padding>
+                <Insets top="18" right="26" bottom="18" left="26"/>
+            </padding>
+
+            <VBox spacing="4">
+                <Label text="Check Availability" styleClass="terminal-title"/>
+                <Label text="Seat now or join the waitlist in seconds" styleClass="terminal-subtitle"/>
+            </VBox>
+
+            <Pane HBox.hgrow="ALWAYS"/>
+
+            <Button text="Back" onAction="#onBack" styleClass="btn-danger" prefHeight="42"/>
+        </HBox>
+    </top>
+
+    <!-- Center -->
+    <center>
+        <StackPane alignment="CENTER">
+            <padding>
+                <Insets top="20" right="30" bottom="30" left="30"/>
+            </padding>
+
+            <VBox styleClass="terminal-card"
+                  alignment="TOP_LEFT"
+                  spacing="22"
+                  maxWidth="980"
+                  prefWidth="980"
+                  minHeight="520">
+                <padding>
+                    <Insets top="40" right="40" bottom="40" left="40"/>
+                </padding>
+
+                <!-- Header inside card -->
+                <VBox spacing="8">
+                    <Label text="Enter details" styleClass="section-title"/>
+                    <Label text="Choose customer type and party size. Guests must provide phone or email."
+                           style="-fx-text-fill: #64748b; -fx-font-size: 13px;"/>
+                    <Separator opacity="0.18"/>
+                </VBox>
+
+                <!-- Two columns layout -->
+                <HBox spacing="26">
+
+                    <!-- Left: form -->
+                    <VBox spacing="18" HBox.hgrow="ALWAYS">
+
+                        <!-- Party size -->
+                        <VBox spacing="8">
+                            <Label text="Party size" style="-fx-font-weight: 800; -fx-text-fill: #0f172a;"/>
+                            <HBox spacing="12" alignment="CENTER_LEFT">
+                                <Spinner fx:id="dinersSpinner" prefWidth="180" prefHeight="42"/>
+                                <Label text="guests" style="-fx-text-fill: #64748b;"/>
+                            </HBox>
+                        </VBox>
+
+                        <Separator opacity="0.18"/>
+
+                        <!-- Customer type -->
+                        <VBox spacing="10">
+                            <Label text="Customer type" style="-fx-font-weight: 800; -fx-text-fill: #0f172a;"/>
+
+                            <HBox spacing="16" alignment="CENTER_LEFT">
+                                <RadioButton fx:id="subscriberRadio" text="Subscriber"/>
+                                <RadioButton fx:id="guestRadio" text="Guest"/>
+                            </HBox>
+                        </VBox>
+
+                        <!-- Subscriber section -->
+                        <VBox fx:id="subscriberBox" spacing="8">
+                            <Label text="Subscriber number" style="-fx-text-fill: #334155; -fx-font-weight: 700;"/>
+                            <TextField fx:id="subscriberField"
+                                       promptText="e.g., SUB001"
+                                       prefHeight="44"/>
+                        </VBox>
+
+                        <!-- Guest section -->
+                        <VBox fx:id="guestBox" spacing="10">
+                            <Label text="Guest contact" style="-fx-text-fill: #334155; -fx-font-weight: 700;"/>
+                            <HBox spacing="12">
+                                <TextField fx:id="phoneField"
+                                           promptText="Phone (optional)"
+                                           prefHeight="44"
+                                           HBox.hgrow="ALWAYS"/>
+                                <TextField fx:id="emailField"
+                                           promptText="Email (optional)"
+                                           prefHeight="44"
+                                           HBox.hgrow="ALWAYS"/>
+                            </HBox>
+                            <Label text="At least one is required for guests."
+                                   style="-fx-text-fill: #64748b; -fx-font-size: 12px;"/>
+                        </VBox>
+
+                        <!-- Primary action -->
+                        <HBox spacing="12" alignment="CENTER_LEFT">
+                            <Button text="Check Availability"
+                                    onAction="#onCheckAvailability"
+                                    styleClass="btn-primary"
+                                    prefHeight="54"
+                                    prefWidth="240">
+                                <graphic>
+                                    <Label text="🔎" style="-fx-font-size: 18px; -fx-padding: 0 10 0 0;"/>
+                                </graphic>
+                            </Button>
+
+                            <Label text="Fast check • Instant code"
+                                   style="-fx-text-fill: #94a3b8; -fx-font-size: 12px;"/>
+                        </HBox>
+
+                    </VBox>
+
+                    <!-- Right: result panel -->
+                    <VBox spacing="14"
+                          prefWidth="360"
+                          style="-fx-background-color: #f8fafc; -fx-background-radius: 18; -fx-border-radius: 18; -fx-border-color: #e2e8f0; -fx-padding: 18;">
+
+                        <Label text="Result" style="-fx-font-weight: 800; -fx-text-fill: #0f172a; -fx-font-size: 16px;"/>
+                        <Label fx:id="statusLabel"
+                               text=""
+                               wrapText="true"
+                               style="-fx-text-fill: #0f172a; -fx-font-size: 13px;"/>
+
+                        <VBox spacing="6"
+                              style="-fx-background-color: white; -fx-background-radius: 14; -fx-border-radius: 14; -fx-border-color: #e2e8f0; -fx-padding: 14;">
+                            <Label text="Entry / Table"
+                                   style="-fx-text-fill: #64748b; -fx-font-size: 12px;"/>
+                            <Label fx:id="codeLabel"
+                                   text=""
+                                   style="-fx-text-fill: #0ea5e9; -fx-font-weight: 900; -fx-font-size: 18px;"/>
+                        </VBox>
+
+                        <Separator opacity="0.18"/>
+
+                        <Label text="Tip"
+                               style="-fx-text-fill: #64748b; -fx-font-weight: 800;"/>
+                        <Label text="If you were notified your table is ready, use “Seat by Code” from the terminal menu."
+                               wrapText="true"
+                               style="-fx-text-fill: #64748b; -fx-font-size: 12px;"/>
+                    </VBox>
+                </HBox>
+
+                <Pane VBox.vgrow="ALWAYS"/>
+
+                <!-- Bottom hint -->
+                <Label text="Guests: phone/email is used only for waitlist notifications."
+                       styleClass="terminal-hint"
+                       maxWidth="880"
+                       wrapText="true"/>
+            </VBox>
+        </StackPane>
+    </center>
+</BorderPane>

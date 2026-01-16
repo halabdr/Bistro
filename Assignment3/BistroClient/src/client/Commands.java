@@ -24,6 +24,7 @@ public final class Commands {
     public static final String GET_RESERVATIONS = "GET_RESERVATIONS";
     public static final String GET_USER_RESERVATIONS = "GET_USER_RESERVATIONS";
 
+
     // Waitlist
     public static final String JOIN_WAITLIST = "JOIN_WAITLIST";
     public static final String LEAVE_WAITLIST = "LEAVE_WAITLIST";
@@ -52,7 +53,7 @@ public final class Commands {
     public static final String ADD_SPECIAL_HOURS = "ADD_SPECIAL_HOURS";
     public static final String DELETE_SPECIAL_HOURS = "DELETE_SPECIAL_HOURS";
     
- // Staff
+    // Staff
     public static final String GET_NOTIFICATION_LOG = "GET_NOTIFICATION_LOG";
     public static final String GET_TIME_REPORT = "GET_TIME_REPORT";
     public static final String GET_SUBSCRIBERS_REPORT = "GET_SUBSCRIBERS_REPORT";
@@ -60,4 +61,9 @@ public final class Commands {
     // Reports (Manager/Staff)
     public static final String GET_MONTHLY_REPORTS_LIST = "GET_MONTHLY_REPORTS_LIST";
     public static final String GENERATE_REPORTS = "GENERATE_REPORTS";
+    
+    
+    // Waitlist -> Terminal
+    public static final String CHECK_AVAILABILITY_TERMINAL = "CHECK_AVAILABILITY_TERMINAL";
+
 }
