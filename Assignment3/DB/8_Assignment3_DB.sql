@@ -218,6 +218,7 @@ CREATE TABLE `waiting_list` (
   `subscriber_number` varchar(50) DEFAULT NULL,
   `walk_in_phone` varchar(30) DEFAULT NULL,
   `walk_in_email` varchar(120) DEFAULT NULL,
+  `notified_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`entry_id`),
   UNIQUE KEY `entry_code` (`entry_code`),
   KEY `subscriber_number` (`subscriber_number`),
@@ -234,4 +235,4 @@ CREATE TABLE `waiting_list` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-01-17  0:11:04
+-- Dump completed on 2026-01-17  1:28:05
