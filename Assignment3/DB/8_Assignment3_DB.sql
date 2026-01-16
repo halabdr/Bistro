@@ -98,15 +98,17 @@ CREATE TABLE `reservations` (
   `guest_count` int NOT NULL,
   `confirmation_code` varchar(20) NOT NULL,
   `reservation_status` enum('ACTIVE','CANCELLED','COMPLETED','NO_SHOW') DEFAULT 'ACTIVE',
-  `table_number` int DEFAULT NULL,
+  `assigned_table_number` int DEFAULT NULL,
   `subscriber_number` varchar(50) DEFAULT NULL,
+  `walk_in_phone` varchar(30) DEFAULT NULL,
+  `walk_in_email` varchar(120) DEFAULT NULL,
   PRIMARY KEY (`reservation_id`),
   UNIQUE KEY `confirmation_code` (`confirmation_code`),
-  KEY `table_number` (`table_number`),
+  KEY `assigned_table_number` (`assigned_table_number`),
   KEY `subscriber_number` (`subscriber_number`),
-  CONSTRAINT `reservations_ibfk_1` FOREIGN KEY (`table_number`) REFERENCES `tables_info` (`table_number`) ON DELETE SET NULL,
+  CONSTRAINT `reservations_ibfk_1` FOREIGN KEY (`assigned_table_number`) REFERENCES `tables_info` (`table_number`) ON DELETE SET NULL,
   CONSTRAINT `reservations_ibfk_2` FOREIGN KEY (`subscriber_number`) REFERENCES `subscribers` (`subscriber_number`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -214,11 +216,13 @@ CREATE TABLE `waiting_list` (
   `number_of_diners` int NOT NULL,
   `entry_code` varchar(20) NOT NULL,
   `subscriber_number` varchar(50) DEFAULT NULL,
+  `walk_in_phone` varchar(30) DEFAULT NULL,
+  `walk_in_email` varchar(120) DEFAULT NULL,
   PRIMARY KEY (`entry_id`),
   UNIQUE KEY `entry_code` (`entry_code`),
   KEY `subscriber_number` (`subscriber_number`),
   CONSTRAINT `waiting_list_ibfk_1` FOREIGN KEY (`subscriber_number`) REFERENCES `subscribers` (`subscriber_number`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -230,4 +234,4 @@ CREATE TABLE `waiting_list` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-01-07 22:53:11
+-- Dump completed on 2026-01-17  0:11:04
