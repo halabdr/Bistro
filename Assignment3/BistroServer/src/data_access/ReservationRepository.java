@@ -536,8 +536,8 @@ public class ReservationRepository {
                 updateTablePs.executeUpdate();
                 updateTablePs.close();
 
-                // 9. Update reservation with assigned table
-                String updateResSql = "UPDATE reservations SET table_number = ? WHERE reservation_id = ?";
+             // 9. Update reservation with assigned table
+                String updateResSql = "UPDATE reservations SET assigned_table_number = ? WHERE reservation_id = ?";
                 PreparedStatement updateResPs = conn.prepareStatement(updateResSql);
                 updateResPs.setInt(1, tableNumber);
                 updateResPs.setInt(2, reservation.getReservationId());
@@ -681,7 +681,7 @@ public class ReservationRepository {
         }
     }
 
-    // ==================== Helper Methods ====================
+    //  Helper Methods 
 
     /**
      * Gets opening hours for a specific date.
@@ -888,7 +888,7 @@ public class ReservationRepository {
             Reservation.ReservationStatus.valueOf(rs.getString("reservation_status"))
         );
         
-        int tableNumber = rs.getInt("table_number");
+        int tableNumber = rs.getInt("assigned_table_number");
         if (!rs.wasNull()) {
             reservation.setAssignedTableNumber(tableNumber);
         }

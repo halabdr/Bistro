@@ -237,6 +237,30 @@ public class ClientController {
     public void getCurrentDiners() throws IOException {
         client.sendToServer(new Message(Commands.GET_CURRENT_DINERS, null));
     }
+    
+    /**
+     * Sends a GET_BILL request by confirmation code.
+     *
+     * @param confirmationCode the confirmation code
+     * @throws IOException if sending fails
+     */
+    public void getBillByCode(String confirmationCode) throws IOException {
+        Map<String, Object> data = new HashMap<>();
+        data.put("confirmationCode", confirmationCode);
+        client.sendToServer(new Message(Commands.GET_BILL, data));
+    }
+
+    /**
+     * Sends a PAY_BILL request by confirmation code.
+     *
+     * @param confirmationCode the confirmation code
+     * @throws IOException if sending fails
+     */
+    public void payBillByCode(String confirmationCode) throws IOException {
+        Map<String, Object> data = new HashMap<>();
+        data.put("confirmationCode", confirmationCode);
+        client.sendToServer(new Message(Commands.PAY_BILL, data));
+    }
 
     // Waitlist
 

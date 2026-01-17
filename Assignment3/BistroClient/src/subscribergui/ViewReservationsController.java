@@ -30,7 +30,7 @@ public class ViewReservationsController implements MessageListener {
     @FXML private TableColumn<Reservation, String> timeCol;
     @FXML private TableColumn<Reservation, Number> guestsCol;
     @FXML private TableColumn<Reservation, String> statusCol;
-    @FXML private TableColumn<Reservation, String> tableCol;
+   
     @FXML private TableColumn<Reservation, Void> actionsCol;
     
     @FXML private CheckBox showActiveOnlyCheckBox;
@@ -100,13 +100,7 @@ public class ViewReservationsController implements MessageListener {
                             formatStatus(cellData.getValue().getStatus())));
         }
 
-        if (tableCol != null) {
-            tableCol.setCellValueFactory(cellData -> {
-                Integer tableNum = cellData.getValue().getAssignedTableNumber();
-                String display = (tableNum != null && tableNum > 0) ? String.valueOf(tableNum) : "-";
-                return new javafx.beans.property.SimpleStringProperty(display);
-            });
-        }
+       
     }
 
     /**

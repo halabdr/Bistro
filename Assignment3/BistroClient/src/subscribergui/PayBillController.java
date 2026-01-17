@@ -5,10 +5,14 @@ import client.Commands;
 import client.MessageListener;
 import clientgui.ConnectApp;
 import common.Message;
+import entities.Subscriber;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -16,126 +20,238 @@ import java.util.Map;
 
 /**
  * Controller for paying a bill.
- * Sends a command PAY_BILL request with code billNumber.
- * The server expects a map containing only:
- *   code billNumber
- * and returns a response map with fields:
- * code billNumber, totalPrice, discountValue, finalAmount, message.
+ * According to requirements:
+ * - Payment is done using the confirmation code (from reservation or waitlist)
+ * - Subscribers get a 10% discount
+ * - Table is released immediately after payment
  */
 public class PayBillController implements MessageListener {
 
-    /** Input field for the bill number. */
-    @FXML private TextField billNumber;
-
-    /** Label for status messages. */
+    @FXML private TextField confirmationCodeField;
+    @FXML private VBox billDetailsBox;
+    @FXML private Label tableNumberLabel;
+    @FXML private Label totalAmountLabel;
+    @FXML private Label discountLabel;
+    @FXML private Label finalAmountLabel;
     @FXML private Label statusLabel;
+    @FXML private Button fetchBillButton;
+    @FXML private Button payButton;
 
-    /** Label for displaying payment details/result. */
-    @FXML private Label resultLabel;
-
-    /** Shared client controller. */
     private ClientController controller;
+    private Subscriber subscriber;
+    private String currentConfirmationCode;
+    private boolean billFetched = false;
 
     /**
-     * Initializes the controller with the shared ClientController
-     * and registers this screen as the active message listener.
+     * Initializes the controller with the shared ClientController.
      *
      * @param controller shared client controller
      */
     public void init(ClientController controller) {
         this.controller = controller;
         this.controller.setListener(this);
-        statusLabel.setText("");
-        resultLabel.setText("");
+        clearForm();
     }
 
     /**
-     * Handles the Pay action.
-     * Validates bill number and sends command PAY_BILL to the server.
+     * Initializes the controller with subscriber information.
+     *
+     * @param controller shared client controller
+     * @param subscriber logged-in subscriber
+     */
+    public void init(ClientController controller, Subscriber subscriber) {
+        this.controller = controller;
+        this.subscriber = subscriber;
+        this.controller.setListener(this);
+        clearForm();
+    }
+
+    /**
+     * Clears all form fields and resets state.
+     */
+    private void clearForm() {
+        statusLabel.setText("");
+        billDetailsBox.setVisible(false);
+        billDetailsBox.setManaged(false);
+        payButton.setDisable(true);
+        billFetched = false;
+        currentConfirmationCode = null;
+    }
+
+    /**
+     * Fetches the bill details for the entered confirmation code.
      */
     @FXML
-    private void onPay() {
+    private void onFetchBill() {
+        String code = confirmationCodeField.getText();
+        if (code == null || code.trim().isEmpty()) {
+            setStatus("Please enter your confirmation code.", true);
+            return;
+        }
+
+        currentConfirmationCode = code.trim();
+        setStatus("Fetching bill details...", false);
+
         try {
-            String billTxt = billNumber.getText() == null ? "" : billNumber.getText().trim();
-            if (billTxt.isEmpty()) {
-                statusLabel.setText("Please enter bill number.");
-                return;
-            }
-
-            int billNumber = Integer.parseInt(billTxt);
-
-            resultLabel.setText("");
-            statusLabel.setText("Paying...");
-
-            // Server expects only billNumber
-            controller.payBill(billNumber);
-
-        } catch (NumberFormatException e) {
-            statusLabel.setText("Bill number must be a number.");
+            controller.getBillByCode(currentConfirmationCode);
         } catch (IOException e) {
-            statusLabel.setText("Failed: " + e.getMessage());
-        } catch (Exception e) {
-            statusLabel.setText("Error: " + e.getMessage());
+            setStatus("Failed to fetch bill: " + e.getMessage(), true);
         }
     }
 
     /**
-     * Receives server messages.
-     * Only handles responses for PAY_BILL.
+     * Processes the payment for the current bill.
+     */
+    @FXML
+    private void onPay() {
+        if (!billFetched || currentConfirmationCode == null) {
+            setStatus("Please fetch the bill details first.", true);
+            return;
+        }
+
+        setStatus("Processing payment...", false);
+
+        try {
+            controller.payBillByCode(currentConfirmationCode);
+        } catch (IOException e) {
+            setStatus("Payment failed: " + e.getMessage(), true);
+        }
+    }
+
+    /**
+     * Handles server responses.
      *
      * @param m message received from server
      */
     @Override
     public void onMessage(Message m) {
         if (m == null) return;
-        if (!Commands.PAY_BILL.equals(m.getCommand())) return;
 
         Platform.runLater(() -> {
-            if (!m.isSuccess()) {
-                statusLabel.setText("Failed: " + m.getError());
-                return;
+            String command = m.getCommand();
+
+            // Handle GET_BILL response
+            if (Commands.GET_BILL.equals(command)) {
+                handleGetBillResponse(m);
             }
-
-            statusLabel.setText("Payment completed.");
-
-            Object data = m.getData();
-
-            if (data instanceof Map<?, ?> map) {
-                resultLabel.setText(formatPayBillResponse(map));
-                return;
+            // Handle PAY_BILL response
+            else if (Commands.PAY_BILL.equals(command)) {
+                handlePayBillResponse(m);
             }
-
-            resultLabel.setText("Result: " + String.valueOf(data));
         });
     }
 
     /**
-     * Formats the PAY_BILL response map returned by the server into readable text.
-     *
-     * @param map response data map
-     * @return formatted string for UI display
+     * Handles the response from fetching bill details.
      */
-    private String formatPayBillResponse(Map<?, ?> map) {
-        Object billNumber = map.get("billNumber");
-        Object total = map.get("totalPrice");
-        Object discount = map.get("discountValue");
-        Object finalAmount = map.get("finalAmount");
-        Object message = map.get("message");
+    private void handleGetBillResponse(Message m) {
+        if (!m.isSuccess()) {
+            setStatus("Error: " + m.getError(), true);
+            billDetailsBox.setVisible(false);
+            billDetailsBox.setManaged(false);
+            payButton.setDisable(true);
+            billFetched = false;
+            return;
+        }
 
-        return "Bill #" + String.valueOf(billNumber)
-                + "\nTotal: " + String.valueOf(total)
-                + "\nDiscount: " + String.valueOf(discount)
-                + "\nFinal: " + String.valueOf(finalAmount)
-                + "\nMessage: " + String.valueOf(message);
+        Object data = m.getData();
+        if (!(data instanceof Map<?, ?>)) {
+            setStatus("Invalid response from server.", true);
+            return;
+        }
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> billData = (Map<String, Object>) data;
+
+        // Display bill details
+        Object tableNum = billData.get("tableNumber");
+        Object total = billData.get("totalPrice");
+        Object discount = billData.get("discountValue");
+        Object finalAmount = billData.get("finalAmount");
+
+        tableNumberLabel.setText(tableNum != null ? String.valueOf(tableNum) : "-");
+        totalAmountLabel.setText(formatCurrency(total));
+        discountLabel.setText("-" + formatCurrency(discount));
+        finalAmountLabel.setText(formatCurrency(finalAmount));
+
+        billDetailsBox.setVisible(true);
+        billDetailsBox.setManaged(true);
+        payButton.setDisable(false);
+        billFetched = true;
+
+        setStatus("Bill loaded. Click 'Pay Now' to complete payment.", false);
     }
 
     /**
-     * Navigates back to the customer menu.
-     *
-     * @throws Exception if navigation fails
+     * Handles the response from paying the bill.
+     */
+    private void handlePayBillResponse(Message m) {
+        if (!m.isSuccess()) {
+            setStatus("Payment failed: " + m.getError(), true);
+            return;
+        }
+
+        setStatus("Payment completed successfully!", false);
+        payButton.setDisable(true);
+        fetchBillButton.setDisable(true);
+        confirmationCodeField.setDisable(true);
+
+        // Show success alert
+        showSuccessAlert("Payment Successful", 
+            "Your bill has been paid successfully.\nThe table has been released.\nThank you for dining with us!");
+    }
+
+    /**
+     * Formats a number as currency.
+     */
+    private String formatCurrency(Object value) {
+        if (value == null) return "₪0.00";
+        
+        try {
+            if (value instanceof BigDecimal) {
+                return String.format("₪%.2f", ((BigDecimal) value).doubleValue());
+            } else if (value instanceof Number) {
+                return String.format("₪%.2f", ((Number) value).doubleValue());
+            } else {
+                return "₪" + value.toString();
+            }
+        } catch (Exception e) {
+            return "₪" + value.toString();
+        }
+    }
+
+    /**
+     * Sets the status message.
+     */
+    private void setStatus(String message, boolean isError) {
+        statusLabel.setText(message);
+        if (isError) {
+            statusLabel.setStyle("-fx-text-fill: #E53E3E; -fx-font-size: 13px;");
+        } else {
+            statusLabel.setStyle("-fx-text-fill: #38A169; -fx-font-size: 13px;");
+        }
+    }
+
+    /**
+     * Shows a success alert dialog.
+     */
+    private void showSuccessAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    /**
+     * Navigates back to the subscriber menu.
      */
     @FXML
     private void onBack() throws Exception {
-        ConnectApp.showCustomerMenu();
+        if (subscriber != null) {
+            ConnectApp.showSubscriberMenu(subscriber);
+        } else {
+            ConnectApp.showCustomerMenu();
+        }
     }
 }

@@ -58,15 +58,12 @@ public class SubscriberLeaveWaitlistController implements MessageListener {
         }
     }
 
-    /**
-     * Navigates back to the subscriber menu.
-     */
     @FXML
-    private void onBack() {
-        try {
+    private void onBack() throws Exception {
+        if (subscriber != null) {
             ConnectApp.showSubscriberMenu(subscriber);
-        } catch (Exception e) {
-            setStatus("Navigation error: " + e.getMessage(), "-fx-text-fill: #E53E3E;");
+        } else {
+            ConnectApp.showCustomerMenu();
         }
     }
 

@@ -66,9 +66,6 @@
                     <TableColumn fx:id="statusCol" 
                                  text="Status" 
                                  prefWidth="120"/>
-                    <TableColumn fx:id="tableCol" 
-                                 text="Table #" 
-                                 prefWidth="100"/>
                     <TableColumn fx:id="actionsCol" 
                                  text="Actions" 
                                  prefWidth="120"
