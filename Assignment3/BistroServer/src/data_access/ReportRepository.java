@@ -168,7 +168,6 @@ public class ReportRepository {
             }
 
             // 8. Delay statistics from tags (CHECK_IN records)
-            // Parse JSON to extract bookingTime and actualTime for delay calculation
             String delayStatsSql = "SELECT activity_details FROM tags " +
                                   "WHERE activity_details LIKE '%\"type\":\"CHECK_IN\"%' " +
                                   "AND YEAR(created_at) = ? AND MONTH(created_at) = ?";
@@ -338,11 +337,10 @@ public class ReportRepository {
             walkInResRow.put("value", String.valueOf(walkInRes));
             reportData.add(walkInResRow);
 
-            // 4. Waitlist usage
-            String waitlistSql = "SELECT COUNT(*) AS wl_total, " +
-                                "SUM(CASE WHEN subscriber_number IS NOT NULL THEN 1 ELSE 0 END) AS wl_sub " +
-                                "FROM waiting_list " +
-                                "WHERE YEAR(request_time) = ? AND MONTH(request_time) = ?";
+            // 4. Waitlist usage (from tags for subscribers)
+            String waitlistSql = "SELECT COUNT(*) AS wl_sub FROM tags " +
+                                "WHERE activity_details LIKE '%\"type\":\"WAITLIST_JOIN\"%' " +
+                                "AND YEAR(created_at) = ? AND MONTH(created_at) = ?";
             try (PreparedStatement ps = conn.prepareStatement(waitlistSql)) {
                 ps.setInt(1, year);
                 ps.setInt(2, month);
@@ -353,15 +351,10 @@ public class ReportRepository {
                     headerRow.put("value", "");
                     reportData.add(headerRow);
 
-                    Map<String, Object> row1 = new HashMap<>();
-                    row1.put("field", "Total Waitlist Entries");
-                    row1.put("value", String.valueOf(rs.getInt("wl_total")));
-                    reportData.add(row1);
-
-                    Map<String, Object> row2 = new HashMap<>();
-                    row2.put("field", "Subscriber Waitlist Entries");
-                    row2.put("value", String.valueOf(rs.getInt("wl_sub")));
-                    reportData.add(row2);
+                    Map<String, Object> row = new HashMap<>();
+                    row.put("field", "Subscriber Waitlist Entries");
+                    row.put("value", String.valueOf(rs.getInt("wl_sub")));
+                    reportData.add(row);
                 }
             }
 
@@ -435,7 +428,8 @@ public class ReportRepository {
                             "SUM(CASE WHEN activity_details LIKE '%\"type\":\"RESERVATION\"%' THEN 1 ELSE 0 END) AS reservations, " +
                             "SUM(CASE WHEN activity_details LIKE '%\"type\":\"CANCEL\"%' THEN 1 ELSE 0 END) AS cancellations, " +
                             "SUM(CASE WHEN activity_details LIKE '%\"type\":\"CHECK_IN\"%' THEN 1 ELSE 0 END) AS checkins, " +
-                            "SUM(CASE WHEN activity_details LIKE '%\"type\":\"PAYMENT\"%' THEN 1 ELSE 0 END) AS payments " +
+                            "SUM(CASE WHEN activity_details LIKE '%\"type\":\"PAYMENT\"%' THEN 1 ELSE 0 END) AS payments, " +
+                            "SUM(CASE WHEN activity_details LIKE '%\"type\":\"WAITLIST_JOIN\"%' THEN 1 ELSE 0 END) AS waitlist_joins " +
                             "FROM tags WHERE YEAR(created_at) = ? AND MONTH(created_at) = ?";
             try (PreparedStatement ps = conn.prepareStatement(tagsSql)) {
                 ps.setInt(1, year);
@@ -446,8 +440,9 @@ public class ReportRepository {
                     int cancellations = rs.getInt("cancellations");
                     int checkins = rs.getInt("checkins");
                     int payments = rs.getInt("payments");
+                    int waitlistJoins = rs.getInt("waitlist_joins");
                     
-                    if (reservations + cancellations + checkins + payments > 0) {
+                    if (reservations + cancellations + checkins + payments + waitlistJoins > 0) {
                         Map<String, Object> headerRow = new HashMap<>();
                         headerRow.put("field", "--- Subscriber Activity Log ---");
                         headerRow.put("value", "");
@@ -472,6 +467,11 @@ public class ReportRepository {
                         row4.put("field", "Payments");
                         row4.put("value", String.valueOf(payments));
                         reportData.add(row4);
+                        
+                        Map<String, Object> row5 = new HashMap<>();
+                        row5.put("field", "Waitlist Joins");
+                        row5.put("value", String.valueOf(waitlistJoins));
+                        reportData.add(row5);
                     }
                 }
             }

@@ -265,10 +265,29 @@
 }
 
 .chart-legend {
-    -fx-background-color: rgba(248,250,252,0.9);
+    -fx-background-color: rgba(248,250,252,0.95);
     -fx-background-radius: 8;
-    -fx-padding: 8;
+    -fx-padding: 10;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
 }
+
+.chart-legend-item {
+    -fx-text-fill: #334155;
+}
+
+.chart-legend-item-symbol {
+    -fx-background-radius: 4;
+    -fx-padding: 6;
+}
+
+/* Pie Chart Legend Symbol Colors */
+.default-color0.chart-legend-item-symbol { -fx-background-color: #2C5F7C; }
+.default-color1.chart-legend-item-symbol { -fx-background-color: #48BB78; }
+.default-color2.chart-legend-item-symbol { -fx-background-color: #ED8936; }
+.default-color3.chart-legend-item-symbol { -fx-background-color: #9F7AEA; }
+.default-color4.chart-legend-item-symbol { -fx-background-color: #F56565; }
 
 /* Pie Chart Colors */
 .default-color0.chart-pie { -fx-pie-color: #2C5F7C; }
@@ -281,6 +300,21 @@
 .default-color0.chart-bar { -fx-bar-fill: #2C5F7C; }
 .default-color1.chart-bar { -fx-bar-fill: #48BB78; }
 .default-color2.chart-bar { -fx-bar-fill: #ED8936; }
+
+/* Bar Chart Legend - ensure series legend is visible */
+.bar-chart .chart-legend-item {
+    -fx-text-fill: #334155;
+}
+
+/* Chart Axis Labels */
+.axis-label {
+    -fx-text-fill: #475569;
+    -fx-font-size: 12px;
+}
+
+.axis {
+    -fx-tick-label-fill: #475569;
+}
 
 /* ========================================
    SPLIT PANE

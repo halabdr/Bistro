@@ -128,6 +128,30 @@ public class TagRepository {
 
         insertTag(conn, subscriberNumber, details);
     }
+    
+    /**
+     * Logs a waitlist join for a subscriber.
+     * 
+     * @param conn database connection
+     * @param subscriberNumber subscriber number
+     * @param entryCode waitlist entry code
+     * @param numberOfDiners number of diners
+     */
+    public static void logWaitlistJoin(Connection conn, String subscriberNumber, 
+            String entryCode, int numberOfDiners) {
+        
+        if (subscriberNumber == null || subscriberNumber.trim().isEmpty()) {
+            return; // Only log for subscribers
+        }
+
+        String details = String.format(
+            "{\"type\":\"WAITLIST_JOIN\",\"entryCode\":\"%s\",\"diners\":%d}",
+            entryCode,
+            numberOfDiners
+        );
+
+        insertTag(conn, subscriberNumber, details);
+    }
 
     /**
      * Inserts a tag record into the database.

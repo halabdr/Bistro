@@ -1214,13 +1214,13 @@ public class StaffDashboardController implements MessageListener {
     private void displaySubscribersReportWithCharts(List<Map<String, Object>> data) {
         // Update table
         if (reportTable != null) {
-        	List<ReportRow> rows = new ArrayList<>();
-        	for (Map<String, Object> item : data) {
-        	    String field = item.get("field") != null ? item.get("field").toString() : "";
-        	    String value = item.get("value") != null ? item.get("value").toString() : "";
-        	    rows.add(new ReportRow(field, value));
-        	}
-        	reportTable.setItems(FXCollections.observableArrayList(rows));
+            List<ReportRow> rows = new ArrayList<>();
+            for (Map<String, Object> item : data) {
+                String field = item.get("field") != null ? item.get("field").toString() : "";
+                String value = item.get("value") != null ? item.get("value").toString() : "";
+                rows.add(new ReportRow(field, value));
+            }
+            reportTable.setItems(FXCollections.observableArrayList(rows));
         }
 
         // Clear previous charts
@@ -1236,7 +1236,7 @@ public class StaffDashboardController implements MessageListener {
         // Extract data for charts
         int subRes = 0, walkInRes = 0;
         int totalSubs = 0, activeSubs = 0;
-        int wlTotal = 0, wlSub = 0;
+        int wlSub = 0;
 
         for (Map<String, Object> row : data) {
             String field = (String) row.get("field");
@@ -1254,7 +1254,6 @@ public class StaffDashboardController implements MessageListener {
                     case "Active Subscribers This Month" -> activeSubs = Integer.parseInt(numValue);
                     case "Subscriber Reservations" -> subRes = Integer.parseInt(numValue);
                     case "Walk-in Reservations" -> walkInRes = Integer.parseInt(numValue);
-                    case "Total Waitlist Entries" -> wlTotal = Integer.parseInt(numValue);
                     case "Subscriber Waitlist Entries" -> wlSub = Integer.parseInt(numValue);
                 }
             } catch (NumberFormatException ignored) {}
@@ -1272,8 +1271,7 @@ public class StaffDashboardController implements MessageListener {
             series.setName("Count");
             series.getData().add(new XYChart.Data<>("Total Subscribers", totalSubs));
             series.getData().add(new XYChart.Data<>("Active This Month", activeSubs));
-            series.getData().add(new XYChart.Data<>("Waitlist (Sub)", wlSub));
-            series.getData().add(new XYChart.Data<>("Waitlist (Total)", wlTotal));
+            series.getData().add(new XYChart.Data<>("Waitlist Joins", wlSub));
             reportBarChart.getData().add(series);
         }
     }

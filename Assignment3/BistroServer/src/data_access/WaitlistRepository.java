@@ -95,6 +95,11 @@ public class WaitlistRepository {
             rs.close();
             ps.close();
 
+            // Log to tags for subscribers (for reports)
+            if (subscriberNumber != null && !subscriberNumber.trim().isEmpty()) {
+                TagRepository.logWaitlistJoin(conn, subscriberNumber, entryCode, numberOfDiners);
+            }
+
             // Create and return WaitlistEntry object
             WaitlistEntry entry = new WaitlistEntry();
             entry.setEntryId(entryId);
