@@ -11,6 +11,7 @@
             styleClass="dash-root"
             stylesheets="@/styles/bistro_dashboard.css">
 
+    <!-- ================= TOP BAR ================= -->
     <top>
         <HBox styleClass="dash-topbar" alignment="CENTER_LEFT" spacing="14">
             <VBox spacing="2">
@@ -24,12 +25,19 @@
         </HBox>
     </top>
 
+    <!-- ================= CENTER ================= -->
     <center>
-        <BorderPane padding="14">
+        <BorderPane>
+
+            <padding>
+                <Insets top="14" right="14" bottom="14" left="14"/>
+            </padding>
+
             <center>
                 <TabPane fx:id="tabs" styleClass="dash-tabs">
                     <tabs>
 
+                        <!-- ========= RESERVATIONS ========= -->
                         <Tab text="Reservations" closable="false">
                             <BorderPane styleClass="dash-card">
                                 <top>
@@ -51,6 +59,7 @@
                             </BorderPane>
                         </Tab>
 
+                        <!-- ========= WAITLIST ========= -->
                         <Tab text="Waitlist" closable="false">
                             <BorderPane styleClass="dash-card">
                                 <top>
@@ -70,6 +79,7 @@
                             </BorderPane>
                         </Tab>
 
+                        <!-- ========= CURRENT DINERS ========= -->
                         <Tab text="Current Diners" closable="false">
                             <BorderPane styleClass="dash-card">
                                 <top>
@@ -92,6 +102,7 @@
                             </BorderPane>
                         </Tab>
 
+                        <!-- ========= TABLES ========= -->
                         <Tab text="Tables" closable="false">
                             <BorderPane styleClass="dash-card">
                                 <top>
@@ -115,12 +126,14 @@
                             </BorderPane>
                         </Tab>
 
+                        <!-- ========= OPENING HOURS ========= -->
                         <Tab text="Opening Hours" closable="false">
                             <BorderPane styleClass="dash-card">
                                 <top>
                                     <HBox spacing="10" styleClass="dash-toolbar" alignment="CENTER_LEFT">
                                         <Button text="Refresh" onAction="#refreshOpeningHours" styleClass="dash-btn"/>
-                                        <Button text="Update Selected" onAction="#onUpdateOpeningHours" styleClass="dash-btn-secondary"/>
+                                        <Button text="Update Selected" onAction="#onUpdateOpeningHours"
+                                                styleClass="dash-btn-secondary"/>
                                     </HBox>
                                 </top>
                                 <center>
@@ -135,13 +148,15 @@
                             </BorderPane>
                         </Tab>
 
+                        <!-- ========= SPECIAL HOURS ========= -->
                         <Tab text="Special Hours" closable="false">
                             <BorderPane styleClass="dash-card">
                                 <top>
                                     <HBox spacing="10" styleClass="dash-toolbar" alignment="CENTER_LEFT">
                                         <Button text="Refresh" onAction="#refreshSpecialHours" styleClass="dash-btn"/>
                                         <Button text="Add" onAction="#onAddSpecialHours" styleClass="dash-btn-secondary"/>
-                                        <Button text="Delete" onAction="#onDeleteSpecialHours" styleClass="dash-btn-danger"/>
+                                        <Button text="Delete" onAction="#onDeleteSpecialHours"
+                                                styleClass="dash-btn-danger"/>
                                     </HBox>
                                 </top>
                                 <center>
@@ -157,6 +172,7 @@
                             </BorderPane>
                         </Tab>
 
+                        <!-- ========= REPORTS ========= -->
                         <Tab text="Reports" closable="false">
                             <BorderPane styleClass="dash-card">
                                 <top>
@@ -172,21 +188,29 @@
                                         </HBox>
 
                                         <HBox spacing="10" alignment="CENTER_LEFT">
-                                            <Button text="Time Report" onAction="#onFetchTimeReport" styleClass="dash-btn"/>
-                                            <Button text="Subscribers Report" onAction="#onFetchSubscribersReport" styleClass="dash-btn-secondary"/>
+                                            <Button text="Time Report" onAction="#onFetchTimeReport"
+                                                    styleClass="dash-btn"/>
+                                            <Button text="Subscribers Report"
+                                                    onAction="#onFetchSubscribersReport"
+                                                    styleClass="dash-btn-secondary"/>
                                         </HBox>
                                     </VBox>
                                 </top>
 
                                 <center>
                                     <SplitPane dividerPositions="0.55" orientation="VERTICAL">
-                                        <HBox fx:id="chartsArea" spacing="20" alignment="CENTER" style="-fx-padding: 10;">
+                                        <HBox fx:id="chartsArea" spacing="20" alignment="CENTER"
+                                              style="-fx-padding: 10;">
                                             <PieChart fx:id="reportPieChart" prefWidth="380" prefHeight="280"
                                                       title="Distribution" legendSide="BOTTOM"/>
                                             <BarChart fx:id="reportBarChart" prefWidth="420" prefHeight="280"
                                                       title="Statistics" legendVisible="false">
-                                                <xAxis><CategoryAxis label="Category"/></xAxis>
-                                                <yAxis><NumberAxis label="Count"/></yAxis>
+                                                <xAxis>
+                                                    <CategoryAxis label="Category"/>
+                                                </xAxis>
+                                                <yAxis>
+                                                    <NumberAxis label="Count"/>
+                                                </yAxis>
                                             </BarChart>
                                         </HBox>
 
@@ -204,9 +228,11 @@
                     </tabs>
                 </TabPane>
             </center>
+
         </BorderPane>
     </center>
 
+    <!-- ================= BOTTOM ================= -->
     <bottom>
         <Label fx:id="statusLabel" text="" styleClass="dash-status"/>
     </bottom>

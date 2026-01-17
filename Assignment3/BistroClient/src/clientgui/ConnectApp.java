@@ -3,13 +3,16 @@ package clientgui;
 import client.BistroClient;
 import client.ClientController;
 import entities.Subscriber;
-import subscribergui.SubscriberLeaveWaitlistController;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.scene.Parent;
+
 import java.io.IOException;
+import java.nio.file.*;
 import java.time.LocalDate;
+
+import subscribergui.SubscriberLeaveWaitlistController;
 import terminalgui.TerminalCancelReservationController;
 
 public final class ConnectApp {
@@ -25,6 +28,11 @@ public final class ConnectApp {
         primaryStage = stage;
         controller = new ClientController(new BistroClient(host, port));
         controller.connect();
+
+        // DEV FIX: if you keep CSS/FXML/images under src (not resources),
+        // Eclipse sometimes won't copy them to bin automatically.
+        // This makes sure styles exist in /bin/styles so @/styles/... works.
+        ensureDevResourcesCopied();
     }
 
     public static ClientController getController() {
@@ -84,10 +92,8 @@ public final class ConnectApp {
 
         primaryStage.setScene(scene);
     }
-    
-    /**
-     * Shows the Terminal Cancel Reservation screen.
-     */
+
+    /** Shows the Terminal Cancel Reservation screen. */
     public static void showTerminalCancelReservation() throws Exception {
         FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/terminalgui/TerminalCancelReservation.fxml"));
         Parent root = loader.load();
@@ -95,10 +101,8 @@ public final class ConnectApp {
         ctrl.init(controller);
         primaryStage.getScene().setRoot(root);
     }
-    
-    /**
-     * Shows the Subscriber Leave Waitlist screen.
-     */
+
+    /** Shows the Subscriber Leave Waitlist screen. */
     public static void showSubscriberLeaveWaitlist(Subscriber subscriber) throws Exception {
         FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/subscribergui/SubscriberLeaveWaitlist.fxml"));
         Parent root = loader.load();
@@ -182,16 +186,12 @@ public final class ConnectApp {
         primaryStage.setTitle("Terminal - Seat by Code");
     }
 
-    /**
-     * Lost Code opened from terminal menu -> Back returns to terminal menu.
-     */
+    /** Lost Code opened from terminal menu -> Back returns to terminal menu. */
     public static void showTerminalLostCode() throws Exception {
         showTerminalLostCode(terminalgui.TerminalLostCodeController.BackTarget.MENU);
     }
 
-    /**
-     * Lost Code opened from Seat-by-Code -> Back returns to Seat-by-Code.
-     */
+    /** Lost Code opened from Seat-by-Code -> Back returns to Seat-by-Code. */
     public static void showTerminalLostCodeFromSeatByCode() throws Exception {
         showTerminalLostCode(terminalgui.TerminalLostCodeController.BackTarget.SEAT_BY_CODE);
     }
@@ -228,7 +228,7 @@ public final class ConnectApp {
         primaryStage.setScene(scene);
         primaryStage.setTitle("Terminal - Leave Waitlist");
     }
-    
+
     public static void showTerminalCheckAvailability() throws Exception {
         FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/terminalgui/TerminalCheckAvailability.fxml"));
         Scene scene = new Scene(loader.load());
@@ -240,21 +240,42 @@ public final class ConnectApp {
         primaryStage.setTitle("Terminal - Check Availability");
     }
 
-
     // ======================= STAFF =======================
 
     public static void showStaffDashboard(entities.User user) throws Exception {
-        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/staffgui/StaffDashboard.fxml"));
-        Scene scene = new Scene(loader.load());
+        // Ensure CSS exists in bin for @/styles/... inside FXML
+        ensureDevResourcesCopied();
 
-        staffgui.StaffDashboardController c = loader.getController();
-        c.init(controller, user); 
+        try {
+            FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/staffgui/StaffDashboard.fxml"));
+            Scene scene = new Scene(loader.load());
 
-        primaryStage.setTitle("Staff Dashboard - Bistro");
-        primaryStage.setScene(scene);
-        primaryStage.show();
+            // OPTIONAL: also add CSS by code (doesn't hurt, helps if FXML stylesheet fails in some env)
+            var cssUrl = ConnectApp.class.getResource("/styles/bistro_dashboard.css");
+            if (cssUrl != null) {
+                if (!scene.getStylesheets().contains(cssUrl.toExternalForm())) {
+                    scene.getStylesheets().add(cssUrl.toExternalForm());
+                }
+            } else {
+                System.err.println("[WARN] CSS not found on classpath: /styles/bistro_dashboard.css");
+            }
+
+            staffgui.StaffDashboardController c = loader.getController();
+            if (c != null) {
+                c.init(controller, user);
+            }
+
+            primaryStage.setTitle("Staff Dashboard - Bistro");
+            primaryStage.setScene(scene);
+            primaryStage.show();
+
+        } catch (Exception e) {
+            System.err.println("=== Failed to open Staff Dashboard ===");
+            e.printStackTrace();
+            throw e;
+        }
     }
-    
+
     public static void showManagerDashboard(entities.User user) throws Exception {
         FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/managergui/ManagerDashboard.fxml"));
         Scene scene = new Scene(loader.load());
@@ -266,7 +287,6 @@ public final class ConnectApp {
         primaryStage.setScene(scene);
         primaryStage.show();
     }
-
 
     // ======================= SUBSCRIBER SCREENS =======================
 
@@ -291,7 +311,7 @@ public final class ConnectApp {
         primaryStage.setScene(scene);
         primaryStage.setTitle("Update Personal Info - Bistro");
     }
-    
+
     public static void showStaffLogin() throws Exception {
         FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/staffgui/StaffLogin.fxml"));
         Scene scene = new Scene(loader.load());
@@ -301,5 +321,39 @@ public final class ConnectApp {
 
         primaryStage.setScene(scene);
         primaryStage.setTitle("Staff Login - Bistro");
+    }
+
+    // ======================= DEV-ONLY HELPERS =======================
+
+    /**
+     * If you store CSS in src/styles (not in resources),
+     * this copies it into bin/styles so FXMLLoader (@/styles/...) can resolve it.
+     * Safe to call multiple times.
+     */
+    private static void ensureDevResourcesCopied() {
+        try {
+            // If already available on classpath -> nothing to do
+            if (ConnectApp.class.getResource("/styles/bistro_dashboard.css") != null) return;
+
+            // Working dir in Eclipse is usually the project folder (e.g. .../BistroClient)
+            Path projectDir = Paths.get(System.getProperty("user.dir")).toAbsolutePath();
+
+            Path srcCss = projectDir.resolve("src").resolve("styles").resolve("bistro_dashboard.css");
+            Path binCss = projectDir.resolve("bin").resolve("styles").resolve("bistro_dashboard.css");
+
+            if (!Files.exists(srcCss)) {
+                System.err.println("[WARN] Cannot find CSS in src: " + srcCss);
+                return;
+            }
+
+            Files.createDirectories(binCss.getParent());
+            Files.copy(srcCss, binCss, StandardCopyOption.REPLACE_EXISTING);
+
+            System.out.println("[DEV] Copied CSS to bin: " + binCss);
+
+        } catch (Exception e) {
+            System.err.println("[WARN] ensureDevResourcesCopied failed:");
+            e.printStackTrace();
+        }
     }
 }

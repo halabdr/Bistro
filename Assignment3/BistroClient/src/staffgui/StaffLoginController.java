@@ -26,11 +26,6 @@ public class StaffLoginController implements MessageListener {
 
     private ClientController controller;
 
-    /**
-     * Initializes the controller with the client controller.
-     *
-     * @param controller the client controller
-     */
     public void init(ClientController controller) {
         this.controller = controller;
         if (this.controller != null) {
@@ -39,9 +34,6 @@ public class StaffLoginController implements MessageListener {
         statusLabel.setText("");
     }
 
-    /**
-     * Handles login with email and password.
-     */
     @FXML
     private void handleLogin() {
         String email = emailField.getText().trim();
@@ -73,9 +65,6 @@ public class StaffLoginController implements MessageListener {
         }
     }
 
-    /**
-     * Handles back button click - returns to Welcome screen.
-     */
     @FXML
     private void handleBack() {
         try {
@@ -85,19 +74,10 @@ public class StaffLoginController implements MessageListener {
         }
     }
 
-    /**
-     * Receives messages from the server.
-     * Handles LOGIN response and navigates to Staff Dashboard on success.
-     *
-     * @param m message received from the server
-     */
     @Override
     public void onMessage(Message m) {
         if (m == null) return;
-
-        if (!Commands.LOGIN.equals(m.getCommand())) {
-            return;
-        }
+        if (!Commands.LOGIN.equals(m.getCommand())) return;
 
         Platform.runLater(() -> {
             loginBtn.setDisable(false);
@@ -113,8 +93,7 @@ public class StaffLoginController implements MessageListener {
                 return;
             }
 
-            // Check if user is staff (Representative or Manager)
-            if (user.getUserRole() != User.UserRole.REPRESENTATIVE && 
+            if (user.getUserRole() != User.UserRole.REPRESENTATIVE &&
                 user.getUserRole() != User.UserRole.MANAGER) {
                 statusLabel.setText("Access denied. This login is for staff only.");
                 return;
@@ -127,9 +106,16 @@ public class StaffLoginController implements MessageListener {
                     ConnectApp.showStaffDashboard(user);
                 }
             } catch (Exception e) {
-                statusLabel.setText("Failed to open dashboard: " + e.getMessage());
-            }
+                // IMPORTANT: show real root cause
+                e.printStackTrace();
+                Throwable root = e;
+                while (root.getCause() != null) root = root.getCause();
 
+                String msg = root.getMessage();
+                if (msg == null || msg.isBlank()) msg = e.toString();
+
+                statusLabel.setText("Failed to open dashboard: " + msg);
+            }
         });
     }
 }
