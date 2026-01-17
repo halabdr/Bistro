@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="terminalgui.TerminalCancelReservationController"
+            stylesheets="@/styles/terminal.css"
+            styleClass="terminal-bg"
+            prefWidth="1100" prefHeight="720">
+
+    <!-- Top bar -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="12" styleClass="terminal-topbar">
+            <padding>
+                <Insets top="18" right="26" bottom="18" left="26"/>
+            </padding>
+
+            <VBox spacing="4">
+                <Label text="Cancel Reservation" styleClass="terminal-title"/>
+                <Label text="Enter your confirmation code to cancel" styleClass="terminal-subtitle"/>
+            </VBox>
+
+            <Pane HBox.hgrow="ALWAYS"/>
+
+            <Button text="Back" onAction="#onBack" styleClass="btn-secondary" prefHeight="42"/>
+        </HBox>
+    </top>
+
+    <!-- Center -->
+    <center>
+        <StackPane alignment="CENTER">
+            <padding>
+                <Insets top="20" right="30" bottom="30" left="30"/>
+            </padding>
+
+            <VBox styleClass="terminal-card"
+                  alignment="CENTER"
+                  spacing="20"
+                  maxWidth="500"
+                  prefWidth="500">
+                <padding>
+                    <Insets top="40" right="40" bottom="40" left="40"/>
+                </padding>
+
+                <Label text="Enter Confirmation Code" styleClass="section-title"/>
+
+                <TextField fx:id="codeField" 
+                           promptText="e.g. RES12345ABC"
+                           styleClass="terminal-input"
+                           maxWidth="350"/>
+
+                <Button text="Cancel Reservation"
+                        onAction="#onCancel"
+                        styleClass="btn-danger"
+                        prefHeight="50"
+                        prefWidth="250"/>
+
+                <Label fx:id="statusLabel" 
+                       text=""
+                       wrapText="true"
+                       styleClass="terminal-hint"
+                       maxWidth="400"/>
+
+            </VBox>
+        </StackPane>
+    </center>
+</BorderPane>

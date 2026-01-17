@@ -87,8 +87,22 @@
                         </Button>
                     </VBox>
 
-                    <!-- 3) Leave waitlist -->
+                    <!-- 3) Cancel reservation -->
                     <VBox spacing="10" GridPane.rowIndex="1" GridPane.columnIndex="0">
+                        <Label text="Need to cancel?" styleClass="action-question"/>
+                        <Button onAction="#onCancelReservation"
+                                text="Cancel Reservation"
+                                styleClass="btn-danger"
+                                prefHeight="70"
+                                maxWidth="1.7976931348623157E308">
+                            <graphic>
+                                <Label text="❌" style="-fx-font-size: 20px; -fx-padding: 0 12 0 0;"/>
+                            </graphic>
+                        </Button>
+                    </VBox>
+
+                    <!-- 4) Leave waitlist -->
+                    <VBox spacing="10" GridPane.rowIndex="1" GridPane.columnIndex="1">
                         <Label text="Already on the waitlist?" styleClass="action-question"/>
                         <Button onAction="#onLeaveWaitlist"
                                 text="Leave Waitlist"
@@ -101,8 +115,8 @@
                         </Button>
                     </VBox>
 
-                    <!-- 4) Lost code -->
-                    <VBox spacing="10" GridPane.rowIndex="1" GridPane.columnIndex="1">
+                    <!-- 5) Lost code -->
+                    <VBox spacing="10" GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="2">
                         <Label text="Forgot your code?" styleClass="action-question"/>
                         <Button onAction="#onLostCode"
                                 text="Lost Code"

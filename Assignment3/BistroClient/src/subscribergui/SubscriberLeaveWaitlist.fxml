@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+
+<HBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="subscribergui.SubscriberLeaveWaitlistController"
+      styleClass="login-split-container"
+      stylesheets="@/styles/bistro_main.css"
+      prefHeight="700" prefWidth="1000">
+
+    <!-- Left panel -->
+    <VBox styleClass="login-left-panel" prefWidth="450" alignment="CENTER" spacing="25">
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <ImageView fitHeight="200" fitWidth="200" preserveRatio="true">
+            <image><Image url="@/styles/bistro_logo.png"/></image>
+        </ImageView>
+
+        <Label text="BISTRO" styleClass="welcome-logo-text"/>
+        <Label text="Leave Waitlist" styleClass="welcome-subtitle"/>
+
+        <Label text="Enter your waitlist code to leave"
+               style="-fx-text-fill: rgba(255,255,255,0.9); -fx-font-size: 16px; -fx-font-weight: 500;"/>
+
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <Label text="© 2026 Bistro Restaurant"
+               style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 11px;"/>
+    </VBox>
+
+    <!-- Right panel -->
+    <VBox styleClass="menu-page" prefWidth="550" alignment="CENTER" spacing="16" HBox.hgrow="ALWAYS">
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <VBox maxWidth="420" styleClass="form-box" spacing="20" alignment="CENTER">
+            <Label text="Leave Waitlist" styleClass="login-title"/>
+
+            <VBox spacing="8" alignment="CENTER_LEFT">
+                <Label text="Entry Code" styleClass="form-label-text"/>
+                <TextField fx:id="codeField" 
+                           promptText="e.g. WAIT123ABC"
+                           styleClass="login-field"
+                           maxWidth="350"/>
+            </VBox>
+
+            <Button text="Leave Waitlist"
+                    onAction="#onLeave"
+                    styleClass="welcome-action-button"
+                    style="-fx-min-width: 250px;"/>
+
+            <Label fx:id="statusLabel" 
+                   text=""
+                   wrapText="true"
+                   style="-fx-text-fill: #718096; -fx-font-size: 13px;"
+                   maxWidth="350"/>
+        </VBox>
+
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <Button text="Back"
+                onAction="#onBack"
+                styleClass="welcome-action-button-secondary"
+                style="-fx-min-width: 180px;">
+            <VBox.margin>
+                <Insets bottom="40"/>
+            </VBox.margin>
+        </Button>
+    </VBox>
+</HBox>

@@ -11,13 +11,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Date;
 import java.sql.Time;
-import java.sql.Types;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -25,12 +23,12 @@ import java.util.UUID;
 /**
  * Repository for managing reservations.
  * Handles reservation creation, cancellation, availability checking, and retrieval.
+ * Uses database transactions to prevent race conditions in concurrent access.
  */
 public class ReservationRepository {
 
     /**
      * Gets available time slots for a given date and number of guests.
-     * Uses simulation-based availability checking for optimal table allocation.
      * 
      * @param request Message containing date and guestCount
      * @return Message with List of available LocalDateTime slots
@@ -52,13 +50,6 @@ public class ReservationRepository {
 
             Connection conn = pConn.getConnection();
 
-            // Check if any table can fit this guest count
-            if (!hasTableForGuestCount(guestCount, conn)) {
-                return Message.fail("GET_AVAILABLE_SLOTS", 
-                    "No table available for " + guestCount + " guests. Maximum capacity is " + 
-                    getMaxTableCapacity(conn) + " guests per table.");
-            }
-
             // Get opening hours for this date
             OpeningHours hours = getOpeningHoursForDate(date, conn);
             if (hours == null) {
@@ -73,9 +64,6 @@ public class ReservationRepository {
                 return Message.ok("GET_AVAILABLE_SLOTS", new ArrayList<LocalDateTime>());
             }
 
-            // Get all tables for simulation
-            List<Table> allTables = getAllTables(conn);
-
             // Generate all possible slots (every 30 minutes)
             List<LocalDateTime> availableSlots = new ArrayList<>();
             LocalTime currentTime = openingTime;
@@ -83,7 +71,7 @@ public class ReservationRepository {
             while (!currentTime.isAfter(lastSlot)) {
                 LocalDateTime slotDateTime = LocalDateTime.of(date, currentTime);
                 
-                if (isSlotAvailable(slotDateTime, guestCount, allTables, conn)) {
+                if (isSlotAvailable(slotDateTime, guestCount, conn)) {
                     availableSlots.add(slotDateTime);
                 }
                 
@@ -101,7 +89,87 @@ public class ReservationRepository {
     }
 
     /**
-     * Creates a new reservation for a subscriber.
+     * Gets alternative time slots when the requested date is fully booked.
+     * Searches within 7 days before and after the requested date.
+     * 
+     * @param request Message containing date and guestCount
+     * @return Message with List of alternative LocalDateTime slots
+     */
+    public Message getAlternativeSlots(Message request) {
+        MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+        PooledConnection pConn = null;
+
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> data = (Map<String, Object>) request.getData();
+            LocalDate requestedDate = LocalDate.parse((String) data.get("date"));
+            int guestCount = (Integer) data.get("guestCount");
+
+            pConn = pool.getConnection();
+            if (pConn == null) {
+                return Message.fail("GET_ALTERNATIVE_SLOTS", "Database connection failed");
+            }
+
+            Connection conn = pConn.getConnection();
+
+            List<LocalDateTime> alternatives = new ArrayList<>();
+            List<Table> suitableTables = getSuitableTablesForGuests(guestCount, conn);
+            
+            if (suitableTables.isEmpty()) {
+                return Message.ok("GET_ALTERNATIVE_SLOTS", alternatives);
+            }
+
+            // Search 7 days before and after
+            for (int dayOffset = -7; dayOffset <= 7; dayOffset++) {
+                if (dayOffset == 0) continue; // Skip the original date
+                
+                LocalDate checkDate = requestedDate.plusDays(dayOffset);
+                
+                // Don't suggest dates in the past
+                if (checkDate.isBefore(LocalDate.now())) continue;
+                
+                // Don't suggest dates more than 1 month ahead
+                if (checkDate.isAfter(LocalDate.now().plusMonths(1))) continue;
+
+                OpeningHours hours = getOpeningHoursForDate(checkDate, conn);
+                if (hours == null) continue;
+
+                LocalTime openingTime = hours.getOpeningTime();
+                LocalTime closingTime = hours.getClosingTime();
+                LocalTime lastSlot = closingTime.minusHours(2);
+
+                if (lastSlot.isBefore(openingTime)) continue;
+
+                int slotsFoundForDay = 0;
+                LocalTime currentTime = openingTime;
+
+                while (!currentTime.isAfter(lastSlot) && slotsFoundForDay < 3) {
+                    LocalDateTime slotDateTime = LocalDateTime.of(checkDate, currentTime);
+                    
+                    if (isSlotAvailable(slotDateTime, guestCount, suitableTables, conn)) {
+                        alternatives.add(slotDateTime);
+                        slotsFoundForDay++;
+                    }
+                    
+                    currentTime = currentTime.plusMinutes(30);
+                }
+
+                if (alternatives.size() >= 15) break;
+            }
+
+            return Message.ok("GET_ALTERNATIVE_SLOTS", alternatives);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Message.fail("GET_ALTERNATIVE_SLOTS", "Error: " + e.getMessage());
+        } finally {
+            pool.releaseConnection(pConn);
+        }
+    }
+
+    /**
+     * Creates a new reservation with transaction support to prevent race conditions.
+     * Uses database transaction to ensure atomicity between availability check and insert.
      * 
      * @param request Message containing reservation details
      * @return Message with created Reservation object if successful
@@ -118,8 +186,8 @@ public class ReservationRepository {
             LocalTime bookingTime = LocalTime.parse((String) data.get("bookingTime"));
             int guestCount = (Integer) data.get("guestCount");
             String subscriberNumber = (String) data.get("subscriberNumber");
-            String walkInPhone = (String) data.get("walkInPhone");
-            String walkInEmail = (String) data.get("walkInEmail");
+            String guestPhone = (String) data.get("guestPhone");
+            String guestEmail = (String) data.get("guestEmail");
 
             pConn = pool.getConnection();
             if (pConn == null) {
@@ -127,64 +195,69 @@ public class ReservationRepository {
             }
 
             Connection conn = pConn.getConnection();
-
-            // Check if any table can fit this guest count
-            if (!hasTableForGuestCount(guestCount, conn)) {
-                return Message.fail("CREATE_RESERVATION", 
-                    "No table available for " + guestCount + " guests");
-            }
-
-            // Get all tables for simulation
-            List<Table> allTables = getAllTables(conn);
-
-            // Check if slot is still available
-            LocalDateTime requestedDateTime = LocalDateTime.of(bookingDate, bookingTime);
-            if (!isSlotAvailable(requestedDateTime, guestCount, allTables, conn)) {
-                return Message.fail("CREATE_RESERVATION", "Selected time slot is no longer available");
-            }
-
-            // Generate unique confirmation code
-            String confirmationCode = generateConfirmationCode();
-
-            // Insert reservation (assigned_table_number is NULL until check-in)
-            String sql = "INSERT INTO reservations (booking_date, booking_time, guest_count, " +
-                        "confirmation_code, reservation_status, assigned_table_number, " +
-                        "subscriber_number, walk_in_phone, walk_in_email) " +
-                        "VALUES (?, ?, ?, ?, 'ACTIVE', NULL, ?, ?, ?)";
             
-            PreparedStatement ps = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
-            ps.setDate(1, Date.valueOf(bookingDate));
-            ps.setTime(2, Time.valueOf(bookingTime));
-            ps.setInt(3, guestCount);
-            ps.setString(4, confirmationCode);
-            ps.setString(5, subscriberNumber);
-            ps.setString(6, walkInPhone);
-            ps.setString(7, walkInEmail);
+            // Start transaction to prevent race conditions
+            conn.setAutoCommit(false);
             
-            ps.executeUpdate();
+            try {
+                // Check if slot is still available (inside transaction)
+                LocalDateTime requestedDateTime = LocalDateTime.of(bookingDate, bookingTime);
+                if (!isSlotAvailable(requestedDateTime, guestCount, conn)) {
+                    conn.rollback();
+                    return Message.fail("CREATE_RESERVATION", "Selected time slot is no longer available");
+                }
 
-            ResultSet rs = ps.getGeneratedKeys();
-            int reservationId = 0;
-            if (rs.next()) {
-                reservationId = rs.getInt(1);
+                // Generate unique confirmation code
+                String confirmationCode = generateConfirmationCode();
+
+                // Insert reservation
+                String sql = "INSERT INTO reservations (booking_date, booking_time, guest_count, " +
+                            "confirmation_code, reservation_status, subscriber_number, " +
+                            "walk_in_phone, walk_in_email) " +
+                            "VALUES (?, ?, ?, ?, 'ACTIVE', ?, ?, ?)";
+                
+                PreparedStatement ps = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
+                ps.setDate(1, Date.valueOf(bookingDate));
+                ps.setTime(2, Time.valueOf(bookingTime));
+                ps.setInt(3, guestCount);
+                ps.setString(4, confirmationCode);
+                ps.setString(5, subscriberNumber);
+                ps.setString(6, guestPhone);
+                ps.setString(7, guestEmail);
+                
+                ps.executeUpdate();
+
+                ResultSet rs = ps.getGeneratedKeys();
+                int reservationId = 0;
+                if (rs.next()) {
+                    reservationId = rs.getInt(1);
+                }
+                rs.close();
+                ps.close();
+                
+                // Commit transaction - both check and insert succeeded
+                conn.commit();
+
+                // Create and return Reservation object
+                Reservation reservation = new Reservation();
+                reservation.setReservationId(reservationId);
+                reservation.setBookingDate(bookingDate);
+                reservation.setBookingTime(bookingTime);
+                reservation.setGuestCount(guestCount);
+                reservation.setConfirmationCode(confirmationCode);
+                reservation.setReservationStatus(Reservation.ReservationStatus.ACTIVE);
+                reservation.setSubscriberNumber(subscriberNumber);
+
+                return Message.ok("CREATE_RESERVATION", reservation);
+                
+            } catch (SQLException e) {
+                // Rollback on any error
+                conn.rollback();
+                throw e;
+            } finally {
+                // Restore auto-commit mode
+                conn.setAutoCommit(true);
             }
-            rs.close();
-            ps.close();
-
-            // Create and return Reservation object
-            Reservation reservation = new Reservation();
-            reservation.setReservationId(reservationId);
-            reservation.setBookingDate(bookingDate);
-            reservation.setBookingTime(bookingTime);
-            reservation.setGuestCount(guestCount);
-            reservation.setConfirmationCode(confirmationCode);
-            reservation.setReservationStatus(Reservation.ReservationStatus.ACTIVE);
-            reservation.setSubscriberNumber(subscriberNumber);
-            reservation.setAssignedTableNumber(null);
-            reservation.setWalkInPhone(walkInPhone);
-            reservation.setWalkInEmail(walkInEmail);
-
-            return Message.ok("CREATE_RESERVATION", reservation);
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -330,7 +403,7 @@ public class ReservationRepository {
     
     /**
      * Gets a reservation by its confirmation code.
-     * Used when a customer (subscriber or walk-in) checks in with their code.
+     * Used when a customer (subscriber or casual) checks in with their code.
      * 
      * @param request Message containing "confirmationCode"
      * @return Message with Reservation object if found
@@ -384,10 +457,10 @@ public class ReservationRepository {
     
     /**
      * Retrieves a lost reservation confirmation code using a user identifier.
-     * Searches both subscribers (by phone/email) and walk-in customers.
+     * The identifier can be either a phone number or an email address.
      * 
-     * @param request a Message containing "identifier" (phone or email)
-     * @return a Message containing the confirmation code if found
+     * @param request Message containing "identifier" (phone or email)
+     * @return Message with confirmation code if found
      */
     public Message retrieveLostCode(Message request) {
         MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
@@ -409,8 +482,8 @@ public class ReservationRepository {
 
             Connection conn = pConn.getConnection();
 
-            // First try: subscriber reservations (upcoming)
-            String sqlSubscriberUpcoming =
+            // Nearest upcoming ACTIVE reservation for subscriber
+            String sqlUpcoming =
                     "SELECT r.confirmation_code " +
                     "FROM reservations r " +
                     "JOIN subscribers s ON r.subscriber_number = s.subscriber_number " +
@@ -422,9 +495,32 @@ public class ReservationRepository {
                     "ORDER BY r.booking_date ASC, r.booking_time ASC " +
                     "LIMIT 1";
 
+            // Fallback: most recent ACTIVE reservation for subscriber
+            String sqlLatest =
+                    "SELECT r.confirmation_code " +
+                    "FROM reservations r " +
+                    "JOIN subscribers s ON r.subscriber_number = s.subscriber_number " +
+                    "JOIN users u ON s.user_id = u.user_id " +
+                    "WHERE r.reservation_status = 'ACTIVE' " +
+                    "AND (u.phone_number = ? OR u.email_address = ?) " +
+                    "ORDER BY r.booking_date DESC, r.booking_time DESC " +
+                    "LIMIT 1";
+
+            // Also check walk-in reservations
+            String sqlWalkIn =
+                    "SELECT confirmation_code " +
+                    "FROM reservations " +
+                    "WHERE reservation_status = 'ACTIVE' " +
+                    "AND (walk_in_phone = ? OR walk_in_email = ?) " +
+                    "AND (booking_date > CURDATE() " +
+                    "     OR (booking_date = CURDATE() AND booking_time >= CURTIME())) " +
+                    "ORDER BY booking_date ASC, booking_time ASC " +
+                    "LIMIT 1";
+
             String confirmationCode = null;
 
-            try (PreparedStatement ps = conn.prepareStatement(sqlSubscriberUpcoming)) {
+            // Try upcoming subscriber reservation
+            try (PreparedStatement ps = conn.prepareStatement(sqlUpcoming)) {
                 ps.setString(1, identifier);
                 ps.setString(2, identifier);
                 try (ResultSet rs = ps.executeQuery()) {
@@ -434,19 +530,9 @@ public class ReservationRepository {
                 }
             }
 
-            // Second try: walk-in reservations (upcoming)
+            // Try latest subscriber reservation
             if (confirmationCode == null) {
-                String sqlWalkInUpcoming =
-                        "SELECT confirmation_code " +
-                        "FROM reservations " +
-                        "WHERE reservation_status = 'ACTIVE' " +
-                        "AND (walk_in_phone = ? OR walk_in_email = ?) " +
-                        "AND (booking_date > CURDATE() " +
-                        "     OR (booking_date = CURDATE() AND booking_time >= CURTIME())) " +
-                        "ORDER BY booking_date ASC, booking_time ASC " +
-                        "LIMIT 1";
-
-                try (PreparedStatement ps = conn.prepareStatement(sqlWalkInUpcoming)) {
+                try (PreparedStatement ps = conn.prepareStatement(sqlLatest)) {
                     ps.setString(1, identifier);
                     ps.setString(2, identifier);
                     try (ResultSet rs = ps.executeQuery()) {
@@ -457,40 +543,9 @@ public class ReservationRepository {
                 }
             }
 
-            // Fallback: most recent ACTIVE subscriber reservation
+            // Try walk-in reservation
             if (confirmationCode == null) {
-                String sqlSubscriberLatest =
-                        "SELECT r.confirmation_code " +
-                        "FROM reservations r " +
-                        "JOIN subscribers s ON r.subscriber_number = s.subscriber_number " +
-                        "JOIN users u ON s.user_id = u.user_id " +
-                        "WHERE r.reservation_status = 'ACTIVE' " +
-                        "AND (u.phone_number = ? OR u.email_address = ?) " +
-                        "ORDER BY r.booking_date DESC, r.booking_time DESC " +
-                        "LIMIT 1";
-
-                try (PreparedStatement ps = conn.prepareStatement(sqlSubscriberLatest)) {
-                    ps.setString(1, identifier);
-                    ps.setString(2, identifier);
-                    try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next()) {
-                            confirmationCode = rs.getString("confirmation_code");
-                        }
-                    }
-                }
-            }
-
-            // Fallback: most recent ACTIVE walk-in reservation
-            if (confirmationCode == null) {
-                String sqlWalkInLatest =
-                        "SELECT confirmation_code " +
-                        "FROM reservations " +
-                        "WHERE reservation_status = 'ACTIVE' " +
-                        "AND (walk_in_phone = ? OR walk_in_email = ?) " +
-                        "ORDER BY booking_date DESC, booking_time DESC " +
-                        "LIMIT 1";
-
-                try (PreparedStatement ps = conn.prepareStatement(sqlWalkInLatest)) {
+                try (PreparedStatement ps = conn.prepareStatement(sqlWalkIn)) {
                     ps.setString(1, identifier);
                     ps.setString(2, identifier);
                     try (ResultSet rs = ps.executeQuery()) {
@@ -515,11 +570,15 @@ public class ReservationRepository {
         }
     }
 
-    //  Helper methods 
+    // ==================== Helper Methods ====================
 
     /**
      * Gets opening hours for a specific date.
      * Checks special hours first, then falls back to weekly hours.
+     * 
+     * @param date the date to check
+     * @param conn database connection
+     * @return OpeningHours or null if closed
      */
     private OpeningHours getOpeningHoursForDate(LocalDate date, Connection conn) throws SQLException {
         // Check for special hours first
@@ -577,48 +636,106 @@ public class ReservationRepository {
     }
 
     /**
-     * Checks if any table in the restaurant can fit the guest count.
+     * Checks if a time slot is available for the given number of guests.
+     * 
+     * @param startTime the requested start time
+     * @param guestCount number of guests
+     * @param conn database connection
+     * @return true if slot is available
      */
-    private boolean hasTableForGuestCount(int guestCount, Connection conn) throws SQLException {
-        String sql = "SELECT COUNT(*) as count FROM tables_info WHERE seat_capacity >= ?";
+    private boolean isSlotAvailable(LocalDateTime startTime, int guestCount, Connection conn) throws SQLException {
+        // Get all tables that can fit the guest count
+        String tableSql = "SELECT * FROM tables_info WHERE seat_capacity >= ? AND table_status = 'AVAILABLE'";
+        PreparedStatement tablePs = conn.prepareStatement(tableSql);
+        tablePs.setInt(1, guestCount);
+        ResultSet tableRs = tablePs.executeQuery();
+
+        List<Table> suitableTables = new ArrayList<>();
+        while (tableRs.next()) {
+            Table table = new Table();
+            table.setTableNumber(tableRs.getInt("table_number"));
+            table.setSeatCapacity(tableRs.getInt("seat_capacity"));
+            suitableTables.add(table);
+        }
+        tableRs.close();
+        tablePs.close();
+
+        if (suitableTables.isEmpty()) {
+            return false;
+        }
+
+        // Check for overlapping reservations
+        String resSql = "SELECT COUNT(*) as count FROM reservations " +
+                       "WHERE reservation_status = 'ACTIVE' " +
+                       "AND booking_date = ? " +
+                       "AND booking_time BETWEEN ? AND ?";
+        
+        PreparedStatement resPs = conn.prepareStatement(resSql);
+        resPs.setDate(1, Date.valueOf(startTime.toLocalDate()));
+        resPs.setTime(2, Time.valueOf(startTime.toLocalTime().minusHours(2)));
+        resPs.setTime(3, Time.valueOf(startTime.toLocalTime().plusMinutes(30)));
+        
+        ResultSet resRs = resPs.executeQuery();
+        int overlappingReservations = 0;
+        if (resRs.next()) {
+            overlappingReservations = resRs.getInt("count");
+        }
+        resRs.close();
+        resPs.close();
+
+        // Check: if overlapping reservations >= available tables, slot is full
+        return overlappingReservations < suitableTables.size();
+    }
+
+    /**
+     * Checks if a time slot is available with pre-fetched table list.
+     * Used by getAlternativeSlots for efficiency.
+     * 
+     * @param startTime the requested start time
+     * @param guestCount number of guests
+     * @param suitableTables pre-fetched list of suitable tables
+     * @param conn database connection
+     * @return true if slot is available
+     */
+    private boolean isSlotAvailable(LocalDateTime startTime, int guestCount, 
+                                    List<Table> suitableTables, Connection conn) throws SQLException {
+        if (suitableTables.isEmpty()) {
+            return false;
+        }
+
+        // Check for overlapping reservations
+        String resSql = "SELECT COUNT(*) as count FROM reservations " +
+                       "WHERE reservation_status = 'ACTIVE' " +
+                       "AND booking_date = ? " +
+                       "AND booking_time BETWEEN ? AND ?";
+        
+        PreparedStatement resPs = conn.prepareStatement(resSql);
+        resPs.setDate(1, Date.valueOf(startTime.toLocalDate()));
+        resPs.setTime(2, Time.valueOf(startTime.toLocalTime().minusHours(2)));
+        resPs.setTime(3, Time.valueOf(startTime.toLocalTime().plusMinutes(30)));
+        
+        ResultSet resRs = resPs.executeQuery();
+        int overlappingReservations = 0;
+        if (resRs.next()) {
+            overlappingReservations = resRs.getInt("count");
+        }
+        resRs.close();
+        resPs.close();
+
+        return overlappingReservations < suitableTables.size();
+    }
+
+    /**
+     * Gets all tables suitable for the given guest count.
+     * 
+     * @param guestCount number of guests
+     * @param conn database connection
+     * @return list of suitable tables
+     */
+    private List<Table> getSuitableTablesForGuests(int guestCount, Connection conn) throws SQLException {
+        String sql = "SELECT * FROM tables_info WHERE seat_capacity >= ? AND table_status = 'AVAILABLE'";
         PreparedStatement ps = conn.prepareStatement(sql);
         ps.setInt(1, guestCount);
-        ResultSet rs = ps.executeQuery();
-        
-        boolean hasTable = false;
-        if (rs.next()) {
-            hasTable = rs.getInt("count") > 0;
-        }
-        
-        rs.close();
-        ps.close();
-        return hasTable;
-    }
-
-    /**
-     * Gets the maximum table capacity in the restaurant.
-     */
-    private int getMaxTableCapacity(Connection conn) throws SQLException {
-        String sql = "SELECT MAX(seat_capacity) as max_capacity FROM tables_info";
-        PreparedStatement ps = conn.prepareStatement(sql);
-        ResultSet rs = ps.executeQuery();
-        
-        int maxCapacity = 0;
-        if (rs.next()) {
-            maxCapacity = rs.getInt("max_capacity");
-        }
-        
-        rs.close();
-        ps.close();
-        return maxCapacity;
-    }
-
-    /**
-     * Gets all tables from the database.
-     */
-    private List<Table> getAllTables(Connection conn) throws SQLException {
-        String sql = "SELECT * FROM tables_info ORDER BY seat_capacity";
-        PreparedStatement ps = conn.prepareStatement(sql);
         ResultSet rs = ps.executeQuery();
 
         List<Table> tables = new ArrayList<>();
@@ -626,92 +743,18 @@ public class ReservationRepository {
             Table table = new Table();
             table.setTableNumber(rs.getInt("table_number"));
             table.setSeatCapacity(rs.getInt("seat_capacity"));
-            table.setTableLocation(rs.getString("table_location"));
-            table.setTableStatus(Table.TableStatus.valueOf(rs.getString("table_status")));
             tables.add(table);
         }
-        
         rs.close();
         ps.close();
+
         return tables;
     }
 
     /**
-     * Gets all active reservations for a specific time slot (2-hour window).
-     */
-    private List<Integer> getGuestCountsForTimeSlot(LocalDateTime startTime, Connection conn) throws SQLException {
-        LocalDate date = startTime.toLocalDate();
-        LocalTime time = startTime.toLocalTime();
-        LocalTime slotStart = time.minusHours(2).plusMinutes(1);
-        LocalTime slotEnd = time.plusHours(2).minusMinutes(1);
-
-        String sql = "SELECT guest_count FROM reservations " +
-                    "WHERE reservation_status = 'ACTIVE' " +
-                    "AND booking_date = ? " +
-                    "AND booking_time > ? AND booking_time < ?";
-        
-        PreparedStatement ps = conn.prepareStatement(sql);
-        ps.setDate(1, Date.valueOf(date));
-        ps.setTime(2, Time.valueOf(slotStart));
-        ps.setTime(3, Time.valueOf(slotEnd));
-        
-        ResultSet rs = ps.executeQuery();
-        
-        List<Integer> guestCounts = new ArrayList<>();
-        while (rs.next()) {
-            guestCounts.add(rs.getInt("guest_count"));
-        }
-        
-        rs.close();
-        ps.close();
-        return guestCounts;
-    }
-
-    /**
-     * Checks if a time slot is available using best-fit simulation.
-     * Simulates seating all existing reservations plus the new one.
-     */
-    private boolean isSlotAvailable(LocalDateTime startTime, int newGuestCount, 
-                                    List<Table> allTables, Connection conn) throws SQLException {
-        // Get all guest counts for overlapping reservations
-        List<Integer> existingGuestCounts = getGuestCountsForTimeSlot(startTime, conn);
-        
-        // Add the new reservation's guest count
-        List<Integer> allGuestCounts = new ArrayList<>(existingGuestCounts);
-        allGuestCounts.add(newGuestCount);
-        
-        // Sort from largest to smallest (seat big groups first)
-        allGuestCounts.sort(Comparator.reverseOrder());
-        
-        // Create a copy of available tables for simulation
-        List<Table> availableTables = new ArrayList<>(allTables);
-        
-        // Try to seat each group
-        for (Integer guestCount : allGuestCounts) {
-            // Find the smallest table that fits this group
-            Table assignedTable = null;
-            for (Table table : availableTables) {
-                if (table.getSeatCapacity() >= guestCount) {
-                    assignedTable = table;
-                    break; // Tables are sorted by capacity, so first match is best fit
-                }
-            }
-            
-            if (assignedTable == null) {
-                // Can't fit this group - no availability
-                return false;
-            }
-            
-            // Remove the assigned table from available pool
-            availableTables.remove(assignedTable);
-        }
-        
-        // All groups can be seated
-        return true;
-    }
-
-    /**
      * Generates a unique confirmation code.
+     * 
+     * @return unique confirmation code string
      */
     private String generateConfirmationCode() {
         return "RES" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
@@ -719,6 +762,9 @@ public class ReservationRepository {
 
     /**
      * Extracts a Reservation object from ResultSet.
+     * 
+     * @param rs result set positioned at a reservation row
+     * @return Reservation object
      */
     private Reservation extractReservationFromResultSet(ResultSet rs) throws SQLException {
         Reservation reservation = new Reservation();
@@ -731,24 +777,15 @@ public class ReservationRepository {
             Reservation.ReservationStatus.valueOf(rs.getString("reservation_status"))
         );
         
-        // Handle nullable assigned_table_number
-        int assignedTableNumber = rs.getInt("assigned_table_number");
+        int tableNumber = rs.getInt("table_number");
         if (!rs.wasNull()) {
-            reservation.setAssignedTableNumber(assignedTableNumber);
-        } else {
-            reservation.setAssignedTableNumber(null);
+            reservation.setAssignedTableNumber(tableNumber);
         }
         
-        // Handle subscriber number
         String subscriberNumber = rs.getString("subscriber_number");
-        reservation.setSubscriberNumber(subscriberNumber);
-        
-        // Handle walk-in contact info
-        String walkInPhone = rs.getString("walk_in_phone");
-        reservation.setWalkInPhone(walkInPhone);
-        
-        String walkInEmail = rs.getString("walk_in_email");
-        reservation.setWalkInEmail(walkInEmail);
+        if (subscriberNumber != null) {
+            reservation.setSubscriberNumber(subscriberNumber);
+        }
         
         return reservation;
     }

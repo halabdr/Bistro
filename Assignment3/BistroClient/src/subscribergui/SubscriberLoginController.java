@@ -13,6 +13,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import entities.User;
 
 /**
  * Controller for Subscriber Login screen.
@@ -53,6 +54,12 @@ public class SubscriberLoginController implements MessageListener {
         if (email.isEmpty() || password.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Missing Information", 
                      "Please enter both email and password.");
+            return;
+        }
+        
+        if (!User.isValidEmail(email)) {
+            showAlert(Alert.AlertType.WARNING, "Invalid Email", 
+                     "Please enter a valid email address.");
             return;
         }
 

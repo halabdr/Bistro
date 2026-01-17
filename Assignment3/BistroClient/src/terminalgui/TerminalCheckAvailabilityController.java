@@ -9,6 +9,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
+import entities.User;
 
 import java.io.IOException;
 import java.util.Map;
@@ -99,8 +100,12 @@ public class TerminalCheckAvailabilityController implements MessageListener {
                 statusLabel.setText("Please enter at least one contact: phone or email.");
                 return;
             }
-            if (!email.isEmpty() && !email.contains("@")) {
-                statusLabel.setText("Email looks invalid.");
+            if (!phone.isEmpty() && !User.isValidPhone(phone)) {
+                statusLabel.setText("Invalid phone format. Use: 05X-XXXXXXX");
+                return;
+            }
+            if (!email.isEmpty() && !User.isValidEmail(email)) {
+                statusLabel.setText("Invalid email format.");
                 return;
             }
         }

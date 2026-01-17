@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.chart.*?>
 
 <BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="staffgui.StaffDashboardController">
@@ -20,6 +21,7 @@
         <TabPane fx:id="tabs">
             <tabs>
 
+                <!-- Tab: Reservations -->
                 <Tab text="Reservations" closable="false">
                     <BorderPane style="-fx-padding: 10;">
                         <top>
@@ -41,6 +43,7 @@
                     </BorderPane>
                 </Tab>
 
+                <!-- Tab: Waitlist -->
                 <Tab text="Waitlist" closable="false">
                     <BorderPane style="-fx-padding: 10;">
                         <top>
@@ -60,6 +63,30 @@
                     </BorderPane>
                 </Tab>
 
+                <!-- Tab: Current Diners -->
+                <Tab text="Current Diners" closable="false">
+                    <BorderPane style="-fx-padding: 10;">
+                        <top>
+                            <HBox spacing="10">
+                                <Button text="Refresh" onAction="#refreshCurrentDiners"/>
+                            </HBox>
+                        </top>
+                        <center>
+                            <TableView fx:id="dinersTable">
+                                <columns>
+                                    <TableColumn fx:id="dTableCol" text="Table #" prefWidth="70"/>
+                                    <TableColumn fx:id="dGuestsCol" text="Guests" prefWidth="60"/>
+                                    <TableColumn fx:id="dLocationCol" text="Location" prefWidth="100"/>
+                                    <TableColumn fx:id="dCodeCol" text="Code" prefWidth="120"/>
+                                    <TableColumn fx:id="dCustomerCol" text="Customer" prefWidth="150"/>
+                                    <TableColumn fx:id="dSeatedAtCol" text="Seated At" prefWidth="140"/>
+                                </columns>
+                            </TableView>
+                        </center>
+                    </BorderPane>
+                </Tab>
+
+                <!-- Tab: Tables -->
                 <Tab text="Tables" closable="false">
                     <BorderPane style="-fx-padding: 10;">
                         <top>
@@ -83,6 +110,7 @@
                     </BorderPane>
                 </Tab>
 
+                <!-- Tab: Opening Hours -->
                 <Tab text="Opening Hours" closable="false">
                     <BorderPane style="-fx-padding: 10;">
                         <top>
@@ -103,6 +131,7 @@
                     </BorderPane>
                 </Tab>
 
+                <!-- Tab: Special Hours -->
                 <Tab text="Special Hours" closable="false">
                     <BorderPane style="-fx-padding: 10;">
                         <top>
@@ -125,7 +154,7 @@
                     </BorderPane>
                 </Tab>
 
-                <!-- ✅ NEW TAB: Reports -->
+                <!-- Tab: Reports -->
                 <Tab text="Reports" closable="false">
                     <BorderPane style="-fx-padding: 10;">
                         <top>
@@ -141,7 +170,6 @@
                                 </HBox>
 
                                 <HBox spacing="10" alignment="CENTER_LEFT">
-                                    <Button text="Notification Log" onAction="#onFetchNotificationLog"/>
                                     <Button text="Time Report" onAction="#onFetchTimeReport"/>
                                     <Button text="Subscribers Report" onAction="#onFetchSubscribersReport"/>
                                 </HBox>
@@ -149,12 +177,26 @@
                         </top>
 
                         <center>
-                            <TableView fx:id="reportTable">
-                                <columns>
-                                    <TableColumn fx:id="repCol1" text="Field" prefWidth="260"/>
-                                    <TableColumn fx:id="repCol2" text="Value" prefWidth="520"/>
-                                </columns>
-                            </TableView>
+                            <SplitPane dividerPositions="0.55" orientation="VERTICAL">
+                                <!-- Charts area -->
+                                <HBox fx:id="chartsArea" spacing="20" alignment="CENTER" style="-fx-padding: 10;">
+                                    <PieChart fx:id="reportPieChart" prefWidth="380" prefHeight="280" 
+                                              title="Distribution" legendSide="BOTTOM"/>
+                                    <BarChart fx:id="reportBarChart" prefWidth="420" prefHeight="280"
+                                              title="Statistics" legendVisible="false">
+                                        <xAxis><CategoryAxis label="Category"/></xAxis>
+                                        <yAxis><NumberAxis label="Count"/></yAxis>
+                                    </BarChart>
+                                </HBox>
+                                
+                                <!-- Table area -->
+                                <TableView fx:id="reportTable">
+                                    <columns>
+                                        <TableColumn fx:id="repCol1" text="Field" prefWidth="260"/>
+                                        <TableColumn fx:id="repCol2" text="Value" prefWidth="520"/>
+                                    </columns>
+                                </TableView>
+                            </SplitPane>
                         </center>
                     </BorderPane>
                 </Tab>

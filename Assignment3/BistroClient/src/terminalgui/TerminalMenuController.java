@@ -22,6 +22,18 @@ public class TerminalMenuController {
             showNavError(e);
         }
     }
+    
+    /**
+     * Opens the Cancel Reservation screen.
+     */
+    @FXML
+    private void onCancelReservation() {
+        try {
+            ConnectApp.showTerminalCancelReservation();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     @FXML
     private void onCheckAvailability() {

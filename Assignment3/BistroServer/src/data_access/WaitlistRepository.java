@@ -20,12 +20,12 @@ import java.util.UUID;
  */
 public class WaitlistRepository {
 
-    /**
-     * Adds a customer to the waitlist.
+	/**
+     * Adds a customer to the waitlist, or assigns a table immediately if available.
      * 
-     * @param request Message containing "numberOfDiners" and optional "subscriberNumber"
-     *                or "walkInPhone"/"walkInEmail" for walk-in guests
-     * @return Message with created WaitlistEntry object if successful
+     * @param request Message containing "numberOfDiners" and optional "subscriberNumber",
+     *                "guestPhone", "guestEmail"
+     * @return Message with WaitlistEntry or immediate table assignment
      */
     public Message joinWaitlist(Message request) {
         MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
@@ -37,8 +37,8 @@ public class WaitlistRepository {
             
             int numberOfDiners = (Integer) data.get("numberOfDiners");
             String subscriberNumber = (String) data.get("subscriberNumber");
-            String walkInPhone = (String) data.get("walkInPhone");
-            String walkInEmail = (String) data.get("walkInEmail");
+            String guestPhone = (String) data.get("guestPhone");
+            String guestEmail = (String) data.get("guestEmail");
 
             pConn = pool.getConnection();
             if (pConn == null) {
@@ -47,20 +47,43 @@ public class WaitlistRepository {
 
             Connection conn = pConn.getConnection();
 
-            // Generate unique entry code
+            // Check if a table is immediately available
+            String checkTableSql = "SELECT table_number, seat_capacity FROM tables_info " +
+                                  "WHERE table_status = 'AVAILABLE' AND seat_capacity >= ? " +
+                                  "ORDER BY seat_capacity ASC LIMIT 1";
+            PreparedStatement checkPs = conn.prepareStatement(checkTableSql);
+            checkPs.setInt(1, numberOfDiners);
+            ResultSet tableRs = checkPs.executeQuery();
+
+            if (tableRs.next()) {
+                // Table is immediately available - don't add to waitlist
+                int tableNumber = tableRs.getInt("table_number");
+                tableRs.close();
+                checkPs.close();
+
+                // Return immediate availability response
+                Map<String, Object> response = new java.util.HashMap<>();
+                response.put("immediateTable", true);
+                response.put("tableNumber", tableNumber);
+                response.put("message", "Table " + tableNumber + " is available now! Please proceed to check-in.");
+                
+                return Message.ok("JOIN_WAITLIST", response);
+            }
+            tableRs.close();
+            checkPs.close();
+
+            // No immediate table - add to waitlist
             String entryCode = generateEntryCode();
 
-            // Insert into waitlist
-            String sql = "INSERT INTO waiting_list (number_of_diners, entry_code, " +
-                        "subscriber_number, walk_in_phone, walk_in_email) " +
-                        "VALUES (?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO waiting_list (number_of_diners, entry_code, subscriber_number, " +
+                        "walk_in_phone, walk_in_email) VALUES (?, ?, ?, ?, ?)";
             
             PreparedStatement ps = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
             ps.setInt(1, numberOfDiners);
             ps.setString(2, entryCode);
             ps.setString(3, subscriberNumber);
-            ps.setString(4, walkInPhone);
-            ps.setString(5, walkInEmail);
+            ps.setString(4, guestPhone);
+            ps.setString(5, guestEmail);
             
             ps.executeUpdate();
 
@@ -78,8 +101,8 @@ public class WaitlistRepository {
             entry.setNumberOfDiners(numberOfDiners);
             entry.setEntryCode(entryCode);
             entry.setSubscriberNumber(subscriberNumber);
-            entry.setWalkInPhone(walkInPhone);
-            entry.setWalkInEmail(walkInEmail);
+            entry.setWalkInPhone(guestPhone);
+            entry.setWalkInEmail(guestEmail);
             entry.setRequestTime(LocalDateTime.now());
 
             return Message.ok("JOIN_WAITLIST", entry);
@@ -94,7 +117,7 @@ public class WaitlistRepository {
 
     /**
      * Removes a customer from the waitlist by entry code.
-     * 
+     *
      * @param request Message containing "entryCode"
      * @return Message with success or error
      */
@@ -113,12 +136,12 @@ public class WaitlistRepository {
             }
 
             Connection conn = pConn.getConnection();
-            
+
             String sql = "DELETE FROM waiting_list WHERE entry_code = ?";
-            
+
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, entryCode);
-            
+
             int rowsAffected = ps.executeUpdate();
             ps.close();
 
@@ -138,7 +161,7 @@ public class WaitlistRepository {
 
     /**
      * Gets all current waitlist entries ordered by request time.
-     * 
+     *
      * @param request Message (empty data)
      * @return Message with List of WaitlistEntry objects
      */
@@ -153,9 +176,9 @@ public class WaitlistRepository {
             }
 
             Connection conn = pConn.getConnection();
-            
+
             String sql = "SELECT * FROM waiting_list ORDER BY request_time ASC";
-            
+
             PreparedStatement ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
 
@@ -176,12 +199,12 @@ public class WaitlistRepository {
             pool.releaseConnection(pConn);
         }
     }
-    
+
     /**
-     * Retrieves a lost entry code by searching for a waitlist entry 
+     * Retrieves a lost entry code by searching for a waitlist entry
      * using an identifier (phone number or email).
      * Searches both subscribers and walk-in customers.
-     * 
+     *
      * @param request Message containing "identifier" (phone or email)
      * @return Message with entry code if found, or error message
      */
@@ -204,7 +227,7 @@ public class WaitlistRepository {
             }
 
             Connection conn = pConn.getConnection();
-            
+
             String entryCode = null;
 
             // First try: find by subscriber phone/email
@@ -215,7 +238,7 @@ public class WaitlistRepository {
                         "WHERE (u.phone_number = ? OR u.email_address = ?) " +
                         "ORDER BY w.request_time DESC " +
                         "LIMIT 1";
-            
+
             try (PreparedStatement ps = conn.prepareStatement(sqlSubscriber)) {
                 ps.setString(1, identifier);
                 ps.setString(2, identifier);
@@ -233,7 +256,7 @@ public class WaitlistRepository {
                             "WHERE (walk_in_phone = ? OR walk_in_email = ?) " +
                             "ORDER BY request_time DESC " +
                             "LIMIT 1";
-                
+
                 try (PreparedStatement ps = conn.prepareStatement(sqlWalkIn)) {
                     ps.setString(1, identifier);
                     ps.setString(2, identifier);
@@ -274,25 +297,33 @@ public class WaitlistRepository {
     private WaitlistEntry extractWaitlistEntryFromResultSet(ResultSet rs) throws SQLException {
         WaitlistEntry entry = new WaitlistEntry();
         entry.setEntryId(rs.getInt("entry_id"));
-        
+
         // Convert Timestamp from DB to LocalDateTime
-        Timestamp timestamp = rs.getTimestamp("request_time");
-        if (timestamp != null) {
-            entry.setRequestTime(timestamp.toLocalDateTime());
+        Timestamp requestTimestamp = rs.getTimestamp("request_time");
+        if (requestTimestamp != null) {
+            entry.setRequestTime(requestTimestamp.toLocalDateTime());
         }
-        
+
         entry.setNumberOfDiners(rs.getInt("number_of_diners"));
         entry.setEntryCode(rs.getString("entry_code"));
-        
+
         String subscriberNumber = rs.getString("subscriber_number");
         entry.setSubscriberNumber(subscriberNumber);
-        
+
         String walkInPhone = rs.getString("walk_in_phone");
         entry.setWalkInPhone(walkInPhone);
-        
+
         String walkInEmail = rs.getString("walk_in_email");
         entry.setWalkInEmail(walkInEmail);
-        
+
+        // Handle notified_at timestamp
+        Timestamp notifiedTimestamp = rs.getTimestamp("notified_at");
+        if (notifiedTimestamp != null) {
+            entry.setNotifiedAt(notifiedTimestamp.toLocalDateTime());
+        } else {
+            entry.setNotifiedAt(null);
+        }
+
         return entry;
     }
 }

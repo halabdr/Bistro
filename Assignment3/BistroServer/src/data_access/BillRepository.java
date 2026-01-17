@@ -139,12 +139,10 @@ public class BillRepository {
     }
 
     /**
-     * Processes a bill payment (marks bill as paid).
-     * In this implementation, the bill is already created when paid,
-     * but this method can be used to verify or update payment status.
+     * Processes bill payment and releases the table.
      * 
-     * @param request Message containing "billNumber"
-     * @return Message with success or error
+     * @param request Message containing billNumber
+     * @return Message with payment details
      */
     public Message payBill(Message request) {
         MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
@@ -162,7 +160,7 @@ public class BillRepository {
 
             Connection conn = pConn.getConnection();
             
-            // Check if bill exists
+            // Get bill details
             String checkSql = "SELECT * FROM bills WHERE bill_number = ?";
             PreparedStatement checkPs = conn.prepareStatement(checkSql);
             checkPs.setInt(1, billNumber);
@@ -170,19 +168,29 @@ public class BillRepository {
 
             if (rs.next()) {
                 Bill bill = extractBillFromResultSet(rs);
+                int tableNumber = rs.getInt("table_number");
                 rs.close();
                 checkPs.close();
+                
+                // Release the table (mark as AVAILABLE)
+                String releaseSql = "UPDATE tables_info SET table_status = 'AVAILABLE', " +
+                                   "reservation_start = NULL, reservation_end = NULL " +
+                                   "WHERE table_number = ?";
+                PreparedStatement releasePs = conn.prepareStatement(releaseSql);
+                releasePs.setInt(1, tableNumber);
+                releasePs.executeUpdate();
+                releasePs.close();
                 
                 // Calculate final amount after discount
                 BigDecimal finalAmount = bill.getTotalPrice().subtract(bill.getDiscountValue());
                 
-                Map<String, Object> response = Map.of(
-                    "billNumber", bill.getBillNumber(),
-                    "totalPrice", bill.getTotalPrice(),
-                    "discountValue", bill.getDiscountValue(),
-                    "finalAmount", finalAmount,
-                    "message", "Payment processed successfully"
-                );
+                Map<String, Object> response = new java.util.HashMap<>();
+                response.put("billNumber", bill.getBillNumber());
+                response.put("totalPrice", bill.getTotalPrice());
+                response.put("discountValue", bill.getDiscountValue());
+                response.put("finalAmount", finalAmount);
+                response.put("tableNumber", tableNumber);
+                response.put("message", "Payment processed. Table " + tableNumber + " is now available.");
                 
                 return Message.ok("PAY_BILL", response);
             } else {

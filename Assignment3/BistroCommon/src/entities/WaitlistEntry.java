@@ -26,6 +26,9 @@ public class WaitlistEntry implements Serializable {
     /** Walk-in customer email address (used when subscriberNumber is null). */
     private String walkInEmail;
 
+    /** Timestamp when customer was notified that a table is available. */
+    private LocalDateTime notifiedAt;
+
     /**
      * Default constructor.
      */
@@ -42,10 +45,11 @@ public class WaitlistEntry implements Serializable {
      * @param subscriberNumber Subscriber number (null for guests)
      * @param walkInPhone      Walk-in phone (null for subscribers)
      * @param walkInEmail      Walk-in email (null for subscribers)
+     * @param notifiedAt       Time when notified about available table (null if not notified)
      */
-    public WaitlistEntry(int entryId, LocalDateTime requestTime, int numberOfDiners, 
+    public WaitlistEntry(int entryId, LocalDateTime requestTime, int numberOfDiners,
                          String entryCode, String subscriberNumber,
-                         String walkInPhone, String walkInEmail) {
+                         String walkInPhone, String walkInEmail, LocalDateTime notifiedAt) {
         setEntryId(entryId);
         setRequestTime(requestTime);
         setNumberOfDiners(numberOfDiners);
@@ -53,7 +57,8 @@ public class WaitlistEntry implements Serializable {
         setSubscriberNumber(subscriberNumber);
         setWalkInPhone(walkInPhone);
         setWalkInEmail(walkInEmail);
-        
+        setNotifiedAt(notifiedAt);
+
         validate();
     }
 
@@ -67,14 +72,15 @@ public class WaitlistEntry implements Serializable {
      */
     public static WaitlistEntry createForSubscriber(int numberOfDiners, String subscriberNumber) {
         WaitlistEntry entry = new WaitlistEntry();
-        
+
         entry.setNumberOfDiners(numberOfDiners);
         entry.setSubscriberNumber(subscriberNumber);
         entry.walkInPhone = null;
         entry.walkInEmail = null;
+        entry.notifiedAt = null;
         entry.requestTime = LocalDateTime.now();
         entry.entryCode = generateCode();
-        
+
         entry.validate();
         return entry;
     }
@@ -90,21 +96,22 @@ public class WaitlistEntry implements Serializable {
      */
     public static WaitlistEntry createForGuest(int numberOfDiners, String walkInPhone, String walkInEmail) {
         WaitlistEntry entry = new WaitlistEntry();
-        
+
         entry.setNumberOfDiners(numberOfDiners);
         entry.subscriberNumber = null;
         entry.setWalkInPhone(walkInPhone);
         entry.setWalkInEmail(walkInEmail);
+        entry.notifiedAt = null;
         entry.requestTime = LocalDateTime.now();
         entry.entryCode = generateCode();
-        
+
         entry.validate();
         return entry;
     }
 
     /**
      * Checks if this entry is for a subscriber.
-     * 
+     *
      * @return true if subscriberNumber is not null
      */
     public boolean isSubscriber() {
@@ -113,7 +120,7 @@ public class WaitlistEntry implements Serializable {
 
     /**
      * Checks if this entry is for a guest (non-subscriber).
-     * 
+     *
      * @return true if subscriberNumber is null
      */
     public boolean isGuest() {
@@ -121,8 +128,24 @@ public class WaitlistEntry implements Serializable {
     }
 
     /**
+     * Checks if this entry has been notified about an available table.
+     *
+     * @return true if notifiedAt is not null
+     */
+    public boolean isNotified() {
+        return notifiedAt != null;
+    }
+
+    /**
+     * Marks this entry as notified (table became available).
+     */
+    public void markNotified() {
+        this.notifiedAt = LocalDateTime.now();
+    }
+
+    /**
      * Returns the contact phone for this entry.
-     * 
+     *
      * @return contact phone or null
      */
     public String getContactPhone() {
@@ -131,7 +154,7 @@ public class WaitlistEntry implements Serializable {
 
     /**
      * Returns the contact email for this entry.
-     * 
+     *
      * @return contact email or null
      */
     public String getContactEmail() {
@@ -140,7 +163,7 @@ public class WaitlistEntry implements Serializable {
 
     /**
      * Validates the waitlist entry state.
-     * 
+     *
      * @throws IllegalArgumentException if the entry isn't valid
      */
     public void validate() {
@@ -157,8 +180,8 @@ public class WaitlistEntry implements Serializable {
             throw new IllegalArgumentException("Entry ID must not be negative");
         }
         // Validate walk-in guest has at least one contact method
-        if (!isSubscriber() && 
-            (walkInPhone == null || walkInPhone.trim().isEmpty()) && 
+        if (!isSubscriber() &&
+            (walkInPhone == null || walkInPhone.trim().isEmpty()) &&
             (walkInEmail == null || walkInEmail.trim().isEmpty())) {
             throw new IllegalArgumentException("Walk-in guest must provide phone or email");
         }
@@ -166,7 +189,7 @@ public class WaitlistEntry implements Serializable {
 
     /**
      * Generates an entry code for the waitlist entry.
-     * 
+     *
      * @return entry code string
      */
     private static String generateCode() {
@@ -279,9 +302,9 @@ public class WaitlistEntry implements Serializable {
         this.subscriberNumber = subscriberNumber;
     }
 
-    /** 
+    /**
      * Returns the walk-in customer phone number.
-     * 
+     *
      * @return walk-in phone or null
      */
     public String getWalkInPhone() {
@@ -290,16 +313,16 @@ public class WaitlistEntry implements Serializable {
 
     /**
      * Sets the walk-in customer phone number.
-     * 
+     *
      * @param walkInPhone the phone number (can be null for subscribers)
      */
     public void setWalkInPhone(String walkInPhone) {
         this.walkInPhone = walkInPhone;
     }
 
-    /** 
+    /**
      * Returns the walk-in customer email address.
-     * 
+     *
      * @return walk-in email or null
      */
     public String getWalkInEmail() {
@@ -308,7 +331,7 @@ public class WaitlistEntry implements Serializable {
 
     /**
      * Sets the walk-in customer email address.
-     * 
+     *
      * @param walkInEmail the email address (can be null for subscribers)
      */
     public void setWalkInEmail(String walkInEmail) {
@@ -316,11 +339,29 @@ public class WaitlistEntry implements Serializable {
     }
 
     /**
+     * Returns the timestamp when customer was notified about available table.
+     *
+     * @return notified timestamp or null if not yet notified
+     */
+    public LocalDateTime getNotifiedAt() {
+        return notifiedAt;
+    }
+
+    /**
+     * Sets the timestamp when customer was notified about available table.
+     *
+     * @param notifiedAt the notification timestamp (can be null)
+     */
+    public void setNotifiedAt(LocalDateTime notifiedAt) {
+        this.notifiedAt = notifiedAt;
+    }
+
+    /**
      * Compares two waitlist entries.
-     * 
+     *
      * If both entries have database identifiers, comparison is based on the ID.
      * Otherwise, comparison is based on the entry code.
-     * 
+     *
      * @param o object to compare
      * @return true if entries are considered equal
      */
@@ -338,7 +379,7 @@ public class WaitlistEntry implements Serializable {
 
     /**
      * Returns a hash code for this waitlist entry.
-     * 
+     *
      * @return hash code
      */
     @Override
@@ -361,6 +402,7 @@ public class WaitlistEntry implements Serializable {
                 ", subscriberNumber='" + subscriberNumber + '\'' +
                 ", walkInPhone='" + walkInPhone + '\'' +
                 ", walkInEmail='" + walkInEmail + '\'' +
+                ", notifiedAt=" + notifiedAt +
                 '}';
     }
 }

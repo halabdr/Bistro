@@ -46,6 +46,18 @@ public class SubscriberMenuController {
     private void onPayBill() throws Exception {
         ConnectApp.showPayBill();
     }
+    
+    /**
+     * Opens the Leave Waitlist screen.
+     */
+    @FXML
+    private void onLeaveWaitlist() {
+        try {
+            ConnectApp.showSubscriberLeaveWaitlist(subscriber);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     @FXML
     private void onUpdateInfo() throws Exception {

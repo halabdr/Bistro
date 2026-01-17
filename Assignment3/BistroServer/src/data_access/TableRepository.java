@@ -331,6 +331,72 @@ public class TableRepository {
             pool.releaseConnection(pConn);
         }
     }
+    
+    /**
+     * Gets all currently occupied tables with their reservation/customer info.
+     * 
+     * @param request Message (empty data)
+     * @return Message with List of Maps containing table and reservation details
+     */
+    public Message getCurrentDiners(Message request) {
+        MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+        PooledConnection pConn = null;
+
+        try {
+            pConn = pool.getConnection();
+            if (pConn == null) {
+                return Message.fail("GET_CURRENT_DINERS", "Database connection failed");
+            }
+
+            Connection conn = pConn.getConnection();
+
+            String sql = "SELECT t.table_number, t.seat_capacity, t.table_location, " +
+                        "t.reservation_start, r.confirmation_code, r.guest_count, " +
+                        "r.subscriber_number, r.walk_in_phone, r.walk_in_email, " +
+                        "u.name AS subscriber_name " +
+                        "FROM tables_info t " +
+                        "LEFT JOIN reservations r ON t.table_number = r.assigned_table_number " +
+                        "AND r.reservation_status = 'ACTIVE' " +
+                        "LEFT JOIN subscribers s ON r.subscriber_number = s.subscriber_number " +
+                        "LEFT JOIN users u ON s.user_id = u.user_id " +
+                        "WHERE t.table_status = 'OCCUPIED' " +
+                        "ORDER BY t.table_number";
+
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+
+            List<Map<String, Object>> diners = new ArrayList<>();
+            while (rs.next()) {
+                Map<String, Object> diner = new java.util.HashMap<>();
+                diner.put("tableNumber", rs.getInt("table_number"));
+                diner.put("seatCapacity", rs.getInt("seat_capacity"));
+                diner.put("tableLocation", rs.getString("table_location"));
+                
+                Timestamp startTime = rs.getTimestamp("reservation_start");
+                diner.put("seatedAt", startTime != null ? startTime.toLocalDateTime().toString() : "");
+                
+                diner.put("confirmationCode", rs.getString("confirmation_code"));
+                diner.put("guestCount", rs.getInt("guest_count"));
+                diner.put("subscriberNumber", rs.getString("subscriber_number"));
+                diner.put("subscriberName", rs.getString("subscriber_name"));
+                diner.put("walkInPhone", rs.getString("walk_in_phone"));
+                diner.put("walkInEmail", rs.getString("walk_in_email"));
+                
+                diners.add(diner);
+            }
+
+            rs.close();
+            ps.close();
+
+            return Message.ok("GET_CURRENT_DINERS", diners);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return Message.fail("GET_CURRENT_DINERS", "Database error: " + e.getMessage());
+        } finally {
+            pool.releaseConnection(pConn);
+        }
+    }
 
     // Helper methods
 

@@ -1,9 +1,11 @@
 package client;
+
 import client.Commands;
 import common.Message;
 import entities.OpeningHours;
 import entities.SpecialHours;
 import entities.Table;
+
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -76,7 +78,7 @@ public class ClientController {
         }
     }
 
-    // ==================== User ====================
+    // User
 
     /**
      * Sends a LOGIN request to the server.
@@ -102,7 +104,51 @@ public class ClientController {
         client.sendToServer(new Message(Commands.LOGIN_BY_SUBSCRIBER_NUMBER, subscriberNumber));
     }
 
-    // ==================== Reservation (customer + staff) ====================
+    /**
+     * Sends a REGISTER_SUBSCRIBER request to the server.
+     * Only staff/representatives can register new subscribers.
+     *
+     * @param name             subscriber name
+     * @param email            subscriber email
+     * @param phone            subscriber phone
+     * @param password         subscriber password
+     * @param subscriberNumber unique subscriber number
+     * @param membershipCard   QR code for membership card
+     * @throws IOException if sending fails
+     */
+    public void registerSubscriber(String name, String email, String phone, 
+                                   String password, String subscriberNumber, 
+                                   String membershipCard) throws IOException {
+        Map<String, Object> data = new HashMap<>();
+        data.put("name", name);
+        data.put("email", email);
+        data.put("phone", phone);
+        data.put("password", password);
+        data.put("subscriberNumber", subscriberNumber);
+        data.put("membershipCard", membershipCard);
+        client.sendToServer(new Message(Commands.REGISTER_SUBSCRIBER, data));
+    }
+
+    /**
+     * Requests all subscribers (for staff view).
+     *
+     * @throws IOException if sending fails
+     */
+    public void getAllSubscribers() throws IOException {
+        client.sendToServer(new Message(Commands.GET_ALL_SUBSCRIBERS, null));
+    }
+
+    /**
+     * Requests a specific subscriber by their subscriber number.
+     *
+     * @param subscriberNumber the subscriber number to search for
+     * @throws IOException if sending fails
+     */
+    public void getSubscriberByNumber(String subscriberNumber) throws IOException {
+        client.sendToServer(new Message(Commands.GET_SUBSCRIBER_BY_NUMBER, subscriberNumber));
+    }
+
+    // Reservation (customer + staff)
 
     /**
      * Requests available time slots for a specific date and guest count.
@@ -117,9 +163,23 @@ public class ClientController {
         data.put("guestCount", guests);
         client.sendToServer(new Message(Commands.GET_AVAILABLE_SLOTS, data));
     }
+    
+    /**
+     * Requests alternative time slots when the requested date has no availability.
+     *
+     * @param date   originally requested date
+     * @param guests number of guests
+     * @throws IOException if sending fails
+     */
+    public void getAlternativeSlots(LocalDate date, int guests) throws IOException {
+        Map<String, Object> data = new HashMap<>();
+        data.put("date", date.toString());
+        data.put("guestCount", guests);
+        client.sendToServer(new Message(Commands.GET_ALTERNATIVE_SLOTS, data));
+    }
 
     /**
-     * Sends a CREATE_RESERVATION request for a subscriber.
+     * Sends a CREATE_RESERVATION request.
      *
      * @param date             booking date
      * @param time             booking time
@@ -127,31 +187,12 @@ public class ClientController {
      * @param subscriberNumber subscriber id/number
      * @throws IOException if sending fails
      */
-    public void createReservation(LocalDate date, LocalTime time, int guestCount, 
-            String subscriberNumber) throws IOException {
-        createReservation(date, time, guestCount, subscriberNumber, null, null);
-    }
-
-    /**
-     * Sends a CREATE_RESERVATION request with full walk-in support.
-     *
-     * @param date             booking date
-     * @param time             booking time
-     * @param guestCount       number of guests
-     * @param subscriberNumber subscriber id/number (null for walk-in)
-     * @param walkInPhone      walk-in customer phone (null for subscriber)
-     * @param walkInEmail      walk-in customer email (null for subscriber)
-     * @throws IOException if sending fails
-     */
-    public void createReservation(LocalDate date, LocalTime time, int guestCount, 
-            String subscriberNumber, String walkInPhone, String walkInEmail) throws IOException {
+    public void createReservation(LocalDate date, LocalTime time, int guestCount, String subscriberNumber) throws IOException {
         Map<String, Object> data = new HashMap<>();
         data.put("bookingDate", date.toString());
         data.put("bookingTime", time.toString());
         data.put("guestCount", guestCount);
         data.put("subscriberNumber", subscriberNumber);
-        data.put("walkInPhone", walkInPhone);
-        data.put("walkInEmail", walkInEmail);
         client.sendToServer(new Message(Commands.CREATE_RESERVATION, data));
     }
 
@@ -187,8 +228,17 @@ public class ClientController {
         data.put("subscriberNumber", subscriberNumber);
         client.sendToServer(new Message(Commands.GET_USER_RESERVATIONS, data));
     }
+    
+    /**
+     * Requests the list of current diners (occupied tables with reservation info).
+     *
+     * @throws IOException if sending fails
+     */
+    public void getCurrentDiners() throws IOException {
+        client.sendToServer(new Message(Commands.GET_CURRENT_DINERS, null));
+    }
 
-    // ==================== Waitlist ====================
+    // Waitlist
 
     /**
      * Requests the current waitlist.
@@ -200,37 +250,40 @@ public class ClientController {
     }
     
     /**
-     * Adds a subscriber to the waitlist.
+     * Sends a JOIN_WAITLIST request for a subscriber.
      *
-     * @param numberOfDiners   number of people in party
+     * @param numberOfDiners   number of diners
      * @param subscriberNumber subscriber number
      * @throws IOException if sending fails
      */
     public void joinWaitlist(int numberOfDiners, String subscriberNumber) throws IOException {
-        joinWaitlist(numberOfDiners, subscriberNumber, null, null);
+        Map<String, Object> data = new HashMap<>();
+        data.put("numberOfDiners", numberOfDiners);
+        data.put("subscriberNumber", subscriberNumber); 
+        client.sendToServer(new Message(Commands.JOIN_WAITLIST, data));
     }
-
+    
     /**
-     * Adds a customer to the waitlist with full walk-in support.
+     * Sends a JOIN_WAITLIST request with support for walk-in guests.
      *
-     * @param numberOfDiners   number of people in party
-     * @param subscriberNumber subscriber number (null for walk-in)
-     * @param walkInPhone      walk-in customer phone (null for subscriber)
-     * @param walkInEmail      walk-in customer email (null for subscriber)
+     * @param numberOfDiners   number of diners
+     * @param subscriberNumber subscriber number (null if walk-in guest)
+     * @param guestPhone       guest phone (null if subscriber)
+     * @param guestEmail       guest email (null if subscriber)
      * @throws IOException if sending fails
      */
     public void joinWaitlist(int numberOfDiners, String subscriberNumber, 
-            String walkInPhone, String walkInEmail) throws IOException {
+                             String guestPhone, String guestEmail) throws IOException {
         Map<String, Object> data = new HashMap<>();
         data.put("numberOfDiners", numberOfDiners);
         data.put("subscriberNumber", subscriberNumber);
-        data.put("walkInPhone", walkInPhone);
-        data.put("walkInEmail", walkInEmail);
+        data.put("guestPhone", guestPhone);
+        data.put("guestEmail", guestEmail);
         client.sendToServer(new Message(Commands.JOIN_WAITLIST, data));
     }
 
     /**
-     * Removes a customer from the waitlist.
+     * Sends a LEAVE_WAITLIST request.
      *
      * @param entryCode waitlist entry code
      * @throws IOException if sending fails
@@ -244,14 +297,16 @@ public class ClientController {
     /**
      * Checks table availability at terminal for immediate seating or waitlist.
      *
-     * @param numberOfDiners   number of people in party
-     * @param subscriberNumber subscriber number (null for walk-in)
-     * @param guestPhone       walk-in customer phone (null for subscriber)
-     * @param guestEmail       walk-in customer email (null for subscriber)
+     * @param numberOfDiners   number of diners
+     * @param subscriberNumber subscriber number (null if guest)
+     * @param guestPhone       guest phone (null if subscriber)
+     * @param guestEmail       guest email (null if subscriber)
      * @throws IOException if sending fails
      */
-    public void checkAvailabilityTerminal(int numberOfDiners, String subscriberNumber,
-            String guestPhone, String guestEmail) throws IOException {
+    public void checkAvailabilityTerminal(int numberOfDiners,
+            String subscriberNumber,
+            String guestPhone,
+            String guestEmail) throws IOException {
         Map<String, Object> data = new HashMap<>();
         data.put("numberOfDiners", numberOfDiners);
         data.put("subscriberNumber", subscriberNumber);
@@ -260,8 +315,7 @@ public class ClientController {
         client.sendToServer(new Message(Commands.CHECK_AVAILABILITY_TERMINAL, data));
     }
 
-
-    // ==================== Tables ====================
+    // Tables
 
     /**
      * Requests all tables.
@@ -310,7 +364,7 @@ public class ClientController {
         client.sendToServer(new Message(Commands.DELETE_TABLE, data));
     }
 
-    // ==================== Opening hours ====================
+    // Opening Hours
 
     /**
      * Requests weekly opening hours list.
@@ -331,7 +385,7 @@ public class ClientController {
         client.sendToServer(new Message(Commands.UPDATE_OPENING_HOURS, hours));
     }
 
-    // ==================== Special hours ====================
+    // Special Hours
 
     /**
      * Requests special hours list.
@@ -343,8 +397,7 @@ public class ClientController {
     }
     
     /**
-     * Sends a LOST_CODE request to the server.
-     * Searches for both subscriber and walk-in reservations.
+     * Sends a LOST_CODE request to retrieve reservation confirmation code.
      *
      * @param identifier email or phone entered by the user
      * @throws IOException if sending fails
@@ -356,8 +409,7 @@ public class ClientController {
     }
     
     /**
-     * Sends a LOST_CODE_WAITLIST request to the server.
-     * Searches for both subscriber and walk-in waitlist entries.
+     * Sends a LOST_CODE_WAITLIST request to retrieve waitlist entry code.
      *
      * @param identifier email or phone entered by the user
      * @throws IOException if sending fails
@@ -391,8 +443,7 @@ public class ClientController {
     }
     
     /**
-     * Sends a SEAT_BY_CODE request to the server.
-     * Server locates a reservation by confirmation code and assigns a table.
+     * Sends a SEAT_BY_CODE request to seat a customer by confirmation code.
      *
      * @param confirmationCode reservation confirmation code
      * @throws IOException if sending fails
@@ -415,7 +466,7 @@ public class ClientController {
         client.sendToServer(new Message(Commands.DELETE_SPECIAL_HOURS, data));
     }
     
-    // ==================== Reports (Manager/Staff) ====================
+    // Reports (Manager/Staff)
 
     /**
      * Requests notification log report for a specific month.

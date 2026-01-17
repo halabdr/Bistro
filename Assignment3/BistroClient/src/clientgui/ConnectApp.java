@@ -3,12 +3,14 @@ package clientgui;
 import client.BistroClient;
 import client.ClientController;
 import entities.Subscriber;
+import subscribergui.SubscriberLeaveWaitlistController;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-
+import javafx.scene.Parent;
 import java.io.IOException;
 import java.time.LocalDate;
+import terminalgui.TerminalCancelReservationController;
 
 public final class ConnectApp {
 
@@ -81,6 +83,28 @@ public final class ConnectApp {
         c.init(controller);
 
         primaryStage.setScene(scene);
+    }
+    
+    /**
+     * Shows the Terminal Cancel Reservation screen.
+     */
+    public static void showTerminalCancelReservation() throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/terminalgui/TerminalCancelReservation.fxml"));
+        Parent root = loader.load();
+        TerminalCancelReservationController ctrl = loader.getController();
+        ctrl.init(controller);
+        primaryStage.getScene().setRoot(root);
+    }
+    
+    /**
+     * Shows the Subscriber Leave Waitlist screen.
+     */
+    public static void showSubscriberLeaveWaitlist(Subscriber subscriber) throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/subscribergui/SubscriberLeaveWaitlist.fxml"));
+        Parent root = loader.load();
+        SubscriberLeaveWaitlistController ctrl = loader.getController();
+        ctrl.init(controller, subscriber);
+        primaryStage.getScene().setRoot(root);
     }
 
     public static void showPayBill() throws Exception {

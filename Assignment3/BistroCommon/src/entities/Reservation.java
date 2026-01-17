@@ -516,4 +516,22 @@ public class Reservation implements Serializable {
                 ", walkInEmail='" + walkInEmail + '\'' +
                 '}';
     }
+    
+    /**
+     * Validates that booking date/time is at least 1 hour and at most 1 month from now.
+     * 
+     * @return true if booking time is within valid range
+     */
+    public boolean isBookingTimeValid() {
+        if (bookingDate == null || bookingTime == null) {
+            return false;
+        }
+        
+        LocalDateTime bookingDateTime = LocalDateTime.of(bookingDate, bookingTime);
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime minTime = now.plusHours(1);
+        LocalDateTime maxTime = now.plusMonths(1);
+        
+        return !bookingDateTime.isBefore(minTime) && !bookingDateTime.isAfter(maxTime);
+    }
 }

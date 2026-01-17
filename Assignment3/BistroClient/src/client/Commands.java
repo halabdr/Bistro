@@ -1,12 +1,13 @@
 package client;
 
 /**
- * Centralized list of protocol command names used by the client and server.
- * Keep these values identical to the server-side switch(command) cases.
+ * Constants for client-server command types.
+ * Each constant represents a specific operation that can be requested from the server.
+ * Commands are used in Message objects to identify the type of request/response.
  */
 public final class Commands {
     
-	private Commands() {}
+    private Commands() {}
 
     // User
     public static final String LOGIN = "LOGIN";
@@ -15,7 +16,8 @@ public final class Commands {
     public static final String GET_USER = "GET_USER";
     public static final String UPDATE_USER = "UPDATE_USER";
     public static final String LOST_CODE = "LOST_CODE";
-
+    public static final String GET_ALL_SUBSCRIBERS = "GET_ALL_SUBSCRIBERS";
+    public static final String GET_SUBSCRIBER_BY_NUMBER = "GET_SUBSCRIBER_BY_NUMBER";
 
     // Reservation
     public static final String GET_AVAILABLE_SLOTS = "GET_AVAILABLE_SLOTS";
@@ -23,7 +25,7 @@ public final class Commands {
     public static final String CANCEL_RESERVATION = "CANCEL_RESERVATION";
     public static final String GET_RESERVATIONS = "GET_RESERVATIONS";
     public static final String GET_USER_RESERVATIONS = "GET_USER_RESERVATIONS";
-
+    public static final String GET_ALTERNATIVE_SLOTS = "GET_ALTERNATIVE_SLOTS";
 
     // Waitlist
     public static final String JOIN_WAITLIST = "JOIN_WAITLIST";
@@ -57,13 +59,12 @@ public final class Commands {
     public static final String GET_NOTIFICATION_LOG = "GET_NOTIFICATION_LOG";
     public static final String GET_TIME_REPORT = "GET_TIME_REPORT";
     public static final String GET_SUBSCRIBERS_REPORT = "GET_SUBSCRIBERS_REPORT";
+    public static final String GET_CURRENT_DINERS = "GET_CURRENT_DINERS";
 
     // Reports (Manager/Staff)
     public static final String GET_MONTHLY_REPORTS_LIST = "GET_MONTHLY_REPORTS_LIST";
     public static final String GENERATE_REPORTS = "GENERATE_REPORTS";
     
-    
     // Waitlist -> Terminal
     public static final String CHECK_AVAILABILITY_TERMINAL = "CHECK_AVAILABILITY_TERMINAL";
-
 }

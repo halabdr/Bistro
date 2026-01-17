@@ -1,14 +1,18 @@
 package data_access;
+
 import connection.MySQLConnectionPool;
 import connection.PooledConnection;
 import common.Message;
 import entities.User;
 import entities.Subscriber;
 import entities.Representative;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,7 +32,7 @@ public class UserRepository {
         PooledConnection pConn = null;
 
         try {
-            
+            @SuppressWarnings("unchecked")
             Map<String, Object> data = (Map<String, Object>) request.getData();
             String email = (String) data.get("email");
             String password = (String) data.get("password");
@@ -100,7 +104,6 @@ public class UserRepository {
 
             Connection conn = pConn.getConnection();
             
-            // Query to get subscriber with all user information
             String sql = "SELECT u.*, s.subscriber_number, s.membership_card " +
                          "FROM users u " +
                          "INNER JOIN subscribers s ON u.user_id = s.user_id " +
@@ -116,7 +119,6 @@ public class UserRepository {
                 return Message.fail("LOGIN_BY_SUBSCRIBER_NUMBER", "Subscriber not found or account is inactive");
             }
 
-            // Build Subscriber object
             Subscriber subscriber = new Subscriber();
             subscriber.setUserId(rs.getInt("user_id"));
             subscriber.setName(rs.getString("name"));
@@ -152,6 +154,7 @@ public class UserRepository {
         PooledConnection pConn = null;
 
         try {
+            @SuppressWarnings("unchecked")
             Map<String, Object> data = (Map<String, Object>) request.getData();
             
             String name = (String) data.get("name");
@@ -206,7 +209,6 @@ public class UserRepository {
                 subPs.close();
 
                 conn.commit();
-                conn.setAutoCommit(true);
 
                 Subscriber subscriber = new Subscriber();
                 subscriber.setUserId(userId);
@@ -223,8 +225,9 @@ public class UserRepository {
 
             } catch (SQLException e) {
                 conn.rollback();
-                conn.setAutoCommit(true);
                 throw e;
+            } finally {
+                conn.setAutoCommit(true);
             }
 
         } catch (SQLException e) {
@@ -236,18 +239,17 @@ public class UserRepository {
     }
 
     /**
-     * Gets user information by user ID.
+     * Retrieves a user by ID.
      * 
-     * @param request Message containing "userId"
-     * @return Message with User/Subscriber/Representative object if found
+     * @param request Message containing userId
+     * @return Message with User object if successful
      */
     public Message getUser(Message request) {
         MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
         PooledConnection pConn = null;
 
         try {
-            Map<String, Object> data = (Map<String, Object>) request.getData();
-            int userId = (Integer) data.get("userId");
+            int userId = (Integer) request.getData();
 
             pConn = pool.getConnection();
             if (pConn == null) {
@@ -335,7 +337,127 @@ public class UserRepository {
         }
     }
 
-    // Helper methods to make code more clean
+    /**
+     * Retrieves all subscribers for staff view.
+     * 
+     * @param request Message (data not used)
+     * @return Message with List of Subscriber objects
+     */
+    public Message getAllSubscribers(Message request) {
+        MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+        PooledConnection pConn = null;
+
+        try {
+            pConn = pool.getConnection();
+            if (pConn == null) {
+                return Message.fail("GET_ALL_SUBSCRIBERS", "Database connection failed");
+            }
+
+            Connection conn = pConn.getConnection();
+            
+            String sql = "SELECT u.*, s.subscriber_number, s.membership_card " +
+                         "FROM users u " +
+                         "INNER JOIN subscribers s ON u.user_id = s.user_id " +
+                         "WHERE u.account_status = 1 " +
+                         "ORDER BY u.name ASC";
+            
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+
+            List<Subscriber> subscribers = new ArrayList<>();
+            while (rs.next()) {
+                Subscriber subscriber = new Subscriber();
+                subscriber.setUserId(rs.getInt("user_id"));
+                subscriber.setName(rs.getString("name"));
+                subscriber.setEmailAddress(rs.getString("email_address"));
+                subscriber.setPhoneNumber(rs.getString("phone_number"));
+                subscriber.setUserPassword(rs.getString("user_password"));
+                subscriber.setUserRole(User.UserRole.SUBSCRIBER);
+                subscriber.setAccountStatus(rs.getBoolean("account_status"));
+                subscriber.setRegistrationDate(rs.getTimestamp("registration_date"));
+                subscriber.setSubscriberNumber(rs.getString("subscriber_number"));
+                subscriber.setMembershipCard(rs.getString("membership_card"));
+                subscribers.add(subscriber);
+            }
+
+            rs.close();
+            ps.close();
+
+            return Message.ok("GET_ALL_SUBSCRIBERS", subscribers);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return Message.fail("GET_ALL_SUBSCRIBERS", "Database error: " + e.getMessage());
+        } finally {
+            pool.releaseConnection(pConn);
+        }
+    }
+
+    /**
+     * Retrieves a subscriber by subscriber number.
+     * 
+     * @param request Message containing subscriberNumber as String
+     * @return Message with Subscriber object if found
+     */
+    public Message getSubscriberByNumber(Message request) {
+        MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+        PooledConnection pConn = null;
+
+        try {
+            String subscriberNumber = (String) request.getData();
+            
+            if (subscriberNumber == null || subscriberNumber.trim().isEmpty()) {
+                return Message.fail("GET_SUBSCRIBER_BY_NUMBER", "Subscriber number is required");
+            }
+
+            pConn = pool.getConnection();
+            if (pConn == null) {
+                return Message.fail("GET_SUBSCRIBER_BY_NUMBER", "Database connection failed");
+            }
+
+            Connection conn = pConn.getConnection();
+            
+            String sql = "SELECT u.*, s.subscriber_number, s.membership_card " +
+                         "FROM users u " +
+                         "INNER JOIN subscribers s ON u.user_id = s.user_id " +
+                         "WHERE s.subscriber_number = ?";
+            
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, subscriberNumber);
+            ResultSet rs = ps.executeQuery();
+
+            if (!rs.next()) {
+                rs.close();
+                ps.close();
+                return Message.fail("GET_SUBSCRIBER_BY_NUMBER", "Subscriber not found");
+            }
+
+            Subscriber subscriber = new Subscriber();
+            subscriber.setUserId(rs.getInt("user_id"));
+            subscriber.setName(rs.getString("name"));
+            subscriber.setEmailAddress(rs.getString("email_address"));
+            subscriber.setPhoneNumber(rs.getString("phone_number"));
+            subscriber.setUserPassword(rs.getString("user_password"));
+            subscriber.setUserRole(User.UserRole.SUBSCRIBER);
+            subscriber.setAccountStatus(rs.getBoolean("account_status"));
+            subscriber.setRegistrationDate(rs.getTimestamp("registration_date"));
+            subscriber.setSubscriberNumber(rs.getString("subscriber_number"));
+            subscriber.setMembershipCard(rs.getString("membership_card"));
+
+            rs.close();
+            ps.close();
+
+            return Message.ok("GET_SUBSCRIBER_BY_NUMBER", subscriber);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return Message.fail("GET_SUBSCRIBER_BY_NUMBER", "Database error: " + e.getMessage());
+        } finally {
+            pool.releaseConnection(pConn);
+        }
+    }
+
+    // Helper methods
 
     /**
      * Extracts a basic User object from ResultSet.

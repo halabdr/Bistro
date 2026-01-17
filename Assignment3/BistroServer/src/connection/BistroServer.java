@@ -1,9 +1,11 @@
 package connection;
+
 import ocsf.server.AbstractServer;
 import ocsf.server.ConnectionToClient;
 import common.ChatIF;
 import common.Message;
 import data_access.*;
+
 import java.util.function.IntConsumer;
 
 /**
@@ -22,6 +24,7 @@ public class BistroServer extends AbstractServer {
     private final TableRepository tableRepository;
     private final BillRepository billRepository;
     private final OpeningHoursRepository openingHoursRepository;
+    private ReportRepository reportRepository = new ReportRepository();
 
     // UI logger (Server GUI or console)
     private ChatIF ui;
@@ -165,6 +168,14 @@ public class BistroServer extends AbstractServer {
                 response = userRepository.updateUser(request);
                 safeSend(client, response);
             }
+            case "GET_ALL_SUBSCRIBERS" -> {
+                response = userRepository.getAllSubscribers(request);
+                safeSend(client, response);
+            }
+            case "GET_SUBSCRIBER_BY_NUMBER" -> {
+                response = userRepository.getSubscriberByNumber(request);
+                safeSend(client, response);
+            }
 
             // Reservation Management
             case "GET_AVAILABLE_SLOTS" -> {
@@ -185,6 +196,10 @@ public class BistroServer extends AbstractServer {
             }
             case "GET_USER_RESERVATIONS" -> {
                 response = reservationRepository.getUserReservations(request);
+                safeSend(client, response);
+            }
+            case "GET_ALTERNATIVE_SLOTS" -> {
+                response = reservationRepository.getAlternativeSlots(request);
                 safeSend(client, response);
             }
             case "LOST_CODE" -> {
@@ -243,6 +258,10 @@ public class BistroServer extends AbstractServer {
                 response = tableRepository.releaseTable(request);
                 safeSend(client, response);
             }
+            case "GET_CURRENT_DINERS" -> {
+                response = tableRepository.getCurrentDiners(request);
+                safeSend(client, response);
+            }
 
             // Bill Management
             case "CREATE_BILL" -> {
@@ -279,6 +298,16 @@ public class BistroServer extends AbstractServer {
                 response = openingHoursRepository.deleteSpecialHours(request);
                 safeSend(client, response);
             }
+            
+            //report Management
+            case "GET_TIME_REPORT" -> {
+                response = reportRepository.getTimeReport(request);
+                safeSend(client, response);
+            }
+            case "GET_SUBSCRIBERS_REPORT" -> {
+                response = reportRepository.getSubscribersReport(request);
+                safeSend(client, response);
+            }
 
             default -> {
                 log("[Server] Unknown command: " + command);
@@ -302,4 +331,3 @@ public class BistroServer extends AbstractServer {
         }
     }
 }
-

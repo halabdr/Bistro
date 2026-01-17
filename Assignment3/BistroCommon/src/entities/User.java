@@ -266,4 +266,35 @@ public class User implements Serializable {
                 ", registrationDate=" + registrationDate +
                 '}';
     }
+    
+    /**
+     * Validates phone number format.
+     * Accepts Israeli format: 05X-XXXXXXX or 05XXXXXXXX
+     * 
+     * @param phone phone number to validate
+     * @return true if valid format
+     */
+    public static boolean isValidPhone(String phone) {
+        if (phone == null || phone.trim().isEmpty()) {
+            return false;
+        }
+        // Remove dashes and spaces
+        String cleaned = phone.replaceAll("[\\s-]", "");
+        // Israeli mobile: 10 digits starting with 05
+        return cleaned.matches("^05\\d{8}$");
+    }
+
+    /**
+     * Validates email address format.
+     * 
+     * @param email email address to validate
+     * @return true if valid format
+     */
+    public static boolean isValidEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return false;
+        }
+        // Basic email pattern
+        return email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+    }
 }

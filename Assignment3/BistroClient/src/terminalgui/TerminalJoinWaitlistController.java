@@ -9,6 +9,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
+import java.util.Map;
 
 public class TerminalJoinWaitlistController implements MessageListener {
 
@@ -126,13 +127,29 @@ public class TerminalJoinWaitlistController implements MessageListener {
                 return;
             }
 
-            setStatus("Done.", "status-ok");
             Object data = m.getData();
-
-            if (data instanceof WaitlistEntry w) {
-                resultLabel.setText("Your waitlist code: " + w.getEntryCode());
+            
+            // Check if immediate table is available
+            if (data instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> response = (Map<String, Object>) data;
+                
+                if (Boolean.TRUE.equals(response.get("immediateTable"))) {
+                    // Table available immediately
+                    int tableNumber = (Integer) response.get("tableNumber");
+                    setStatus("Great news! Table " + tableNumber + " is available now! " +
+                             "Please proceed directly to the table.", "status-success");
+                    return;
+                }
+            }
+            
+            // Added to waitlist
+            if (data instanceof WaitlistEntry) {
+                WaitlistEntry entry = (WaitlistEntry) data;
+                setStatus("Added to waitlist! Your code: " + entry.getEntryCode() + 
+                         ". You will be notified when a table is ready.", "status-success");
             } else {
-                resultLabel.setText(String.valueOf(data));
+                setStatus("Added to waitlist successfully!", "status-success");
             }
         });
     }

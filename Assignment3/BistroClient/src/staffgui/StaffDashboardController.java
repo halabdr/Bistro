@@ -8,9 +8,11 @@ import entities.MonthlyReport;
 import entities.OpeningHours;
 import entities.Reservation;
 import entities.SpecialHours;
+import entities.Subscriber;
 import entities.Table;
 import entities.User;
 import entities.WaitlistEntry;
+import entities.User.UserRole;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -18,18 +20,25 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
-
+import javafx.scene.layout.VBox;
+import javafx.scene.chart.PieChart;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.XYChart;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.Month;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.Map;
+import javafx.scene.layout.HBox;
 
 /**
  * Controller for the Staff Dashboard screen.
- * This dashboard supports staff actions such as:
- * viewing reservations/waitlist, managing tables, and updating opening/special hours.
+ * Supports staff actions: viewing reservations/waitlist, managing tables,
+ * updating opening/special hours, viewing reports, viewing subscribers, and registering subscribers.
  */
 public class StaffDashboardController implements MessageListener {
 
@@ -50,6 +59,15 @@ public class StaffDashboardController implements MessageListener {
     @FXML private TableColumn<WaitlistEntry, String> wlCodeCol;
     @FXML private TableColumn<WaitlistEntry, Number> wlGuestsCol;
     @FXML private TableColumn<WaitlistEntry, String> wlSubCol;
+    
+ // Current Diners
+    @FXML private TableView<Map<String, Object>> dinersTable;
+    @FXML private TableColumn<Map<String, Object>, Number> dTableCol;
+    @FXML private TableColumn<Map<String, Object>, Number> dGuestsCol;
+    @FXML private TableColumn<Map<String, Object>, String> dLocationCol;
+    @FXML private TableColumn<Map<String, Object>, String> dCodeCol;
+    @FXML private TableColumn<Map<String, Object>, String> dCustomerCol;
+    @FXML private TableColumn<Map<String, Object>, String> dSeatedAtCol;
 
     // Tables
     @FXML private TableView<Table> tablesTable;
@@ -71,21 +89,70 @@ public class StaffDashboardController implements MessageListener {
     @FXML private TableColumn<SpecialHours, Object> sOpenCol;
     @FXML private TableColumn<SpecialHours, Object> sCloseCol;
 
-    // ---------------- Reports ----------------
+    // View Subscribers
+    @FXML private TextField searchSubscriberField;
+    @FXML private TableView<Subscriber> subscribersTable;
+    @FXML private TableColumn<Subscriber, String> subNumCol;
+    @FXML private TableColumn<Subscriber, String> subNameCol;
+    @FXML private TableColumn<Subscriber, String> subEmailCol;
+    @FXML private TableColumn<Subscriber, String> subPhoneCol;
+    @FXML private TableColumn<Subscriber, String> subQRCol;
+    
+    // Subscriber Details
+    @FXML private VBox subscriberDetailsBox;
+    @FXML private Label detailSubNumber;
+    @FXML private Label detailName;
+    @FXML private Label detailEmail;
+    @FXML private Label detailPhone;
+    @FXML private Label detailQR;
+    @FXML private Label detailRegDate;
+    
+    // Subscriber History
+    @FXML private TableView<Reservation> subscriberHistoryTable;
+    @FXML private TableColumn<Reservation, String> histCodeCol;
+    @FXML private TableColumn<Reservation, String> histDateCol;
+    @FXML private TableColumn<Reservation, String> histTimeCol;
+    @FXML private TableColumn<Reservation, Number> histGuestsCol;
+    @FXML private TableColumn<Reservation, String> histStatusCol;
+    @FXML private TableColumn<Reservation, String> histTableCol;
+    @FXML private Label historyStatusLabel;
+
+    // Reports
     @FXML private ComboBox<String> reportMonthCombo;
     @FXML private TextField reportYearField;
-
     @FXML private TableView<ReportRow> reportTable;
     @FXML private TableColumn<ReportRow, String> repCol1;
     @FXML private TableColumn<ReportRow, String> repCol2;
+ // Report Charts
+    @FXML private HBox chartsArea;
+    @FXML private PieChart reportPieChart;
+    @FXML private BarChart<String, Number> reportBarChart;
 
-    private String activeReportCommand; // כדי לדעת איזה דוח חזר (אופציונלי לשימוש)
+    // Register Subscriber
+    @FXML private TextField regNameField;
+    @FXML private TextField regEmailField;
+    @FXML private TextField regPhoneField;
+    @FXML private PasswordField regPasswordField;
+    @FXML private PasswordField regConfirmPasswordField;
+    @FXML private VBox registrationResultBox;
+    @FXML private Label resultSubscriberNumber;
+    @FXML private Label resultQRCode;
+    @FXML private Label qrCodeDisplay;
+    @FXML private Label regStatusLabel;
 
+    private String activeReportCommand;
     private ClientController controller;
     private User staffUser;
 
+    // Store generated codes for display after successful registration
+    private String pendingSubscriberNumber;
+    private String pendingQRCode;
+    
+    // Currently selected subscriber for history view
+    private Subscriber selectedSubscriber;
+
     /**
-     * Report table row (field-value).
+     * Report table row (field-value pair).
      */
     public static class ReportRow {
         private final String field;
@@ -110,7 +177,6 @@ public class StaffDashboardController implements MessageListener {
         this.controller = controller;
         this.staffUser = staffUser;
 
-        // Register for server responses
         this.controller.setListener(this);
 
         if (welcomeLabel != null && staffUser != null) {
@@ -118,13 +184,20 @@ public class StaffDashboardController implements MessageListener {
         }
 
         setupColumns();
-        setupReportsUI(); // NEW
+        setupReportsUI();
+        setupSubscribersTableListener();
 
         refreshReservations();
         refreshWaitlist();
+        refreshCurrentDiners();
         refreshTables();
         refreshOpeningHours();
         refreshSpecialHours();
+        
+     // Hide Reports tab for non-managers
+        if (staffUser != null && staffUser.getUserRole() != User.UserRole.MANAGER) {
+            tabs.getTabs().removeIf(tab -> "Reports".equals(tab.getText()));
+        }
     }
 
     /**
@@ -217,14 +290,137 @@ public class StaffDashboardController implements MessageListener {
                     new javafx.beans.property.SimpleObjectProperty<>(c.getValue().getClosingTime()));
         }
 
-        // Reports table (NEW)
+        // Subscribers List
+        if (subNumCol != null) {
+            subNumCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleStringProperty(c.getValue().getSubscriberNumber()));
+        }
+        if (subNameCol != null) {
+            subNameCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleStringProperty(c.getValue().getName()));
+        }
+        if (subEmailCol != null) {
+            subEmailCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleStringProperty(c.getValue().getEmailAddress()));
+        }
+        if (subPhoneCol != null) {
+            subPhoneCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleStringProperty(c.getValue().getPhoneNumber()));
+        }
+        if (subQRCol != null) {
+            subQRCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleStringProperty(c.getValue().getMembershipCard()));
+        }
+
+        // Subscriber History
+        if (histCodeCol != null) {
+            histCodeCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleStringProperty(c.getValue().getConfirmationCode()));
+        }
+        if (histDateCol != null) {
+            histDateCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleStringProperty(String.valueOf(c.getValue().getBookingDate())));
+        }
+        if (histTimeCol != null) {
+            histTimeCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleStringProperty(String.valueOf(c.getValue().getBookingTime())));
+        }
+        if (histGuestsCol != null) {
+            histGuestsCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleIntegerProperty(c.getValue().getGuestCount()));
+        }
+        if (histStatusCol != null) {
+            histStatusCol.setCellValueFactory(c ->
+                    new javafx.beans.property.SimpleStringProperty(
+                            c.getValue().getStatus() != null ? c.getValue().getStatus().name() : ""));
+        }
+        if (histTableCol != null) {
+            histTableCol.setCellValueFactory(c -> {
+                Integer tableNum = c.getValue().getAssignedTableNumber();
+                String display = (tableNum != null && tableNum > 0) ? String.valueOf(tableNum) : "-";
+                return new javafx.beans.property.SimpleStringProperty(display);
+            });
+        }
+
+        // Reports table
         if (repCol1 != null && repCol2 != null) {
             repCol1.setCellValueFactory(new PropertyValueFactory<>("field"));
             repCol2.setCellValueFactory(new PropertyValueFactory<>("value"));
         }
+        
+     // Current Diners
+        if (dTableCol != null) {
+            dTableCol.setCellValueFactory(c -> {
+                Object val = c.getValue().get("tableNumber");
+                return new javafx.beans.property.SimpleIntegerProperty(val != null ? (Integer) val : 0);
+            });
+        }
+        if (dGuestsCol != null) {
+            dGuestsCol.setCellValueFactory(c -> {
+                Object val = c.getValue().get("guestCount");
+                return new javafx.beans.property.SimpleIntegerProperty(val != null ? (Integer) val : 0);
+            });
+        }
+        if (dLocationCol != null) {
+            dLocationCol.setCellValueFactory(c -> {
+                Object val = c.getValue().get("tableLocation");
+                return new javafx.beans.property.SimpleStringProperty(val != null ? val.toString() : "");
+            });
+        }
+        if (dCodeCol != null) {
+            dCodeCol.setCellValueFactory(c -> {
+                Object val = c.getValue().get("confirmationCode");
+                return new javafx.beans.property.SimpleStringProperty(val != null ? val.toString() : "");
+            });
+        }
+        if (dCustomerCol != null) {
+            dCustomerCol.setCellValueFactory(c -> {
+                Map<String, Object> row = c.getValue();
+                String name = (String) row.get("subscriberName");
+                if (name != null && !name.isEmpty()) {
+                    return new javafx.beans.property.SimpleStringProperty(name + " (Member)");
+                }
+                String phone = (String) row.get("walkInPhone");
+                if (phone != null && !phone.isEmpty()) {
+                    return new javafx.beans.property.SimpleStringProperty(phone + " (Walk-in)");
+                }
+                String email = (String) row.get("walkInEmail");
+                if (email != null && !email.isEmpty()) {
+                    return new javafx.beans.property.SimpleStringProperty(email + " (Walk-in)");
+                }
+                return new javafx.beans.property.SimpleStringProperty("Unknown");
+            });
+        }
+        if (dSeatedAtCol != null) {
+            dSeatedAtCol.setCellValueFactory(c -> {
+                Object val = c.getValue().get("seatedAt");
+                if (val != null && !val.toString().isEmpty()) {
+                    String dt = val.toString().replace("T", " ");
+                    if (dt.length() > 16) dt = dt.substring(0, 16);
+                    return new javafx.beans.property.SimpleStringProperty(dt);
+                }
+                return new javafx.beans.property.SimpleStringProperty("");
+            });
+        }
     }
 
-    // NEW
+    /**
+     * Sets up listener for subscriber selection in table.
+     */
+    private void setupSubscribersTableListener() {
+        if (subscribersTable != null) {
+            subscribersTable.getSelectionModel().selectedItemProperty().addListener(
+                    (obs, oldSelection, newSelection) -> {
+                        if (newSelection != null) {
+                            onSubscriberSelected(newSelection);
+                        }
+                    });
+        }
+    }
+
+    /**
+     * Sets up the reports UI with month/year selection.
+     */
     private void setupReportsUI() {
         if (reportMonthCombo == null || reportYearField == null) return;
 
@@ -243,13 +439,14 @@ public class StaffDashboardController implements MessageListener {
     @FXML
     private void onLogout() {
         try {
-            clientgui.ConnectApp.showHome();
+            clientgui.ConnectApp.showWelcome();
         } catch (Exception e) {
             showError("Logout failed: " + e.getMessage());
         }
     }
 
-    /** Requests all reservations from the server. */
+    // Refresh Actions
+
     @FXML
     public void refreshReservations() {
         try {
@@ -260,7 +457,6 @@ public class StaffDashboardController implements MessageListener {
         }
     }
 
-    /** Requests waitlist entries from the server. */
     @FXML
     public void refreshWaitlist() {
         try {
@@ -270,8 +466,17 @@ public class StaffDashboardController implements MessageListener {
             showError("Failed to load waitlist: " + e.getMessage());
         }
     }
+    
+    @FXML
+    public void refreshCurrentDiners() {
+        try {
+            status("Loading current diners...");
+            controller.getCurrentDiners();
+        } catch (Exception e) {
+            showError("Failed to load current diners: " + e.getMessage());
+        }
+    }
 
-    /** Requests the list of tables from the server. */
     @FXML
     public void refreshTables() {
         try {
@@ -282,7 +487,6 @@ public class StaffDashboardController implements MessageListener {
         }
     }
 
-    /** Requests weekly opening hours from the server. */
     @FXML
     public void refreshOpeningHours() {
         try {
@@ -293,7 +497,6 @@ public class StaffDashboardController implements MessageListener {
         }
     }
 
-    /** Requests special hours list from the server. */
     @FXML
     public void refreshSpecialHours() {
         try {
@@ -304,7 +507,93 @@ public class StaffDashboardController implements MessageListener {
         }
     }
 
-    // ---------------- Reports actions ----------------
+    // View Subscribers Actions
+
+    /**
+     * Searches for a specific subscriber by number.
+     */
+    @FXML
+    private void onSearchSubscriber() {
+        String searchTerm = searchSubscriberField != null ? searchSubscriberField.getText().trim() : "";
+        
+        if (searchTerm.isEmpty()) {
+            showError("Please enter a subscriber number to search");
+            return;
+        }
+
+        try {
+            status("Searching for subscriber...");
+            controller.getSubscriberByNumber(searchTerm);
+        } catch (Exception e) {
+            showError("Search failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Shows all subscribers.
+     */
+    @FXML
+    private void onShowAllSubscribers() {
+        try {
+            status("Loading all subscribers...");
+            controller.getAllSubscribers();
+        } catch (Exception e) {
+            showError("Failed to load subscribers: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Refreshes the subscribers list.
+     */
+    @FXML
+    private void onRefreshSubscribers() {
+        onShowAllSubscribers();
+    }
+
+    /**
+     * Handles subscriber selection - shows details and loads history.
+     */
+    private void onSubscriberSelected(Subscriber subscriber) {
+        selectedSubscriber = subscriber;
+        
+        // Show details panel
+        if (subscriberDetailsBox != null) {
+            subscriberDetailsBox.setVisible(true);
+            subscriberDetailsBox.setManaged(true);
+        }
+
+        // Fill in details
+        if (detailSubNumber != null) detailSubNumber.setText(subscriber.getSubscriberNumber());
+        if (detailName != null) detailName.setText(subscriber.getName());
+        if (detailEmail != null) detailEmail.setText(subscriber.getEmailAddress());
+        if (detailPhone != null) detailPhone.setText(subscriber.getPhoneNumber());
+        if (detailQR != null) detailQR.setText(subscriber.getMembershipCard());
+        if (detailRegDate != null && subscriber.getRegistrationDate() != null) {
+            detailRegDate.setText(subscriber.getRegistrationDate().toLocalDateTime()
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        }
+
+        // Load reservation history
+        loadSubscriberHistory(subscriber.getSubscriberNumber());
+    }
+
+    /**
+     * Loads reservation history for selected subscriber.
+     */
+    private void loadSubscriberHistory(String subscriberNumber) {
+        try {
+            if (historyStatusLabel != null) {
+                historyStatusLabel.setText("Loading history...");
+            }
+            controller.getUserReservations(subscriberNumber);
+        } catch (Exception e) {
+            if (historyStatusLabel != null) {
+                historyStatusLabel.setText("Failed to load history: " + e.getMessage());
+            }
+        }
+    }
+
+    // Reports Actions
 
     @FXML
     private void onFetchNotificationLog() {
@@ -353,7 +642,7 @@ public class StaffDashboardController implements MessageListener {
         }
     }
 
-    // ---------------- Table actions ----------------
+    // Table Actions
 
     @FXML
     private void onAddTable() {
@@ -466,6 +755,8 @@ public class StaffDashboardController implements MessageListener {
 
     private record TableInput(String number, String capacity, String location) { }
 
+    // Opening Hours Actions
+
     @FXML
     private void onUpdateOpeningHours() {
         OpeningHours sel = hoursTable.getSelectionModel().getSelectedItem();
@@ -497,6 +788,8 @@ public class StaffDashboardController implements MessageListener {
             showError("Update failed: " + e.getMessage());
         }
     }
+
+    // Special Hours Actions
 
     @FXML
     private void onAddSpecialHours() {
@@ -560,9 +853,130 @@ public class StaffDashboardController implements MessageListener {
         });
     }
 
+    // Register Subscriber Actions
+
     /**
-     * Handles server responses and updates the UI.
+     * Handles Register Subscriber button click.
      */
+    @FXML
+    private void onRegisterSubscriber() {
+        if (regStatusLabel != null) {
+            regStatusLabel.setText("");
+        }
+        hideRegistrationResult();
+
+        String name = regNameField != null ? regNameField.getText().trim() : "";
+        String email = regEmailField != null ? regEmailField.getText().trim() : "";
+        String phone = regPhoneField != null ? regPhoneField.getText().trim() : "";
+        String password = regPasswordField != null ? regPasswordField.getText() : "";
+        String confirmPassword = regConfirmPasswordField != null ? regConfirmPasswordField.getText() : "";
+
+        if (name.isEmpty()) {
+            showRegError("Name is required");
+            return;
+        }
+        if (email.isEmpty()) {
+            showRegError("Email is required");
+            return;
+        }
+        if (!isValidEmail(email)) {
+            showRegError("Please enter a valid email address");
+            return;
+        }
+        if (phone.isEmpty()) {
+            showRegError("Phone number is required");
+            return;
+        }
+        if (!isValidPhone(phone)) {
+            showRegError("Please enter a valid phone number (10 digits starting with 05)");
+            return;
+        }
+        if (password.isEmpty()) {
+            showRegError("Password is required");
+            return;
+        }
+        if (password.length() < 6) {
+            showRegError("Password must be at least 6 characters");
+            return;
+        }
+        if (!password.equals(confirmPassword)) {
+            showRegError("Passwords do not match");
+            return;
+        }
+
+        pendingSubscriberNumber = generateSubscriberNumber();
+        pendingQRCode = generateQRCode();
+
+        try {
+            status("Registering subscriber...");
+            controller.registerSubscriber(name, email, phone, password, pendingSubscriberNumber, pendingQRCode);
+        } catch (Exception e) {
+            showRegError("Registration failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Clears the registration form.
+     */
+    @FXML
+    private void onClearRegistration() {
+        if (regNameField != null) regNameField.clear();
+        if (regEmailField != null) regEmailField.clear();
+        if (regPhoneField != null) regPhoneField.clear();
+        if (regPasswordField != null) regPasswordField.clear();
+        if (regConfirmPasswordField != null) regConfirmPasswordField.clear();
+        if (regStatusLabel != null) regStatusLabel.setText("");
+        hideRegistrationResult();
+    }
+
+    private String generateSubscriberNumber() {
+        return "SUB" + System.currentTimeMillis() % 100000;
+    }
+
+    private String generateQRCode() {
+        return "QR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    }
+
+    private boolean isValidEmail(String email) {
+        return email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+    }
+
+    private boolean isValidPhone(String phone) {
+        return phone.matches("^05\\d{8}$");
+    }
+
+    private void showRegError(String message) {
+        if (regStatusLabel != null) {
+            regStatusLabel.setText(message);
+            regStatusLabel.setStyle("-fx-text-fill: #E53E3E;");
+        }
+    }
+
+    private void showRegistrationResult(String subscriberNumber, String qrCode) {
+        if (registrationResultBox != null) {
+            registrationResultBox.setVisible(true);
+            registrationResultBox.setManaged(true);
+        }
+        if (resultSubscriberNumber != null) {
+            resultSubscriberNumber.setText(subscriberNumber);
+        }
+        if (resultQRCode != null) {
+            resultQRCode.setText(qrCode);
+        }
+        if (qrCodeDisplay != null) {
+            qrCodeDisplay.setText(qrCode);
+        }
+    }
+
+    private void hideRegistrationResult() {
+        if (registrationResultBox != null) {
+            registrationResultBox.setVisible(false);
+            registrationResultBox.setManaged(false);
+        }
+    }
+
+    // Server Message Handler
+
     @Override
     public void onMessage(Message m) {
         Platform.runLater(() -> {
@@ -571,6 +985,14 @@ public class StaffDashboardController implements MessageListener {
                 return;
             }
             if (!m.isSuccess()) {
+                if (Commands.REGISTER_SUBSCRIBER.equals(m.getCommand())) {
+                    showRegError("Registration failed: " + m.getError());
+                    return;
+                }
+                if (Commands.GET_SUBSCRIBER_BY_NUMBER.equals(m.getCommand())) {
+                    showError("Subscriber not found: " + m.getError());
+                    return;
+                }
                 showError(m.getCommand() + " failed: " + m.getError());
                 return;
             }
@@ -596,6 +1018,15 @@ public class StaffDashboardController implements MessageListener {
                     List<Table> list = (List<Table>) m.getData();
                     tablesTable.setItems(FXCollections.observableArrayList(list));
                     status("Tables loaded: " + list.size());
+                }
+                
+                case Commands.GET_CURRENT_DINERS -> {
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> list = (List<Map<String, Object>>) m.getData();
+                    if (dinersTable != null) {
+                        dinersTable.setItems(FXCollections.observableArrayList(list));
+                    }
+                    status("Current diners loaded: " + list.size() + " table(s) occupied");
                 }
 
                 case Commands.GET_OPENING_HOURS -> {
@@ -627,32 +1058,62 @@ public class StaffDashboardController implements MessageListener {
                     refreshSpecialHours();
                 }
 
-                // Reports (NEW)
-                case Commands.GET_NOTIFICATION_LOG, Commands.GET_TIME_REPORT, Commands.GET_SUBSCRIBERS_REPORT -> {
-                    Object data = m.getData();
-                    List<ReportRow> rows = new ArrayList<>();
-
-                    if (data == null) {
-                        rows.add(new ReportRow("Result", "No data returned"));
-                    } else if (data instanceof List<?> list) {
-                        rows.add(new ReportRow("Items", String.valueOf(list.size())));
-                        int i = 1;
-                        for (Object item : list) {
-                            rows.add(new ReportRow("Item " + (i++), String.valueOf(item)));
-                        }
-                    } else if (data instanceof java.util.Map<?, ?> map) {
-                        rows.add(new ReportRow("Entries", String.valueOf(map.size())));
-                        for (var e : map.entrySet()) {
-                            rows.add(new ReportRow(String.valueOf(e.getKey()), String.valueOf(e.getValue())));
-                        }
-                    } else {
-                        rows.add(new ReportRow("Result", String.valueOf(data)));
+                case Commands.GET_ALL_SUBSCRIBERS -> {
+                    @SuppressWarnings("unchecked")
+                    List<Subscriber> list = (List<Subscriber>) m.getData();
+                    if (subscribersTable != null) {
+                        subscribersTable.setItems(FXCollections.observableArrayList(list));
                     }
+                    status("Subscribers loaded: " + list.size());
+                }
 
-                    if (reportTable != null) {
-                        reportTable.setItems(FXCollections.observableArrayList(rows));
+                case Commands.GET_SUBSCRIBER_BY_NUMBER -> {
+                    Subscriber subscriber = (Subscriber) m.getData();
+                    if (subscribersTable != null) {
+                        subscribersTable.setItems(FXCollections.observableArrayList(subscriber));
+                        subscribersTable.getSelectionModel().select(0);
                     }
-                    status("Report loaded: " + m.getCommand());
+                    status("Subscriber found: " + subscriber.getName());
+                }
+
+                case Commands.GET_USER_RESERVATIONS -> {
+                    @SuppressWarnings("unchecked")
+                    List<Reservation> list = (List<Reservation>) m.getData();
+                    if (subscriberHistoryTable != null) {
+                        subscriberHistoryTable.setItems(FXCollections.observableArrayList(list));
+                    }
+                    if (historyStatusLabel != null) {
+                        historyStatusLabel.setText("History loaded: " + list.size() + " reservation(s)");
+                    }
+                }
+
+                case Commands.REGISTER_SUBSCRIBER -> {
+                    status("Subscriber registered successfully!");
+                    showRegistrationResult(pendingSubscriberNumber, pendingQRCode);
+                    
+                    if (regNameField != null) regNameField.clear();
+                    if (regEmailField != null) regEmailField.clear();
+                    if (regPhoneField != null) regPhoneField.clear();
+                    if (regPasswordField != null) regPasswordField.clear();
+                    if (regConfirmPasswordField != null) regConfirmPasswordField.clear();
+                    
+                    if (regStatusLabel != null) {
+                        regStatusLabel.setText("Registration successful!");
+                        regStatusLabel.setStyle("-fx-text-fill: #38A169;");
+                    }
+                }
+
+                case Commands.GET_TIME_REPORT -> {
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> list = (List<Map<String, Object>>) m.getData();
+                    displayTimeReportWithCharts(list);
+                    status("Time report loaded");
+                }
+                case Commands.GET_SUBSCRIBERS_REPORT -> {
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> list = (List<Map<String, Object>>) m.getData();
+                    displaySubscribersReportWithCharts(list);
+                    status("Subscribers report loaded");
                 }
 
                 default -> status("OK: " + m.getCommand());
@@ -666,5 +1127,142 @@ public class StaffDashboardController implements MessageListener {
 
     private void showError(String s) {
         if (statusLabel != null) statusLabel.setText("Error: " + s);
+    }
+    
+    /**
+     * Displays the Time Report with charts.
+     */
+    private void displayTimeReportWithCharts(List<Map<String, Object>> data) {
+        // Update table
+        if (reportTable != null) {
+        	List<ReportRow> rows = new ArrayList<>();
+        	for (Map<String, Object> item : data) {
+        	    String field = item.get("field") != null ? item.get("field").toString() : "";
+        	    String value = item.get("value") != null ? item.get("value").toString() : "";
+        	    rows.add(new ReportRow(field, value));
+        	}
+        	reportTable.setItems(FXCollections.observableArrayList(rows));
+        }
+
+        // Clear previous charts
+        if (reportPieChart != null) {
+            reportPieChart.getData().clear();
+            reportPieChart.setTitle("Reservation Status");
+        }
+        if (reportBarChart != null) {
+            reportBarChart.getData().clear();
+            reportBarChart.setTitle("Reservations by Time Slot");
+        }
+
+        // Extract data for charts
+        int completed = 0, noShow = 0, cancelled = 0, active = 0;
+        int morning = 0, afternoon = 0, evening = 0;
+
+        for (Map<String, Object> row : data) {
+            String field = (String) row.get("field");
+            String value = (String) row.get("value");
+            
+            if (field == null || value == null || value.isEmpty()) continue;
+            
+            try {
+                switch (field) {
+                    case "Completed (Checked In)" -> completed = Integer.parseInt(value);
+                    case "No-Shows" -> noShow = Integer.parseInt(value);
+                    case "Cancelled" -> cancelled = Integer.parseInt(value);
+                    case "Active (Pending)" -> active = Integer.parseInt(value);
+                    case "Morning (before 12:00)" -> morning = Integer.parseInt(value);
+                    case "Afternoon (12:00-17:00)" -> afternoon = Integer.parseInt(value);
+                    case "Evening (after 17:00)" -> evening = Integer.parseInt(value);
+                }
+            } catch (NumberFormatException ignored) {}
+        }
+
+        // Pie Chart - Reservation Status
+        if (reportPieChart != null) {
+            if (completed > 0) reportPieChart.getData().add(new PieChart.Data("Completed (" + completed + ")", completed));
+            if (noShow > 0) reportPieChart.getData().add(new PieChart.Data("No-Show (" + noShow + ")", noShow));
+            if (cancelled > 0) reportPieChart.getData().add(new PieChart.Data("Cancelled (" + cancelled + ")", cancelled));
+            if (active > 0) reportPieChart.getData().add(new PieChart.Data("Active (" + active + ")", active));
+        }
+
+        // Bar Chart - Time Slots
+        if (reportBarChart != null) {
+            XYChart.Series<String, Number> series = new XYChart.Series<>();
+            series.setName("Reservations");
+            series.getData().add(new XYChart.Data<>("Morning", morning));
+            series.getData().add(new XYChart.Data<>("Afternoon", afternoon));
+            series.getData().add(new XYChart.Data<>("Evening", evening));
+            reportBarChart.getData().add(series);
+        }
+    }
+
+    /**
+     * Displays the Subscribers Report with charts.
+     */
+    private void displaySubscribersReportWithCharts(List<Map<String, Object>> data) {
+        // Update table
+        if (reportTable != null) {
+        	List<ReportRow> rows = new ArrayList<>();
+        	for (Map<String, Object> item : data) {
+        	    String field = item.get("field") != null ? item.get("field").toString() : "";
+        	    String value = item.get("value") != null ? item.get("value").toString() : "";
+        	    rows.add(new ReportRow(field, value));
+        	}
+        	reportTable.setItems(FXCollections.observableArrayList(rows));
+        }
+
+        // Clear previous charts
+        if (reportPieChart != null) {
+            reportPieChart.getData().clear();
+            reportPieChart.setTitle("Reservations: Subscribers vs Walk-ins");
+        }
+        if (reportBarChart != null) {
+            reportBarChart.getData().clear();
+            reportBarChart.setTitle("Subscriber Activity");
+        }
+
+        // Extract data for charts
+        int subRes = 0, walkInRes = 0;
+        int totalSubs = 0, activeSubs = 0;
+        int wlTotal = 0, wlSub = 0;
+
+        for (Map<String, Object> row : data) {
+            String field = (String) row.get("field");
+            String value = (String) row.get("value");
+            
+            if (field == null || value == null || value.isEmpty()) continue;
+            
+            try {
+                // Remove non-numeric suffixes
+                String numValue = value.replaceAll("[^0-9]", "");
+                if (numValue.isEmpty()) continue;
+                
+                switch (field) {
+                    case "Total Subscribers" -> totalSubs = Integer.parseInt(numValue);
+                    case "Active Subscribers This Month" -> activeSubs = Integer.parseInt(numValue);
+                    case "Subscriber Reservations" -> subRes = Integer.parseInt(numValue);
+                    case "Walk-in Reservations" -> walkInRes = Integer.parseInt(numValue);
+                    case "Total Waitlist Entries" -> wlTotal = Integer.parseInt(numValue);
+                    case "Subscriber Waitlist Entries" -> wlSub = Integer.parseInt(numValue);
+                }
+            } catch (NumberFormatException ignored) {}
+        }
+
+        // Pie Chart - Subscriber vs Walk-in
+        if (reportPieChart != null) {
+            if (subRes > 0) reportPieChart.getData().add(new PieChart.Data("Subscribers (" + subRes + ")", subRes));
+            if (walkInRes > 0) reportPieChart.getData().add(new PieChart.Data("Walk-ins (" + walkInRes + ")", walkInRes));
+        }
+
+        // Bar Chart - Activity comparison
+        if (reportBarChart != null) {
+            XYChart.Series<String, Number> series = new XYChart.Series<>();
+            series.setName("Count");
+            series.getData().add(new XYChart.Data<>("Total Subscribers", totalSubs));
+            series.getData().add(new XYChart.Data<>("Active This Month", activeSubs));
+            series.getData().add(new XYChart.Data<>("Waitlist (Sub)", wlSub));
+            series.getData().add(new XYChart.Data<>("Waitlist (Total)", wlTotal));
+            reportBarChart.getData().add(series);
+        }
     }
 }
