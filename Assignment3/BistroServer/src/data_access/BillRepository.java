@@ -192,14 +192,17 @@ public class BillRepository {
      * Finds an existing bill or creates a new one for the table.
      */
     private Message findOrCreateBillForTable(Connection conn, Integer tableNumber, String subscriberNumber) throws SQLException {
-        if (tableNumber == null) {
+        if (tableNumber == null || tableNumber <= 0) {
             return Message.fail("GET_BILL", "No table assigned to this reservation.");
         }
+
+        // Convert to primitive int safely (null check already done above)
+        int tableNum = tableNumber.intValue();
 
         // Find existing bill for this table (today's date)
         String billSql = "SELECT * FROM bills WHERE table_number = ? AND payment_date = CURDATE() ORDER BY bill_number DESC LIMIT 1";
         PreparedStatement billPs = conn.prepareStatement(billSql);
-        billPs.setInt(1, tableNumber);
+        billPs.setInt(1, tableNum);
         ResultSet billRs = billPs.executeQuery();
 
         BigDecimal totalPrice;
@@ -236,7 +239,7 @@ public class BillRepository {
             insertPs.setInt(1, billNumber);
             insertPs.setBigDecimal(2, totalPrice);
             insertPs.setBigDecimal(3, discountValue);
-            insertPs.setInt(4, tableNumber);
+            insertPs.setInt(4, tableNum);
             insertPs.setString(5, subscriberNumber);
             insertPs.executeUpdate();
             insertPs.close();
@@ -244,7 +247,7 @@ public class BillRepository {
 
         Map<String, Object> billData = new HashMap<>();
         billData.put("billNumber", billNumber);
-        billData.put("tableNumber", tableNumber);
+        billData.put("tableNumber", tableNum);
         billData.put("totalPrice", totalPrice);
         billData.put("discountValue", discountValue);
         
@@ -325,14 +328,17 @@ public class BillRepository {
             if (!"ACTIVE".equals(status)) {
                 return Message.fail("PAY_BILL", "Cannot pay for this reservation (status: " + status + ").");
             }
-            if (tableNumber == null) {
+            if (tableNumber == null || tableNumber <= 0) {
                 return Message.fail("PAY_BILL", "Payment is only available after you've been seated.");
             }
+
+            // Convert to primitive int safely (null check already done above)
+            int tableNum = tableNumber.intValue();
 
             // Find bill for this table
             String billSql = "SELECT * FROM bills WHERE table_number = ? AND payment_date = CURDATE() ORDER BY bill_number DESC LIMIT 1";
             PreparedStatement billPs = conn.prepareStatement(billSql);
-            billPs.setInt(1, tableNumber);
+            billPs.setInt(1, tableNum);
             ResultSet billRs = billPs.executeQuery();
 
             if (!billRs.next()) {
@@ -357,20 +363,26 @@ public class BillRepository {
                                "reservation_start = NULL, reservation_end = NULL " +
                                "WHERE table_number = ?";
             PreparedStatement releasePs = conn.prepareStatement(releaseSql);
-            releasePs.setInt(1, tableNumber);
+            releasePs.setInt(1, tableNum);
             releasePs.executeUpdate();
             releasePs.close();
             
             // Calculate final amount after discount
             BigDecimal finalAmount = bill.getTotalPrice().subtract(bill.getDiscountValue());
             
+            // Log payment for subscribers
+            if (subscriberNumber != null && !subscriberNumber.trim().isEmpty()) {
+                TagRepository.logPayment(conn, subscriberNumber, confirmationCode, 
+                        tableNum, bill.getTotalPrice(), bill.getDiscountValue());
+            }
+            
             Map<String, Object> response = new HashMap<>();
             response.put("billNumber", bill.getBillNumber());
             response.put("totalPrice", bill.getTotalPrice());
             response.put("discountValue", bill.getDiscountValue());
             response.put("finalAmount", finalAmount);
-            response.put("tableNumber", tableNumber);
-            response.put("message", "Payment processed. Table " + tableNumber + " is now available.");
+            response.put("tableNumber", tableNum);
+            response.put("message", "Payment processed. Table " + tableNum + " is now available.");
             
             return Message.ok("PAY_BILL", response);
 

@@ -176,7 +176,7 @@ public class ReservationSearchController implements MessageListener {
             if (subscriber != null) {
                 ConnectApp.showSubscriberMenu(subscriber);
             } else {
-                ConnectApp.showWelcome();
+                ConnectApp.showWalkInMenu();
             }
         } catch (Exception e) {
             resultLabel.setText("Navigation error: " + e.getMessage());

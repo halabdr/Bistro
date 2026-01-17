@@ -14,6 +14,10 @@ import java.time.LocalDate;
 import subscribergui.PayBillController;
 import subscribergui.SubscriberLeaveWaitlistController;
 import terminalgui.TerminalCancelReservationController;
+import walkingui.WalkInMenuController;
+import walkingui.WalkInCancelReservationController;
+import walkingui.WalkInLeaveWaitlistController;
+import walkingui.WalkInPayBillController;
 
 public final class ConnectApp {
 
@@ -276,17 +280,7 @@ public final class ConnectApp {
         }
     }
 
-    public static void showManagerDashboard(entities.User user) throws Exception {
-        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/managergui/ManagerDashboard.fxml"));
-        Scene scene = new Scene(loader.load());
-
-        managergui.ManagerDashboardController c = loader.getController();
-        c.init(controller, user);
-
-        primaryStage.setTitle("Manager Dashboard - Bistro");
-        primaryStage.setScene(scene);
-        primaryStage.show();
-    }
+  
 
     // ======================= SUBSCRIBER SCREENS =======================
 
@@ -373,5 +367,63 @@ public final class ConnectApp {
         
         primaryStage.getScene().setRoot(root);
         primaryStage.setTitle("Bistro - Pay Bill");
+    }
+
+    // ======================= WALK-IN CUSTOMER SCREENS =======================
+
+    /**
+     * Shows the Walk-In Customer Menu screen.
+     */
+    public static void showWalkInMenu() throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/walkingui/WalkInMenu.fxml"));
+        Scene scene = new Scene(loader.load());
+
+        WalkInMenuController c = loader.getController();
+        c.init(controller);
+
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("Guest Services - Bistro");
+    }
+
+    /**
+     * Shows the Walk-In Cancel Reservation screen.
+     */
+    public static void showWalkInCancelReservation() throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/walkingui/WalkInCancelReservation.fxml"));
+        Scene scene = new Scene(loader.load());
+
+        WalkInCancelReservationController c = loader.getController();
+        c.init(controller);
+
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("Cancel Reservation - Bistro");
+    }
+
+    /**
+     * Shows the Walk-In Leave Waitlist screen.
+     */
+    public static void showWalkInLeaveWaitlist() throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/walkingui/WalkInLeaveWaitlist.fxml"));
+        Scene scene = new Scene(loader.load());
+
+        WalkInLeaveWaitlistController c = loader.getController();
+        c.init(controller);
+
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("Leave Waitlist - Bistro");
+    }
+
+    /**
+     * Shows the Walk-In Pay Bill screen.
+     */
+    public static void showWalkInPayBill() throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/walkingui/WalkInPayBill.fxml"));
+        Scene scene = new Scene(loader.load());
+
+        WalkInPayBillController c = loader.getController();
+        c.init(controller);
+
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("Pay Bill - Bistro");
     }
 }

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="walkingui.WalkInCancelReservationController"
+      styleClass="action-container"
+      stylesheets="@/styles/bistro_action.css"
+      prefHeight="500" prefWidth="700">
+
+    <!-- Header Section -->
+    <VBox styleClass="action-header-enhanced">
+        <Label text="Cancel Reservation" styleClass="action-header-title-large"/>
+        <Label text="Cancel your reservation using the confirmation code" styleClass="action-header-subtitle"/>
+    </VBox>
+
+    <!-- Content Area -->
+    <VBox styleClass="action-content" VBox.vgrow="ALWAYS" fillWidth="true" alignment="TOP_CENTER">
+
+        <!-- Cancel Card -->
+        <VBox styleClass="action-card" spacing="20" maxWidth="500" prefWidth="500">
+
+            <Label text="Cancellation Details" styleClass="action-card-title"/>
+
+            <!-- Confirmation Code Input -->
+            <VBox spacing="6">
+                <Label text="Confirmation Code" styleClass="action-form-label"/>
+                <TextField fx:id="codeField"
+                           styleClass="action-input-field"
+                           promptText="Enter your confirmation code (e.g., RES12345)"/>
+                <Label text="This is the code you received when making the reservation"
+                       style="-fx-text-fill: #718096; -fx-font-size: 11px; -fx-font-style: italic;"/>
+            </VBox>
+
+            <Separator styleClass="action-divider"/>
+
+            <!-- Status Label -->
+            <Label fx:id="statusLabel"
+                   text=""
+                   wrapText="true"
+                   styleClass="action-status-label"
+                   maxWidth="1.7976931348623157E308"/>
+
+            <!-- Action Buttons -->
+            <HBox spacing="15" alignment="CENTER">
+                <Button text="Cancel Reservation"
+                        onAction="#onCancel"
+                        styleClass="action-primary-button"
+                        style="-fx-background-color: #E53E3E;"
+                        prefWidth="180"/>
+            </HBox>
+
+        </VBox>
+    </VBox>
+
+    <!-- Back Button - Always visible at bottom -->
+    <HBox spacing="15" alignment="CENTER" style="-fx-padding: 20 0 25 0;">
+        <Button text="Back to Menu"
+                onAction="#onBack"
+                styleClass="action-back-button"
+                prefWidth="180"/>
+    </HBox>
+
+</VBox>

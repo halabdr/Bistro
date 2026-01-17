@@ -280,6 +280,13 @@ public class ReservationRepository {
 
                 rs.close();
                 ps.close();
+                
+                // Log activity for subscribers
+                if (subscriberNumber != null && !subscriberNumber.trim().isEmpty()) {
+                    TagRepository.logReservation(conn, subscriberNumber, confirmationCode, 
+                            bookingDate, bookingTime, guestCount);
+                }
+                
                 conn.commit();
 
                 Reservation reservation = new Reservation();
@@ -335,6 +342,19 @@ public class ReservationRepository {
 
             Connection conn = pConn.getConnection();
             
+            // First, get subscriber_number for logging
+            String getSubSql = "SELECT subscriber_number FROM reservations WHERE confirmation_code = ? AND reservation_status = 'ACTIVE'";
+            PreparedStatement getSubPs = conn.prepareStatement(getSubSql);
+            getSubPs.setString(1, confirmationCode);
+            ResultSet subRs = getSubPs.executeQuery();
+            
+            String subscriberNumber = null;
+            if (subRs.next()) {
+                subscriberNumber = subRs.getString("subscriber_number");
+            }
+            subRs.close();
+            getSubPs.close();
+            
             String sql = "UPDATE reservations SET reservation_status = 'CANCELLED' " +
                         "WHERE confirmation_code = ? AND reservation_status = 'ACTIVE'";
             
@@ -345,6 +365,10 @@ public class ReservationRepository {
             ps.close();
 
             if (rowsAffected > 0) {
+                // Log cancellation for subscribers
+                if (subscriberNumber != null && !subscriberNumber.trim().isEmpty()) {
+                    TagRepository.logCancellation(conn, subscriberNumber, confirmationCode);
+                }
                 return Message.ok("CANCEL_RESERVATION", "Reservation cancelled successfully");
             } else {
                 return Message.fail("CANCEL_RESERVATION", "Reservation not found or already cancelled");
@@ -579,21 +603,44 @@ public class ReservationRepository {
                                         "WHERE table_number = ?";
                 PreparedStatement updateTablePs = conn.prepareStatement(updateTableSql);
                 updateTablePs.setInt(1, tableNumber);
-                updateTablePs.executeUpdate();
+                int tableRowsUpdated = updateTablePs.executeUpdate();
                 updateTablePs.close();
+                
+                if (tableRowsUpdated == 0) {
+                    conn.rollback();
+                    return Message.fail("SEAT_BY_CODE", "Failed to update table status. Please try again.");
+                }
 
-             // 9. Update reservation with assigned table
+                // 9. Update reservation with assigned table
+                int resId = reservation.getReservationId();
+                if (resId <= 0) {
+                    conn.rollback();
+                    return Message.fail("SEAT_BY_CODE", "Invalid reservation ID. Please contact staff.");
+                }
+                
                 String updateResSql = "UPDATE reservations SET assigned_table_number = ? WHERE reservation_id = ?";
                 PreparedStatement updateResPs = conn.prepareStatement(updateResSql);
                 updateResPs.setInt(1, tableNumber);
-                updateResPs.setInt(2, reservation.getReservationId());
-                updateResPs.executeUpdate();
+                updateResPs.setInt(2, resId);
+                int resRowsUpdated = updateResPs.executeUpdate();
                 updateResPs.close();
+                
+                if (resRowsUpdated == 0) {
+                    conn.rollback();
+                    return Message.fail("SEAT_BY_CODE", "Failed to assign table to reservation. Please try again.");
+                }
 
                 // 10. Commit transaction
                 conn.commit();
+                
+                // 11. Log check-in for subscribers
+                String subscriberNumber = reservation.getSubscriberNumber();
+                if (subscriberNumber != null && !subscriberNumber.trim().isEmpty()) {
+                    TagRepository.logCheckIn(conn, subscriberNumber, confirmationCode, 
+                            tableNumber, reservation.getBookingTime(), LocalTime.now());
+                }
 
-                // 11. Return updated reservation with table number
+                // 12. Return updated reservation with table number
                 reservation.setAssignedTableNumber(tableNumber);
                 return Message.ok("SEAT_BY_CODE", reservation);
 

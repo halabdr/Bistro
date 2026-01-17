@@ -525,8 +525,10 @@ public class ClientController {
 	 * @throws IOException if sending fails
 	 */
 	public void getNotificationLogReport(int year, int month) throws IOException {
-		MonthlyReport report = MonthlyReport.createForMonth(year, month);
-		client.sendToServer(new Message(Commands.GET_NOTIFICATION_LOG, report));
+		Map<String, Object> data = new HashMap<>();
+		data.put("year", year);
+		data.put("month", month);
+		client.sendToServer(new Message(Commands.GET_NOTIFICATION_LOG, data));
 	}
 
 	/**
@@ -537,8 +539,10 @@ public class ClientController {
 	 * @throws IOException if sending fails
 	 */
 	public void getTimeReport(int year, int month) throws IOException {
-		MonthlyReport report = MonthlyReport.createForMonth(year, month);
-		client.sendToServer(new Message(Commands.GET_TIME_REPORT, report));
+		Map<String, Object> data = new HashMap<>();
+		data.put("year", year);
+		data.put("month", month);
+		client.sendToServer(new Message(Commands.GET_TIME_REPORT, data));
 	}
 
 	/**
@@ -549,8 +553,10 @@ public class ClientController {
 	 * @throws IOException if sending fails
 	 */
 	public void getSubscribersReport(int year, int month) throws IOException {
-		MonthlyReport report = MonthlyReport.createForMonth(year, month);
-		client.sendToServer(new Message(Commands.GET_SUBSCRIBERS_REPORT, report));
+		Map<String, Object> data = new HashMap<>();
+		data.put("year", year);
+		data.put("month", month);
+		client.sendToServer(new Message(Commands.GET_SUBSCRIBERS_REPORT, data));
 	}
 
 	/**

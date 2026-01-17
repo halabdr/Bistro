@@ -1,21 +1,15 @@
-package welcomegui;
+package walkingui;
 
 import client.ClientController;
 import clientgui.ConnectApp;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
 
 /**
- * Controller for the Welcome screen.
- * Provides navigation to different parts of the application.
+ * Controller for the Walk-In Customer Menu screen.
+ * Provides navigation to guest services: reservations, cancellation, waitlist, and payments.
  */
-public class WelcomeController {
-
-    @FXML private Button subscriberLoginBtn;
-    @FXML private Button walkInBtn;
-    @FXML private Button terminalBtn;
-    @FXML private Button staffLoginBtn;
+public class WalkInMenuController {
 
     private ClientController controller;
 
@@ -29,60 +23,63 @@ public class WelcomeController {
     }
 
     /**
-     * Handles navigation to Subscriber Login screen.
+     * Navigates to the reservation booking screen.
      */
     @FXML
-    private void handleSubscriberLogin() {
+    private void onBookReservation() {
         try {
-            ConnectApp.showSubscriberLogin();
+            ConnectApp.showReservationSearch();
         } catch (Exception e) {
             showAlert(Alert.AlertType.ERROR, "Navigation Error", e.getMessage());
         }
     }
 
     /**
-     * Handles navigation to Walk-In Customer Menu screen.
+     * Navigates to the cancel reservation screen.
      */
     @FXML
-    private void handleWalkInCustomer() {
+    private void onCancelReservation() {
         try {
-            ConnectApp.showWalkInMenu();
+            ConnectApp.showWalkInCancelReservation();
         } catch (Exception e) {
             showAlert(Alert.AlertType.ERROR, "Navigation Error", e.getMessage());
         }
     }
 
     /**
-     * Handles navigation to Terminal Menu screen.
+     * Navigates to the leave waitlist screen.
      */
     @FXML
-    private void handleTerminalCheckIn() {
+    private void onLeaveWaitlist() {
         try {
-            ConnectApp.showTerminalMenu();
-        } catch (Exception e) {
-            e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Navigation Error", e.toString());
-        }
-    }
-
-    /**
-     * Handles navigation to Staff Login screen.
-     */
-    @FXML
-    private void handleStaffLogin() {
-        try {
-            ConnectApp.showStaffLogin();
+            ConnectApp.showWalkInLeaveWaitlist();
         } catch (Exception e) {
             showAlert(Alert.AlertType.ERROR, "Navigation Error", e.getMessage());
         }
     }
 
     /**
-     * Handles application exit.
+     * Navigates to the pay bill screen.
      */
     @FXML
-    private void handleExit() {
-        System.exit(0);
+    private void onPayBill() {
+        try {
+            ConnectApp.showWalkInPayBill();
+        } catch (Exception e) {
+            showAlert(Alert.AlertType.ERROR, "Navigation Error", e.getMessage());
+        }
+    }
+
+    /**
+     * Navigates back to the welcome screen.
+     */
+    @FXML
+    private void onBack() {
+        try {
+            ConnectApp.showWelcome();
+        } catch (Exception e) {
+            showAlert(Alert.AlertType.ERROR, "Navigation Error", e.getMessage());
+        }
     }
 
     /**

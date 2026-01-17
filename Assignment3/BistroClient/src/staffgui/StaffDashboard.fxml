@@ -27,10 +27,12 @@
 
     <!-- ================= CENTER ================= -->
     <center>
+        <ScrollPane fitToWidth="true" fitToHeight="true" 
+                    style="-fx-background: transparent; -fx-background-color: transparent;">
         <BorderPane>
 
             <padding>
-                <Insets top="14" right="14" bottom="14" left="14"/>
+                <Insets top="10" right="10" bottom="10" left="10"/>
             </padding>
 
             <center>
@@ -198,26 +200,28 @@
                                 </top>
 
                                 <center>
-                                    <SplitPane dividerPositions="0.55" orientation="VERTICAL">
-                                        <HBox fx:id="chartsArea" spacing="20" alignment="CENTER"
-                                              style="-fx-padding: 10;">
-                                            <PieChart fx:id="reportPieChart" prefWidth="380" prefHeight="280"
+                                    <SplitPane dividerPositions="0.5" orientation="VERTICAL">
+                                        <HBox fx:id="chartsArea" spacing="15" alignment="CENTER"
+                                              style="-fx-padding: 8;">
+                                            <PieChart fx:id="reportPieChart" prefWidth="280" prefHeight="220"
                                                       title="Distribution" legendSide="BOTTOM"/>
-                                            <BarChart fx:id="reportBarChart" prefWidth="420" prefHeight="280"
-                                                      title="Statistics" legendVisible="false">
+                                            <BarChart fx:id="reportBarChart" prefWidth="380" prefHeight="220"
+                                                      title="Statistics" legendVisible="false"
+                                                      animated="false" categoryGap="10" barGap="3">
                                                 <xAxis>
-                                                    <CategoryAxis label="Category"/>
+                                                    <CategoryAxis side="BOTTOM" tickLabelRotation="-45" 
+                                                                  tickLabelGap="5" animated="false"/>
                                                 </xAxis>
                                                 <yAxis>
-                                                    <NumberAxis label="Count"/>
+                                                    <NumberAxis side="LEFT" animated="false"/>
                                                 </yAxis>
                                             </BarChart>
                                         </HBox>
 
                                         <TableView fx:id="reportTable">
                                             <columns>
-                                                <TableColumn fx:id="repCol1" text="Field" prefWidth="260"/>
-                                                <TableColumn fx:id="repCol2" text="Value" prefWidth="520"/>
+                                                <TableColumn fx:id="repCol1" text="Field" prefWidth="200"/>
+                                                <TableColumn fx:id="repCol2" text="Value" prefWidth="350"/>
                                             </columns>
                                         </TableView>
                                     </SplitPane>
@@ -308,6 +312,7 @@
             </center>
 
         </BorderPane>
+        </ScrollPane>
     </center>
 
     <!-- ================= BOTTOM ================= -->

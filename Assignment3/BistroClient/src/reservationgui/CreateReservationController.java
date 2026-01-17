@@ -240,7 +240,7 @@ public class CreateReservationController implements MessageListener {
             if (subscriber != null) {
                 ConnectApp.showViewReservations(subscriber);
             } else {
-                ConnectApp.showWelcome();
+                ConnectApp.showWalkInMenu();
             }
         } catch (Exception e) {
             statusLabel.setText("Navigation error: " + e.getMessage());

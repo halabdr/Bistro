@@ -100,11 +100,9 @@ public class StaffLoginController implements MessageListener {
             }
 
             try {
-                if (user.getUserRole() == User.UserRole.MANAGER) {
-                    ConnectApp.showManagerDashboard(user);
-                } else {
-                    ConnectApp.showStaffDashboard(user);
-                }
+                // Both Manager and Representative use the same dashboard
+                // Manager has all Representative capabilities plus reports
+                ConnectApp.showStaffDashboard(user);
             } catch (Exception e) {
                 // IMPORTANT: show real root cause
                 e.printStackTrace();

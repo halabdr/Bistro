@@ -167,6 +167,81 @@ public class ReportRepository {
                 }
             }
 
+            // 8. Delay statistics from tags (CHECK_IN records)
+            // Parse JSON to extract bookingTime and actualTime for delay calculation
+            String delayStatsSql = "SELECT activity_details FROM tags " +
+                                  "WHERE activity_details LIKE '%\"type\":\"CHECK_IN\"%' " +
+                                  "AND YEAR(created_at) = ? AND MONTH(created_at) = ?";
+            try (PreparedStatement ps = conn.prepareStatement(delayStatsSql)) {
+                ps.setInt(1, year);
+                ps.setInt(2, month);
+                ResultSet rs = ps.executeQuery();
+                
+                int totalCheckIns = 0;
+                int onTimeCount = 0;
+                int lateCount = 0;
+                int earlyCount = 0;
+                int totalDelayMinutes = 0;
+                
+                while (rs.next()) {
+                    String json = rs.getString("activity_details");
+                    totalCheckIns++;
+                    
+                    // Parse bookingTime and actualTime from JSON
+                    String bookingTime = extractJsonValue(json, "bookingTime");
+                    String actualTime = extractJsonValue(json, "actualTime");
+                    
+                    if (bookingTime != null && actualTime != null) {
+                        int bookingMinutes = parseTimeToMinutes(bookingTime);
+                        int actualMinutes = parseTimeToMinutes(actualTime);
+                        int diff = actualMinutes - bookingMinutes;
+                        
+                        if (diff > 5) {
+                            lateCount++;
+                            totalDelayMinutes += diff;
+                        } else if (diff < -5) {
+                            earlyCount++;
+                        } else {
+                            onTimeCount++;
+                        }
+                    }
+                }
+                
+                if (totalCheckIns > 0) {
+                    Map<String, Object> headerRow = new HashMap<>();
+                    headerRow.put("field", "--- Arrival Times (Subscribers) ---");
+                    headerRow.put("value", "");
+                    reportData.add(headerRow);
+                    
+                    Map<String, Object> row1 = new HashMap<>();
+                    row1.put("field", "Total Check-ins");
+                    row1.put("value", String.valueOf(totalCheckIns));
+                    reportData.add(row1);
+                    
+                    Map<String, Object> row2 = new HashMap<>();
+                    row2.put("field", "On Time (±5 min)");
+                    row2.put("value", String.valueOf(onTimeCount));
+                    reportData.add(row2);
+                    
+                    Map<String, Object> row3 = new HashMap<>();
+                    row3.put("field", "Late Arrivals");
+                    row3.put("value", String.valueOf(lateCount));
+                    reportData.add(row3);
+                    
+                    Map<String, Object> row4 = new HashMap<>();
+                    row4.put("field", "Early Arrivals");
+                    row4.put("value", String.valueOf(earlyCount));
+                    reportData.add(row4);
+                    
+                    if (lateCount > 0) {
+                        Map<String, Object> row5 = new HashMap<>();
+                        row5.put("field", "Average Delay (late arrivals)");
+                        row5.put("value", String.format("%.1f min", (double) totalDelayMinutes / lateCount));
+                        reportData.add(row5);
+                    }
+                }
+            }
+
             return Message.ok("GET_TIME_REPORT", reportData);
 
         } catch (SQLException e) {
@@ -355,6 +430,52 @@ public class ReportRepository {
                 }
             }
 
+            // 7. Activity breakdown from tags table
+            String tagsSql = "SELECT " +
+                            "SUM(CASE WHEN activity_details LIKE '%\"type\":\"RESERVATION\"%' THEN 1 ELSE 0 END) AS reservations, " +
+                            "SUM(CASE WHEN activity_details LIKE '%\"type\":\"CANCEL\"%' THEN 1 ELSE 0 END) AS cancellations, " +
+                            "SUM(CASE WHEN activity_details LIKE '%\"type\":\"CHECK_IN\"%' THEN 1 ELSE 0 END) AS checkins, " +
+                            "SUM(CASE WHEN activity_details LIKE '%\"type\":\"PAYMENT\"%' THEN 1 ELSE 0 END) AS payments " +
+                            "FROM tags WHERE YEAR(created_at) = ? AND MONTH(created_at) = ?";
+            try (PreparedStatement ps = conn.prepareStatement(tagsSql)) {
+                ps.setInt(1, year);
+                ps.setInt(2, month);
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    int reservations = rs.getInt("reservations");
+                    int cancellations = rs.getInt("cancellations");
+                    int checkins = rs.getInt("checkins");
+                    int payments = rs.getInt("payments");
+                    
+                    if (reservations + cancellations + checkins + payments > 0) {
+                        Map<String, Object> headerRow = new HashMap<>();
+                        headerRow.put("field", "--- Subscriber Activity Log ---");
+                        headerRow.put("value", "");
+                        reportData.add(headerRow);
+                        
+                        Map<String, Object> row1 = new HashMap<>();
+                        row1.put("field", "Reservations Made");
+                        row1.put("value", String.valueOf(reservations));
+                        reportData.add(row1);
+                        
+                        Map<String, Object> row2 = new HashMap<>();
+                        row2.put("field", "Cancellations");
+                        row2.put("value", String.valueOf(cancellations));
+                        reportData.add(row2);
+                        
+                        Map<String, Object> row3 = new HashMap<>();
+                        row3.put("field", "Check-ins");
+                        row3.put("value", String.valueOf(checkins));
+                        reportData.add(row3);
+                        
+                        Map<String, Object> row4 = new HashMap<>();
+                        row4.put("field", "Payments");
+                        row4.put("value", String.valueOf(payments));
+                        reportData.add(row4);
+                    }
+                }
+            }
+
             return Message.ok("GET_SUBSCRIBERS_REPORT", reportData);
 
         } catch (SQLException e) {
@@ -362,6 +483,42 @@ public class ReportRepository {
             return Message.fail("GET_SUBSCRIBERS_REPORT", "Database error: " + e.getMessage());
         } finally {
             pool.releaseConnection(pConn);
+        }
+    }
+
+    // ===================== Helper Methods =====================
+
+    /**
+     * Extracts a value from a simple JSON string.
+     * Example: extractJsonValue("{\"type\":\"CHECK_IN\",\"bookingTime\":\"18:00\"}", "bookingTime") returns "18:00"
+     */
+    private String extractJsonValue(String json, String key) {
+        if (json == null || key == null) return null;
+        
+        String searchKey = "\"" + key + "\":\"";
+        int startIdx = json.indexOf(searchKey);
+        if (startIdx == -1) return null;
+        
+        startIdx += searchKey.length();
+        int endIdx = json.indexOf("\"", startIdx);
+        if (endIdx == -1) return null;
+        
+        return json.substring(startIdx, endIdx);
+    }
+
+    /**
+     * Parses a time string (HH:mm) to total minutes since midnight.
+     */
+    private int parseTimeToMinutes(String time) {
+        if (time == null || !time.contains(":")) return 0;
+        
+        String[] parts = time.split(":");
+        try {
+            int hours = Integer.parseInt(parts[0]);
+            int minutes = Integer.parseInt(parts[1]);
+            return hours * 60 + minutes;
+        } catch (NumberFormatException e) {
+            return 0;
         }
     }
 }
