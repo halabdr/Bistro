@@ -21,6 +21,113 @@ import java.util.UUID;
 public class WaitlistRepository {
 
 	/**
+	 * Terminal flow: checks if a table is available right now.
+	 * If available, marks the table as OCCUPIED and returns the table number.
+	 * Otherwise, inserts a waitlist entry and returns an entry code.
+	 *
+	 * @param request Message containing "numberOfDiners" and optional "subscriberNumber", "guestPhone", "guestEmail"
+	 * @return Message with command CHECK_AVAILABILITY_TERMINAL
+	 */
+	public Message checkAvailabilityTerminal(Message request) {
+	    MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+	    PooledConnection pConn = null;
+
+	    try {
+	        @SuppressWarnings("unchecked")
+	        Map<String, Object> data = (Map<String, Object>) request.getData();
+
+	        int numberOfDiners = (Integer) data.get("numberOfDiners");
+	        String subscriberNumber = (String) data.get("subscriberNumber");
+	        String guestPhone = (String) data.get("guestPhone");
+	        String guestEmail = (String) data.get("guestEmail");
+
+	        pConn = pool.getConnection();
+	        if (pConn == null) {
+	            return Message.fail("CHECK_AVAILABILITY_TERMINAL", "Database connection failed");
+	        }
+
+	        Connection conn = pConn.getConnection();
+
+	        //Check if a table is immediately available
+	        String checkTableSql =
+	                "SELECT table_number, seat_capacity FROM tables_info " +
+	                "WHERE table_status = 'AVAILABLE' AND seat_capacity >= ? " +
+	                "ORDER BY seat_capacity ASC LIMIT 1";
+
+	        PreparedStatement checkPs = conn.prepareStatement(checkTableSql);
+	        checkPs.setInt(1, numberOfDiners);
+	        ResultSet tableRs = checkPs.executeQuery();
+
+	        if (tableRs.next()) {
+	            int tableNumber = tableRs.getInt("table_number");
+	            tableRs.close();
+	            checkPs.close();
+
+	            // Mark as occupied immediately
+	            String occupySql =
+	                    "UPDATE tables_info SET table_status = 'OCCUPIED', reservation_start = ? " +
+	                    "WHERE table_number = ? AND table_status = 'AVAILABLE'";
+	            PreparedStatement occPs = conn.prepareStatement(occupySql);
+	            occPs.setTimestamp(1, new java.sql.Timestamp(System.currentTimeMillis()));
+	            occPs.setInt(2, tableNumber);
+
+	            int updated = occPs.executeUpdate();
+	            occPs.close();
+
+	            if (updated == 0) {
+	                return Message.fail("CHECK_AVAILABILITY_TERMINAL", "No table available now");
+	            }
+
+	            Map<String, Object> resp = new java.util.HashMap<>();
+	            resp.put("availableNow", true);
+	            resp.put("tableNumber", tableNumber);
+	            resp.put("entryCode", null);
+	            resp.put("text", "Table " + tableNumber + " is available now! Please proceed to be seated.");
+	            return Message.ok("CHECK_AVAILABILITY_TERMINAL", resp);
+	        }
+
+	        tableRs.close();
+	        checkPs.close();
+
+	        //No immediate table: add to waitlist
+	        String entryCode = generateEntryCode();
+
+	        String sql =
+	                "INSERT INTO waiting_list (number_of_diners, entry_code, subscriber_number, " +
+	                "walk_in_phone, walk_in_email) VALUES (?, ?, ?, ?, ?)";
+
+	        PreparedStatement ps = conn.prepareStatement(sql);
+	        ps.setInt(1, numberOfDiners);
+	        ps.setString(2, entryCode);
+	        ps.setString(3, subscriberNumber);
+	        ps.setString(4, guestPhone);
+	        ps.setString(5, guestEmail);
+	        ps.executeUpdate();
+
+	        //Log to tags for subscribers (for reports)
+	        if (subscriberNumber != null && !subscriberNumber.trim().isEmpty()) {
+	            TagRepository.logWaitlistJoin(conn, subscriberNumber, entryCode, numberOfDiners);
+	        }
+
+	        ps.close();
+
+	        Map<String, Object> resp = new java.util.HashMap<>();
+	        resp.put("availableNow", false);
+	        resp.put("tableNumber", null);
+	        resp.put("entryCode", entryCode);
+	        resp.put("text", "No table available now. You were added to the waitlist. Your code: " + entryCode);
+
+	        return Message.ok("CHECK_AVAILABILITY_TERMINAL", resp);
+
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        return Message.fail("CHECK_AVAILABILITY_TERMINAL", "Database error: " + e.getMessage());
+	    } finally {
+	        pool.releaseConnection(pConn);
+	    }
+	}
+	
+	/**
      * Adds a customer to the waitlist, or assigns a table immediately if available.
      * 
      * @param request Message containing "numberOfDiners" and optional "subscriberNumber",

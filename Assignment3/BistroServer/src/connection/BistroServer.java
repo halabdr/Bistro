@@ -312,6 +312,12 @@ public class BistroServer extends AbstractServer {
                 response = reportRepository.getSubscribersReport(request);
                 safeSend(client, response);
             }
+            
+            // Terminal Check Availability (immediate seating or join waitlist)
+            case "CHECK_AVAILABILITY_TERMINAL" -> {
+                response = waitlistRepository.checkAvailabilityTerminal(request);
+                safeSend(client, response);
+            }
 
             default -> {
                 log("[Server] Unknown command: " + command);
