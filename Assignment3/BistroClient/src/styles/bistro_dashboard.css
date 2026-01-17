@@ -1,0 +1,123 @@
+/* ========================================
+   BISTRO DASHBOARDS - Staff / Manager
+   ======================================== */
+
+.dash-root {
+    -fx-background-color: #f1f5f9;
+    -fx-font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
+}
+
+/* Top bar */
+.dash-topbar {
+    -fx-background-color: #ffffff;
+    -fx-padding: 18 22;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 0 0 1 0;
+}
+
+.dash-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #0f172a;
+}
+
+.dash-subtitle {
+    -fx-font-size: 12px;
+    -fx-text-fill: #64748b;
+}
+
+/* Buttons */
+.dash-btn {
+    -fx-background-color: #2C5F7C;
+    -fx-text-fill: white;
+    -fx-font-weight: 700;
+    -fx-background-radius: 10;
+    -fx-padding: 10 16;
+    -fx-cursor: hand;
+}
+
+.dash-btn:hover { -fx-background-color: #1E4A61; }
+
+.dash-btn-secondary {
+    -fx-background-color: transparent;
+    -fx-border-color: #2C5F7C;
+    -fx-border-width: 1.5;
+    -fx-text-fill: #2C5F7C;
+    -fx-font-weight: 700;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-padding: 10 16;
+    -fx-cursor: hand;
+}
+.dash-btn-secondary:hover { -fx-background-color: rgba(44,95,124,0.08); }
+
+.dash-btn-danger {
+    -fx-background-color: #ef4444;
+    -fx-text-fill: white;
+    -fx-font-weight: 800;
+    -fx-background-radius: 10;
+    -fx-padding: 10 16;
+    -fx-cursor: hand;
+}
+.dash-btn-danger:hover { -fx-background-color: #dc2626; }
+
+/* Content card */
+.dash-card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: #e2e8f0;
+    -fx-padding: 14;
+}
+
+/* TabPane */
+.dash-tabs .tab-header-area {
+    -fx-padding: 0 10 0 10;
+}
+.dash-tabs .tab-header-background {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 0 0 1 0;
+}
+.dash-tabs .tab {
+    -fx-background-color: transparent;
+    -fx-padding: 8 14;
+}
+.dash-tabs .tab:selected {
+    -fx-background-color: rgba(44,95,124,0.10);
+    -fx-background-radius: 10;
+}
+
+/* Toolbars inside tabs */
+.dash-toolbar {
+    -fx-padding: 10 0 12 0;
+}
+
+/* Tables */
+.table-view {
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: #e2e8f0;
+    -fx-background-color: #ffffff;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #f8fafc;
+}
+
+.table-view .column-header, .table-view .filler {
+    -fx-size: 42px;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 0 0 1 0;
+    -fx-background-color: #f8fafc;
+}
+
+.table-row-cell:filled:selected {
+    -fx-background-color: rgba(44,95,124,0.15);
+}
+
+/* Bottom status */
+.dash-status {
+    -fx-padding: 10 18;
+    -fx-text-fill: #475569;
+}

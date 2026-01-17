@@ -48,6 +48,29 @@ public class SeatByCodeController implements MessageListener {
     private final DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private final DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
 
+    private enum SeatSource { LEFT_CODE, RIGHT_SELECTED }
+    private SeatSource lastSeatSource = SeatSource.LEFT_CODE;
+
+    private void setStatus(String msg) {
+        if (lastSeatSource == SeatSource.LEFT_CODE) {
+            statusLabel.setText(msg);
+        } else {
+            statusLabel2.setText(msg);
+        }
+    }
+
+    private void setProcessing() {
+        if (lastSeatSource == SeatSource.LEFT_CODE) {
+            statusLabel.setText("Processing...");
+            statusLabel2.setText(""); 
+        } else {
+            statusLabel2.setText("Processing...");
+            statusLabel.setText("");
+        }
+        resultLabel.setText("");
+    }
+
+    
     /**
      * Initializes the controller.
      *
@@ -175,9 +198,8 @@ public class SeatByCodeController implements MessageListener {
             return;
         }
 
-        statusLabel2.setText("");
-        resultLabel.setText("");
-        statusLabel.setText("Processing...");
+        lastSeatSource = SeatSource.LEFT_CODE;
+        setProcessing();
 
         try {
             controller.seatByCode(code);
@@ -197,9 +219,8 @@ public class SeatByCodeController implements MessageListener {
             return;
         }
 
-        statusLabel.setText("");
-        resultLabel.setText("");
-        statusLabel2.setText("Processing...");
+        lastSeatSource = SeatSource.RIGHT_SELECTED;
+        setProcessing();
 
         try {
             controller.seatByCode(code);
@@ -292,30 +313,36 @@ public class SeatByCodeController implements MessageListener {
      * Handles the seat by code response.
      */
     private void handleSeatResponse(Message m) {
+        // Helper: update only the relevant status label
+        java.util.function.Consumer<String> setStatus = msg -> {
+            if (lastSeatSource == SeatSource.LEFT_CODE) {
+                statusLabel.setText(msg);
+            } else {
+                statusLabel2.setText(msg);
+            }
+        };
+
         if (!m.isSuccess()) {
             String error = m.getError();
 
-            // Check for WAIT response
+            // WAIT response
             if (error != null && error.startsWith("WAIT:")) {
                 String waitMessage = error.substring(5);
-                statusLabel.setText("Please Wait");
-                statusLabel2.setText("Please Wait");
+                setStatus.accept("Please Wait");
                 resultLabel.setText("");
                 showWaitPopup(waitMessage);
                 return;
             }
 
             // Regular error
-            statusLabel.setText("Failed: " + error);
-            statusLabel2.setText("Failed: " + error);
+            setStatus.accept("Failed: " + error);
             return;
         }
 
         Object data = m.getData();
 
         if (!(data instanceof Reservation r)) {
-            statusLabel.setText("Server response error.");
-            statusLabel2.setText("Server response error.");
+            setStatus.accept("Server response error.");
             resultLabel.setText("");
             return;
         }
@@ -323,24 +350,25 @@ public class SeatByCodeController implements MessageListener {
         Integer tableNumber = r.getAssignedTableNumber();
 
         if (tableNumber == null || tableNumber <= 0) {
-            statusLabel.setText("No table assigned. Please contact staff.");
-            statusLabel2.setText("No table assigned. Please contact staff.");
+            setStatus.accept("No table assigned. Please contact staff.");
             resultLabel.setText("");
             return;
         }
 
         // Success
-        statusLabel.setText("✅ Seated successfully!");
-        statusLabel2.setText("✅ Seated successfully!");
+        setStatus.accept("✅ Seated successfully!");
         resultLabel.setText("Proceed to Table #" + tableNumber);
 
         showTablePopup(tableNumber);
 
-        // Clear form
+        // Clear only the relevant side (better UX)
         codeField.clear();
-        memberCardField.clear();
-        reservations.clear();
-        selectedCodeLabel.setText("—");
+
+        if (lastSeatSource == SeatSource.RIGHT_SELECTED) {
+            memberCardField.clear();
+            reservations.clear();
+            selectedCodeLabel.setText("—");
+        }
     }
 
     /**

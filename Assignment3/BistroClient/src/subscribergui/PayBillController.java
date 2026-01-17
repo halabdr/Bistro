@@ -42,6 +42,12 @@ public class PayBillController implements MessageListener {
     private String currentConfirmationCode;
     private boolean billFetched = false;
 
+    // Business-rule message (not a system error)
+    private static final String MSG_NOT_SEATED =
+            "Payment is only available after you've been seated";
+
+    private enum StatusType { SUCCESS, ERROR, INFO }
+
     /**
      * Initializes the controller with the shared ClientController.
      *
@@ -76,6 +82,9 @@ public class PayBillController implements MessageListener {
         payButton.setDisable(true);
         billFetched = false;
         currentConfirmationCode = null;
+        // Optional: re-enable if user returns to this screen
+        fetchBillButton.setDisable(false);
+        confirmationCodeField.setDisable(false);
     }
 
     /**
@@ -85,17 +94,17 @@ public class PayBillController implements MessageListener {
     private void onFetchBill() {
         String code = confirmationCodeField.getText();
         if (code == null || code.trim().isEmpty()) {
-            setStatus("Please enter your confirmation code.", true);
+            setStatus("Please enter your confirmation code.", StatusType.ERROR);
             return;
         }
 
         currentConfirmationCode = code.trim();
-        setStatus("Fetching bill details...", false);
+        setStatus("Fetching bill details...", StatusType.INFO);
 
         try {
             controller.getBillByCode(currentConfirmationCode);
         } catch (IOException e) {
-            setStatus("Failed to fetch bill: " + e.getMessage(), true);
+            setStatus("Failed to fetch bill: " + e.getMessage(), StatusType.ERROR);
         }
     }
 
@@ -105,16 +114,16 @@ public class PayBillController implements MessageListener {
     @FXML
     private void onPay() {
         if (!billFetched || currentConfirmationCode == null) {
-            setStatus("Please fetch the bill details first.", true);
+            setStatus("Please fetch the bill details first.", StatusType.ERROR);
             return;
         }
 
-        setStatus("Processing payment...", false);
+        setStatus("Processing payment...", StatusType.INFO);
 
         try {
             controller.payBillByCode(currentConfirmationCode);
         } catch (IOException e) {
-            setStatus("Payment failed: " + e.getMessage(), true);
+            setStatus("Payment failed: " + e.getMessage(), StatusType.ERROR);
         }
     }
 
@@ -146,7 +155,15 @@ public class PayBillController implements MessageListener {
      */
     private void handleGetBillResponse(Message m) {
         if (!m.isSuccess()) {
-            setStatus("Error: " + m.getError(), true);
+            String err = m.getError() != null ? m.getError() : "Unknown error";
+
+            // Business rule: not seated yet -> show as Notice/Info
+            if (err.toLowerCase().contains(MSG_NOT_SEATED.toLowerCase())) {
+                setStatus("Notice: " + err, StatusType.INFO);
+            } else {
+                setStatus("Error: " + err, StatusType.ERROR);
+            }
+
             billDetailsBox.setVisible(false);
             billDetailsBox.setManaged(false);
             payButton.setDisable(true);
@@ -156,7 +173,7 @@ public class PayBillController implements MessageListener {
 
         Object data = m.getData();
         if (!(data instanceof Map<?, ?>)) {
-            setStatus("Invalid response from server.", true);
+            setStatus("Invalid response from server.", StatusType.ERROR);
             return;
         }
 
@@ -179,7 +196,7 @@ public class PayBillController implements MessageListener {
         payButton.setDisable(false);
         billFetched = true;
 
-        setStatus("Bill loaded. Click 'Pay Now' to complete payment.", false);
+        setStatus("Bill loaded. Click 'Pay Now' to complete payment.", StatusType.SUCCESS);
     }
 
     /**
@@ -187,18 +204,21 @@ public class PayBillController implements MessageListener {
      */
     private void handlePayBillResponse(Message m) {
         if (!m.isSuccess()) {
-            setStatus("Payment failed: " + m.getError(), true);
+            String err = m.getError() != null ? m.getError() : "Unknown error";
+            setStatus("Payment failed: " + err, StatusType.ERROR);
             return;
         }
 
-        setStatus("Payment completed successfully!", false);
+        setStatus("Payment completed successfully!", StatusType.SUCCESS);
         payButton.setDisable(true);
         fetchBillButton.setDisable(true);
         confirmationCodeField.setDisable(true);
 
         // Show success alert
-        showSuccessAlert("Payment Successful", 
-            "Your bill has been paid successfully.\nThe table has been released.\nThank you for dining with us!");
+        showSuccessAlert(
+                "Payment Successful",
+                "Your bill has been paid successfully.\nThe table has been released.\nThank you for dining with us!"
+        );
     }
 
     /**
@@ -206,7 +226,7 @@ public class PayBillController implements MessageListener {
      */
     private String formatCurrency(Object value) {
         if (value == null) return "₪0.00";
-        
+
         try {
             if (value instanceof BigDecimal) {
                 return String.format("₪%.2f", ((BigDecimal) value).doubleValue());
@@ -221,14 +241,21 @@ public class PayBillController implements MessageListener {
     }
 
     /**
-     * Sets the status message.
+     * Sets the status message with styling based on type.
      */
-    private void setStatus(String message, boolean isError) {
+    private void setStatus(String message, StatusType type) {
         statusLabel.setText(message);
-        if (isError) {
-            statusLabel.setStyle("-fx-text-fill: #E53E3E; -fx-font-size: 13px;");
-        } else {
-            statusLabel.setStyle("-fx-text-fill: #38A169; -fx-font-size: 13px;");
+
+        switch (type) {
+            case ERROR:
+                statusLabel.setStyle("-fx-text-fill: #E53E3E; -fx-font-size: 13px;");
+                break;
+            case INFO:
+                statusLabel.setStyle("-fx-text-fill: #2C5F7C; -fx-font-size: 13px;");
+                break;
+            default: // SUCCESS
+                statusLabel.setStyle("-fx-text-fill: #38A169; -fx-font-size: 13px;");
+                break;
         }
     }
 

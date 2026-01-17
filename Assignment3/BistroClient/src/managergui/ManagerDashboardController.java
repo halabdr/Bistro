@@ -206,4 +206,9 @@ public class ManagerDashboardController implements MessageListener {
         public String getField() { return field; }
         public String getValue() { return value; }
     }
+    
+    @FXML
+    private void onLogout() throws Exception {
+        clientgui.ConnectApp.showWelcome();
+    }
 }

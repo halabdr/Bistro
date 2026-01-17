@@ -5,208 +5,210 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.chart.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="staffgui.StaffDashboardController">
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="staffgui.StaffDashboardController"
+            styleClass="dash-root"
+            stylesheets="@/styles/bistro_dashboard.css">
 
     <top>
-        <HBox spacing="10" style="-fx-padding: 10;">
-            <Label fx:id="welcomeLabel" text="Staff Dashboard"
-                   style="-fx-font-size: 16; -fx-font-weight: bold;"/>
+        <HBox styleClass="dash-topbar" alignment="CENTER_LEFT" spacing="14">
+            <VBox spacing="2">
+                <Label fx:id="welcomeLabel" text="Staff Dashboard" styleClass="dash-title"/>
+                <Label text="Manage reservations, waitlist, tables and reports" styleClass="dash-subtitle"/>
+            </VBox>
+
             <Region HBox.hgrow="ALWAYS"/>
-            <Button text="Logout" onAction="#onLogout"/>
+
+            <Button text="Logout" onAction="#onLogout" styleClass="dash-btn-danger"/>
         </HBox>
     </top>
 
     <center>
-        <TabPane fx:id="tabs">
-            <tabs>
+        <BorderPane padding="14">
+            <center>
+                <TabPane fx:id="tabs" styleClass="dash-tabs">
+                    <tabs>
 
-                <!-- Tab: Reservations -->
-                <Tab text="Reservations" closable="false">
-                    <BorderPane style="-fx-padding: 10;">
-                        <top>
-                            <HBox spacing="10">
-                                <Button text="Refresh" onAction="#refreshReservations"/>
-                            </HBox>
-                        </top>
-                        <center>
-                            <TableView fx:id="reservationsTable">
-                                <columns>
-                                    <TableColumn fx:id="resCodeCol" text="Code" prefWidth="140"/>
-                                    <TableColumn fx:id="resDateCol" text="Date" prefWidth="120"/>
-                                    <TableColumn fx:id="resTimeCol" text="Time" prefWidth="90"/>
-                                    <TableColumn fx:id="resGuestsCol" text="Guests" prefWidth="80"/>
-                                    <TableColumn fx:id="resSubCol" text="Subscriber" prefWidth="140"/>
-                                </columns>
-                            </TableView>
-                        </center>
-                    </BorderPane>
-                </Tab>
+                        <Tab text="Reservations" closable="false">
+                            <BorderPane styleClass="dash-card">
+                                <top>
+                                    <HBox spacing="10" styleClass="dash-toolbar" alignment="CENTER_LEFT">
+                                        <Button text="Refresh" onAction="#refreshReservations" styleClass="dash-btn"/>
+                                    </HBox>
+                                </top>
+                                <center>
+                                    <TableView fx:id="reservationsTable">
+                                        <columns>
+                                            <TableColumn fx:id="resCodeCol" text="Code" prefWidth="140"/>
+                                            <TableColumn fx:id="resDateCol" text="Date" prefWidth="120"/>
+                                            <TableColumn fx:id="resTimeCol" text="Time" prefWidth="90"/>
+                                            <TableColumn fx:id="resGuestsCol" text="Guests" prefWidth="80"/>
+                                            <TableColumn fx:id="resSubCol" text="Subscriber" prefWidth="140"/>
+                                        </columns>
+                                    </TableView>
+                                </center>
+                            </BorderPane>
+                        </Tab>
 
-                <!-- Tab: Waitlist -->
-                <Tab text="Waitlist" closable="false">
-                    <BorderPane style="-fx-padding: 10;">
-                        <top>
-                            <HBox spacing="10">
-                                <Button text="Refresh" onAction="#refreshWaitlist"/>
-                            </HBox>
-                        </top>
-                        <center>
-                            <TableView fx:id="waitlistTable">
-                                <columns>
-                                    <TableColumn fx:id="wlCodeCol" text="Code" prefWidth="140"/>
-                                    <TableColumn fx:id="wlGuestsCol" text="Diners" prefWidth="80"/>
-                                    <TableColumn fx:id="wlSubCol" text="Subscriber" prefWidth="140"/>
-                                </columns>
-                            </TableView>
-                        </center>
-                    </BorderPane>
-                </Tab>
+                        <Tab text="Waitlist" closable="false">
+                            <BorderPane styleClass="dash-card">
+                                <top>
+                                    <HBox spacing="10" styleClass="dash-toolbar" alignment="CENTER_LEFT">
+                                        <Button text="Refresh" onAction="#refreshWaitlist" styleClass="dash-btn"/>
+                                    </HBox>
+                                </top>
+                                <center>
+                                    <TableView fx:id="waitlistTable">
+                                        <columns>
+                                            <TableColumn fx:id="wlCodeCol" text="Code" prefWidth="140"/>
+                                            <TableColumn fx:id="wlGuestsCol" text="Diners" prefWidth="80"/>
+                                            <TableColumn fx:id="wlSubCol" text="Subscriber" prefWidth="140"/>
+                                        </columns>
+                                    </TableView>
+                                </center>
+                            </BorderPane>
+                        </Tab>
 
-                <!-- Tab: Current Diners -->
-                <Tab text="Current Diners" closable="false">
-                    <BorderPane style="-fx-padding: 10;">
-                        <top>
-                            <HBox spacing="10">
-                                <Button text="Refresh" onAction="#refreshCurrentDiners"/>
-                            </HBox>
-                        </top>
-                        <center>
-                            <TableView fx:id="dinersTable">
-                                <columns>
-                                    <TableColumn fx:id="dTableCol" text="Table #" prefWidth="70"/>
-                                    <TableColumn fx:id="dGuestsCol" text="Guests" prefWidth="60"/>
-                                    <TableColumn fx:id="dLocationCol" text="Location" prefWidth="100"/>
-                                    <TableColumn fx:id="dCodeCol" text="Code" prefWidth="120"/>
-                                    <TableColumn fx:id="dCustomerCol" text="Customer" prefWidth="150"/>
-                                    <TableColumn fx:id="dSeatedAtCol" text="Seated At" prefWidth="140"/>
-                                </columns>
-                            </TableView>
-                        </center>
-                    </BorderPane>
-                </Tab>
+                        <Tab text="Current Diners" closable="false">
+                            <BorderPane styleClass="dash-card">
+                                <top>
+                                    <HBox spacing="10" styleClass="dash-toolbar" alignment="CENTER_LEFT">
+                                        <Button text="Refresh" onAction="#refreshCurrentDiners" styleClass="dash-btn"/>
+                                    </HBox>
+                                </top>
+                                <center>
+                                    <TableView fx:id="dinersTable">
+                                        <columns>
+                                            <TableColumn fx:id="dTableCol" text="Table #" prefWidth="70"/>
+                                            <TableColumn fx:id="dGuestsCol" text="Guests" prefWidth="60"/>
+                                            <TableColumn fx:id="dLocationCol" text="Location" prefWidth="100"/>
+                                            <TableColumn fx:id="dCodeCol" text="Code" prefWidth="120"/>
+                                            <TableColumn fx:id="dCustomerCol" text="Customer" prefWidth="150"/>
+                                            <TableColumn fx:id="dSeatedAtCol" text="Seated At" prefWidth="140"/>
+                                        </columns>
+                                    </TableView>
+                                </center>
+                            </BorderPane>
+                        </Tab>
 
-                <!-- Tab: Tables -->
-                <Tab text="Tables" closable="false">
-                    <BorderPane style="-fx-padding: 10;">
-                        <top>
-                            <HBox spacing="10">
-                                <Button text="Refresh" onAction="#refreshTables"/>
-                                <Button text="Add" onAction="#onAddTable"/>
-                                <Button text="Update" onAction="#onUpdateTable"/>
-                                <Button text="Delete" onAction="#onDeleteTable"/>
-                            </HBox>
-                        </top>
-                        <center>
-                            <TableView fx:id="tablesTable">
-                                <columns>
-                                    <TableColumn fx:id="tNumCol" text="Number" prefWidth="90"/>
-                                    <TableColumn fx:id="tCapCol" text="Seats" prefWidth="90"/>
-                                    <TableColumn fx:id="tLocCol" text="Location" prefWidth="180"/>
-                                    <TableColumn fx:id="tStatusCol" text="Status" prefWidth="120"/>
-                                </columns>
-                            </TableView>
-                        </center>
-                    </BorderPane>
-                </Tab>
+                        <Tab text="Tables" closable="false">
+                            <BorderPane styleClass="dash-card">
+                                <top>
+                                    <HBox spacing="10" styleClass="dash-toolbar" alignment="CENTER_LEFT">
+                                        <Button text="Refresh" onAction="#refreshTables" styleClass="dash-btn"/>
+                                        <Button text="Add" onAction="#onAddTable" styleClass="dash-btn-secondary"/>
+                                        <Button text="Update" onAction="#onUpdateTable" styleClass="dash-btn-secondary"/>
+                                        <Button text="Delete" onAction="#onDeleteTable" styleClass="dash-btn-danger"/>
+                                    </HBox>
+                                </top>
+                                <center>
+                                    <TableView fx:id="tablesTable">
+                                        <columns>
+                                            <TableColumn fx:id="tNumCol" text="Number" prefWidth="90"/>
+                                            <TableColumn fx:id="tCapCol" text="Seats" prefWidth="90"/>
+                                            <TableColumn fx:id="tLocCol" text="Location" prefWidth="180"/>
+                                            <TableColumn fx:id="tStatusCol" text="Status" prefWidth="120"/>
+                                        </columns>
+                                    </TableView>
+                                </center>
+                            </BorderPane>
+                        </Tab>
 
-                <!-- Tab: Opening Hours -->
-                <Tab text="Opening Hours" closable="false">
-                    <BorderPane style="-fx-padding: 10;">
-                        <top>
-                            <HBox spacing="10">
-                                <Button text="Refresh" onAction="#refreshOpeningHours"/>
-                                <Button text="Update Selected" onAction="#onUpdateOpeningHours"/>
-                            </HBox>
-                        </top>
-                        <center>
-                            <TableView fx:id="hoursTable">
-                                <columns>
-                                    <TableColumn fx:id="hDayCol" text="Day" prefWidth="150"/>
-                                    <TableColumn fx:id="hOpenCol" text="Open" prefWidth="120"/>
-                                    <TableColumn fx:id="hCloseCol" text="Close" prefWidth="120"/>
-                                </columns>
-                            </TableView>
-                        </center>
-                    </BorderPane>
-                </Tab>
+                        <Tab text="Opening Hours" closable="false">
+                            <BorderPane styleClass="dash-card">
+                                <top>
+                                    <HBox spacing="10" styleClass="dash-toolbar" alignment="CENTER_LEFT">
+                                        <Button text="Refresh" onAction="#refreshOpeningHours" styleClass="dash-btn"/>
+                                        <Button text="Update Selected" onAction="#onUpdateOpeningHours" styleClass="dash-btn-secondary"/>
+                                    </HBox>
+                                </top>
+                                <center>
+                                    <TableView fx:id="hoursTable">
+                                        <columns>
+                                            <TableColumn fx:id="hDayCol" text="Day" prefWidth="150"/>
+                                            <TableColumn fx:id="hOpenCol" text="Open" prefWidth="120"/>
+                                            <TableColumn fx:id="hCloseCol" text="Close" prefWidth="120"/>
+                                        </columns>
+                                    </TableView>
+                                </center>
+                            </BorderPane>
+                        </Tab>
 
-                <!-- Tab: Special Hours -->
-                <Tab text="Special Hours" closable="false">
-                    <BorderPane style="-fx-padding: 10;">
-                        <top>
-                            <HBox spacing="10">
-                                <Button text="Refresh" onAction="#refreshSpecialHours"/>
-                                <Button text="Add" onAction="#onAddSpecialHours"/>
-                                <Button text="Delete" onAction="#onDeleteSpecialHours"/>
-                            </HBox>
-                        </top>
-                        <center>
-                            <TableView fx:id="specialTable">
-                                <columns>
-                                    <TableColumn fx:id="sIdCol" text="ID" prefWidth="80"/>
-                                    <TableColumn fx:id="sDateCol" text="Date" prefWidth="130"/>
-                                    <TableColumn fx:id="sOpenCol" text="Open" prefWidth="120"/>
-                                    <TableColumn fx:id="sCloseCol" text="Close" prefWidth="120"/>
-                                </columns>
-                            </TableView>
-                        </center>
-                    </BorderPane>
-                </Tab>
+                        <Tab text="Special Hours" closable="false">
+                            <BorderPane styleClass="dash-card">
+                                <top>
+                                    <HBox spacing="10" styleClass="dash-toolbar" alignment="CENTER_LEFT">
+                                        <Button text="Refresh" onAction="#refreshSpecialHours" styleClass="dash-btn"/>
+                                        <Button text="Add" onAction="#onAddSpecialHours" styleClass="dash-btn-secondary"/>
+                                        <Button text="Delete" onAction="#onDeleteSpecialHours" styleClass="dash-btn-danger"/>
+                                    </HBox>
+                                </top>
+                                <center>
+                                    <TableView fx:id="specialTable">
+                                        <columns>
+                                            <TableColumn fx:id="sIdCol" text="ID" prefWidth="80"/>
+                                            <TableColumn fx:id="sDateCol" text="Date" prefWidth="130"/>
+                                            <TableColumn fx:id="sOpenCol" text="Open" prefWidth="120"/>
+                                            <TableColumn fx:id="sCloseCol" text="Close" prefWidth="120"/>
+                                        </columns>
+                                    </TableView>
+                                </center>
+                            </BorderPane>
+                        </Tab>
 
-                <!-- Tab: Reports -->
-                <Tab text="Reports" closable="false">
-                    <BorderPane style="-fx-padding: 10;">
-                        <top>
-                            <VBox spacing="10">
-                                <HBox spacing="10" alignment="CENTER_LEFT">
-                                    <Label text="Month:"/>
-                                    <ComboBox fx:id="reportMonthCombo" prefWidth="170"/>
+                        <Tab text="Reports" closable="false">
+                            <BorderPane styleClass="dash-card">
+                                <top>
+                                    <VBox spacing="10" styleClass="dash-toolbar">
+                                        <HBox spacing="10" alignment="CENTER_LEFT">
+                                            <Label text="Month:"/>
+                                            <ComboBox fx:id="reportMonthCombo" prefWidth="170"/>
 
-                                    <Label text="Year:"/>
-                                    <TextField fx:id="reportYearField" prefWidth="90" promptText="2026"/>
+                                            <Label text="Year:"/>
+                                            <TextField fx:id="reportYearField" prefWidth="90" promptText="2026"/>
 
-                                    <Region HBox.hgrow="ALWAYS"/>
-                                </HBox>
+                                            <Region HBox.hgrow="ALWAYS"/>
+                                        </HBox>
 
-                                <HBox spacing="10" alignment="CENTER_LEFT">
-                                    <Button text="Time Report" onAction="#onFetchTimeReport"/>
-                                    <Button text="Subscribers Report" onAction="#onFetchSubscribersReport"/>
-                                </HBox>
-                            </VBox>
-                        </top>
+                                        <HBox spacing="10" alignment="CENTER_LEFT">
+                                            <Button text="Time Report" onAction="#onFetchTimeReport" styleClass="dash-btn"/>
+                                            <Button text="Subscribers Report" onAction="#onFetchSubscribersReport" styleClass="dash-btn-secondary"/>
+                                        </HBox>
+                                    </VBox>
+                                </top>
 
-                        <center>
-                            <SplitPane dividerPositions="0.55" orientation="VERTICAL">
-                                <!-- Charts area -->
-                                <HBox fx:id="chartsArea" spacing="20" alignment="CENTER" style="-fx-padding: 10;">
-                                    <PieChart fx:id="reportPieChart" prefWidth="380" prefHeight="280" 
-                                              title="Distribution" legendSide="BOTTOM"/>
-                                    <BarChart fx:id="reportBarChart" prefWidth="420" prefHeight="280"
-                                              title="Statistics" legendVisible="false">
-                                        <xAxis><CategoryAxis label="Category"/></xAxis>
-                                        <yAxis><NumberAxis label="Count"/></yAxis>
-                                    </BarChart>
-                                </HBox>
-                                
-                                <!-- Table area -->
-                                <TableView fx:id="reportTable">
-                                    <columns>
-                                        <TableColumn fx:id="repCol1" text="Field" prefWidth="260"/>
-                                        <TableColumn fx:id="repCol2" text="Value" prefWidth="520"/>
-                                    </columns>
-                                </TableView>
-                            </SplitPane>
-                        </center>
-                    </BorderPane>
-                </Tab>
+                                <center>
+                                    <SplitPane dividerPositions="0.55" orientation="VERTICAL">
+                                        <HBox fx:id="chartsArea" spacing="20" alignment="CENTER" style="-fx-padding: 10;">
+                                            <PieChart fx:id="reportPieChart" prefWidth="380" prefHeight="280"
+                                                      title="Distribution" legendSide="BOTTOM"/>
+                                            <BarChart fx:id="reportBarChart" prefWidth="420" prefHeight="280"
+                                                      title="Statistics" legendVisible="false">
+                                                <xAxis><CategoryAxis label="Category"/></xAxis>
+                                                <yAxis><NumberAxis label="Count"/></yAxis>
+                                            </BarChart>
+                                        </HBox>
 
-            </tabs>
-        </TabPane>
+                                        <TableView fx:id="reportTable">
+                                            <columns>
+                                                <TableColumn fx:id="repCol1" text="Field" prefWidth="260"/>
+                                                <TableColumn fx:id="repCol2" text="Value" prefWidth="520"/>
+                                            </columns>
+                                        </TableView>
+                                    </SplitPane>
+                                </center>
+                            </BorderPane>
+                        </Tab>
+
+                    </tabs>
+                </TabPane>
+            </center>
+        </BorderPane>
     </center>
 
     <bottom>
-        <Label fx:id="statusLabel" text="" style="-fx-padding: 10;"/>
+        <Label fx:id="statusLabel" text="" styleClass="dash-status"/>
     </bottom>
 
 </BorderPane>

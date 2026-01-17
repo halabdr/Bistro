@@ -48,16 +48,18 @@
 
 .action-content {
     -fx-alignment: top-center;
-    -fx-padding: 35 40 40 40;
+    -fx-padding: 10 0 40 0;
     -fx-spacing: 25;
+    -fx-fill-width: true; /* חשוב לרוחב */
 }
 
 .action-card {
     -fx-background-color: #FFFFFF;
     -fx-background-radius: 12;
-    -fx-padding: 30;
+    -fx-padding: 26;
     -fx-spacing: 20;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 15, 0, 0, 3);
+    -fx-max-width: 680px; /* כדי שלא יהיה קטן מדי */
 }
 
 .action-card-title {
@@ -473,4 +475,80 @@
 .action-refresh-button:hover {
     -fx-background-color: #2C5F7C;
     -fx-effect: dropshadow(gaussian, rgba(61, 122, 158, 0.4), 8, 0, 0, 3);
+}
+
+/* ========================================
+   CONFIRM RESERVATION - SCROLL + BOTTOM BAR
+   ======================================== */
+
+/* Make ScrollPane invisible/clean */
+.page-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-padding: 0;
+}
+
+.page-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.page-scroll > .corner {
+    -fx-background-color: transparent;
+}
+
+/* Subtle, modern bottom action bar */
+.action-bottom-bar {
+    -fx-padding: 14 18 18 18;
+    -fx-background-color: rgba(246, 248, 251, 0.92);
+    -fx-border-color: rgba(226, 232, 240, 0.95);
+    -fx-border-width: 1 0 0 0;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.10), 18, 0.18, 0, -6);
+}
+
+/* Centered "capsule" for buttons */
+.action-bottom-inner {
+    -fx-padding: 12 16 12 16;
+    -fx-background-color: rgba(255, 255, 255, 0.88);
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-border-color: rgba(226, 232, 240, 0.9);
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.08), 14, 0.15, 0, 4);
+}
+
+.action-status-label {
+    -fx-wrap-text: true;
+}
+
+.action-status-error {
+    -fx-text-fill: #dc2626;
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-background-color: #fee2e2;
+    -fx-padding: 6 10;
+    -fx-background-radius: 6;
+}
+/* Input error highlight */
+.input-error {
+    -fx-border-color: #dc2626 !important;
+    -fx-border-width: 1.5px !important;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+.input-error:focused {
+    -fx-effect: dropshadow(gaussian, rgba(220,38,38,0.35), 12, 0.2, 0, 0);
+}
+
+/* ⚠ icon next to invalid input */
+.warn-icon {
+    -fx-text-fill: #dc2626;
+    -fx-font-size: 16px;
+    -fx-font-weight: 900;
+}
+
+/* Inline field error under input */
+.inline-error {
+    -fx-text-fill: #dc2626;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
 }

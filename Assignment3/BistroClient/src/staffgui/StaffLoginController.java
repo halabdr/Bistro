@@ -121,10 +121,15 @@ public class StaffLoginController implements MessageListener {
             }
 
             try {
-                ConnectApp.showStaffDashboard(user);
+                if (user.getUserRole() == User.UserRole.MANAGER) {
+                    ConnectApp.showManagerDashboard(user);
+                } else {
+                    ConnectApp.showStaffDashboard(user);
+                }
             } catch (Exception e) {
                 statusLabel.setText("Failed to open dashboard: " + e.getMessage());
             }
+
         });
     }
 }

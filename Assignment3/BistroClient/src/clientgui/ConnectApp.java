@@ -243,16 +243,30 @@ public final class ConnectApp {
 
     // ======================= STAFF =======================
 
-    public static void showStaffDashboard(entities.User staffUser) throws Exception {
+    public static void showStaffDashboard(entities.User user) throws Exception {
         FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/staffgui/StaffDashboard.fxml"));
         Scene scene = new Scene(loader.load());
 
         staffgui.StaffDashboardController c = loader.getController();
-        c.init(controller, staffUser);
+        c.init(controller, user); 
 
-        primaryStage.setScene(scene);
         primaryStage.setTitle("Staff Dashboard - Bistro");
+        primaryStage.setScene(scene);
+        primaryStage.show();
     }
+    
+    public static void showManagerDashboard(entities.User user) throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/managergui/ManagerDashboard.fxml"));
+        Scene scene = new Scene(loader.load());
+
+        managergui.ManagerDashboardController c = loader.getController();
+        c.init(controller, user);
+
+        primaryStage.setTitle("Manager Dashboard - Bistro");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+
 
     // ======================= SUBSCRIBER SCREENS =======================
 

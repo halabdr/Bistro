@@ -18,57 +18,61 @@
     </VBox>
 
     <!-- Content Area -->
-    <VBox styleClass="action-content" VBox.vgrow="ALWAYS">
-        
+    <VBox styleClass="action-content" VBox.vgrow="ALWAYS" fillWidth="true">
+
         <!-- Payment Card -->
-        <VBox styleClass="action-card" spacing="20" maxWidth="550">
-            
+        <VBox styleClass="action-card" spacing="20" maxWidth="550" prefWidth="550">
+
             <Label text="Payment Details" styleClass="action-card-title"/>
-            
+
             <!-- Confirmation Code Input -->
             <VBox spacing="6">
                 <Label text="Confirmation Code" styleClass="action-form-label"/>
-                <TextField fx:id="confirmationCodeField" 
+                <TextField fx:id="confirmationCodeField"
                            styleClass="action-input-field"
                            promptText="Enter your reservation or waitlist code"/>
-                <Label text="This is the code you received when making a reservation or joining the waitlist" 
+                <Label text="This is the code you received when making a reservation or joining the waitlist"
                        style="-fx-text-fill: #718096; -fx-font-size: 11px; -fx-font-style: italic;"/>
             </VBox>
-            
+
             <Separator styleClass="action-divider"/>
-            
+
             <!-- Bill Details (shown after fetching) -->
             <VBox fx:id="billDetailsBox" spacing="12" visible="false" managed="false">
                 <Label text="Bill Summary" styleClass="action-section-title"/>
-                
-                <HBox spacing="20">
+
+                <HBox spacing="20" alignment="CENTER_LEFT">
                     <VBox spacing="4" HBox.hgrow="ALWAYS">
                         <Label text="Table Number" style="-fx-text-fill: #718096; -fx-font-size: 12px;"/>
                         <Label fx:id="tableNumberLabel" text="-" style="-fx-font-size: 16px; -fx-font-weight: 600;"/>
                     </VBox>
+
                     <VBox spacing="4" HBox.hgrow="ALWAYS">
                         <Label text="Total Amount" style="-fx-text-fill: #718096; -fx-font-size: 12px;"/>
                         <Label fx:id="totalAmountLabel" text="-" style="-fx-font-size: 16px; -fx-font-weight: 600;"/>
                     </VBox>
+
                     <VBox spacing="4" HBox.hgrow="ALWAYS">
                         <Label text="Discount (10%)" style="-fx-text-fill: #718096; -fx-font-size: 12px;"/>
                         <Label fx:id="discountLabel" text="-" style="-fx-font-size: 16px; -fx-font-weight: 600; -fx-text-fill: #48BB78;"/>
                     </VBox>
+
                     <VBox spacing="4" HBox.hgrow="ALWAYS">
                         <Label text="Final Amount" style="-fx-text-fill: #718096; -fx-font-size: 12px;"/>
                         <Label fx:id="finalAmountLabel" text="-" style="-fx-font-size: 18px; -fx-font-weight: 700; -fx-text-fill: #2B6CB0;"/>
                     </VBox>
                 </HBox>
-                
+
                 <Separator styleClass="action-divider"/>
             </VBox>
-            
+
             <!-- Status Label -->
-            <Label fx:id="statusLabel" 
-                   text="" 
+            <Label fx:id="statusLabel"
+                   text=""
+                   wrapText="true"
                    styleClass="action-status-label"
-                   wrapText="true"/>
-            
+                   maxWidth="1.7976931348623157E308"/>
+
             <!-- Action Buttons -->
             <HBox spacing="15" alignment="CENTER">
                 <Button fx:id="fetchBillButton"
@@ -83,9 +87,9 @@
                         prefWidth="160"
                         disable="true"/>
             </HBox>
-            
+
         </VBox>
-        
+
         <!-- Back Button -->
         <HBox spacing="15" alignment="CENTER" maxWidth="550">
             <Button text="Back to Menu"
@@ -93,7 +97,7 @@
                     styleClass="action-back-button"
                     prefWidth="180"/>
         </HBox>
-        
+
     </VBox>
 
 </VBox>

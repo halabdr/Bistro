@@ -5,78 +5,72 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="managergui.ManagerDashboardController"
-            style="-fx-background-color: #f1f5f9;">
+            styleClass="dash-root"
+            stylesheets="@/styles/bistro_dashboard.css">
 
     <top>
-        <VBox spacing="10" BorderPane.alignment="CENTER">
-            <padding>
-                <Insets top="14" right="14" bottom="10" left="14"/>
-            </padding>
+        <HBox styleClass="dash-topbar" alignment="CENTER_LEFT" spacing="14">
+            <VBox spacing="2">
+                <Label fx:id="welcomeLabel" text="Manager Dashboard" styleClass="dash-title"/>
+                <Label text="Reports and analytics overview" styleClass="dash-subtitle"/>
+            </VBox>
 
-            <Label fx:id="welcomeLabel"
-                   text="Manager Dashboard"
-                   style="-fx-font-size: 20px; -fx-font-weight: 800; -fx-text-fill: #0f172a;"/>
+            <Region HBox.hgrow="ALWAYS"/>
 
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="Month:" style="-fx-text-fill: #0f172a;"/>
-                <ComboBox fx:id="monthCombo" prefWidth="140"/>
-
-                <Label text="Year:" style="-fx-text-fill: #0f172a;"/>
-                <TextField fx:id="yearField" prefWidth="90"/>
-
-                <Button fx:id="loadBtn" text="Load Reports" onAction="#onLoadReports"/>
-                <Button fx:id="generateBtn" text="Generate" onAction="#onGenerateReports"/>
-                <Button fx:id="exportBtn" text="Export (Bonus)" onAction="#onExport"/>
-            </HBox>
-
-            <Label fx:id="statusLabel" text="" style="-fx-text-fill: #475569;"/>
-        </VBox>
+            <Button text="Logout" onAction="#onLogout" styleClass="dash-btn-danger"/>
+        </HBox>
     </top>
 
     <center>
-        <VBox spacing="12">
-            <padding>
-                <Insets top="10" right="14" bottom="14" left="14"/>
-            </padding>
+        <VBox spacing="14" padding="14">
+
+            <HBox spacing="10" alignment="CENTER_LEFT" styleClass="dash-card">
+                <Label text="Month:"/>
+                <ComboBox fx:id="monthCombo" prefWidth="160"/>
+
+                <Label text="Year:"/>
+                <TextField fx:id="yearField" prefWidth="100" promptText="2026"/>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <Button fx:id="loadBtn" text="Load Reports" onAction="#onLoadReports" styleClass="dash-btn"/>
+                <Button fx:id="generateBtn" text="Generate" onAction="#onGenerateReports" styleClass="dash-btn-secondary"/>
+                <Button fx:id="exportBtn" text="Export (Bonus)" onAction="#onExport" styleClass="dash-btn-secondary"/>
+            </HBox>
+
+            <Label fx:id="statusLabel" text="" styleClass="dash-status"/>
 
             <HBox spacing="12">
-                <VBox spacing="6" HBox.hgrow="ALWAYS">
-                    <Label text="Time Report (Chart)" style="-fx-font-weight: 700; -fx-text-fill: #0f172a;"/>
-                    <LineChart fx:id="timeChart" prefHeight="260">
-                        <xAxis>
-                            <CategoryAxis label="X"/>
-                        </xAxis>
-                        <yAxis>
-                            <NumberAxis label="Value"/>
-                        </yAxis>
+                <VBox spacing="8" HBox.hgrow="ALWAYS" styleClass="dash-card">
+                    <Label text="Time Report (Chart)" style="-fx-font-weight: 800; -fx-text-fill: #0f172a;"/>
+                    <LineChart fx:id="timeChart" prefHeight="280">
+                        <xAxis><CategoryAxis label="Category"/></xAxis>
+                        <yAxis><NumberAxis label="Value"/></yAxis>
                     </LineChart>
                 </VBox>
 
-                <VBox spacing="6" HBox.hgrow="ALWAYS">
-                    <Label text="Subscribers Report (Chart)" style="-fx-font-weight: 700; -fx-text-fill: #0f172a;"/>
-                    <BarChart fx:id="subscribersChart" prefHeight="260">
-                        <xAxis>
-                            <CategoryAxis label="X"/>
-                        </xAxis>
-                        <yAxis>
-                            <NumberAxis label="Value"/>
-                        </yAxis>
+                <VBox spacing="8" HBox.hgrow="ALWAYS" styleClass="dash-card">
+                    <Label text="Subscribers Report (Chart)" style="-fx-font-weight: 800; -fx-text-fill: #0f172a;"/>
+                    <BarChart fx:id="subscribersChart" prefHeight="280">
+                        <xAxis><CategoryAxis label="Category"/></xAxis>
+                        <yAxis><NumberAxis label="Value"/></yAxis>
                     </BarChart>
                 </VBox>
             </HBox>
 
-            <VBox spacing="6">
-                <Label text="Details" style="-fx-font-weight: 700; -fx-text-fill: #0f172a;"/>
-                <TableView fx:id="detailsTable" prefHeight="240">
+            <VBox spacing="8" styleClass="dash-card">
+                <Label text="Details" style="-fx-font-weight: 800; -fx-text-fill: #0f172a;"/>
+                <TableView fx:id="detailsTable" prefHeight="260">
                     <columns>
                         <TableColumn fx:id="fieldCol" text="Field" prefWidth="260"/>
                         <TableColumn fx:id="valueCol" text="Value" prefWidth="520"/>
                     </columns>
                 </TableView>
             </VBox>
+
         </VBox>
     </center>
 </BorderPane>

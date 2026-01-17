@@ -196,17 +196,20 @@ public class ClientController {
 		client.sendToServer(new Message(Commands.CREATE_RESERVATION, data));
 	}
 
-	public void createReservation(LocalDate date, LocalTime time, int guests, String subscriberNumber,
-			String guestPhone, String guestEmail) throws IOException {
-		Map<String, Object> data = new HashMap<>();
-		data.put("date", date);
-		data.put("time", time);
-		data.put("guests", guests);
-		data.put("subscriberNumber", subscriberNumber);
-		data.put("guestPhone", guestPhone);
-		data.put("guestEmail", guestEmail);
-		client.sendToServer(new Message(Commands.CREATE_RESERVATION, data));
+	public void createReservation(LocalDate date, LocalTime time, int guestCount, String subscriberNumber,
+	        String guestPhone, String guestEmail) throws IOException {
+
+	    Map<String, Object> data = new HashMap<>();
+	    data.put("bookingDate", date.toString());     
+	    data.put("bookingTime", time.toString());     
+	    data.put("guestCount", guestCount);           
+	    data.put("subscriberNumber", subscriberNumber);
+	    data.put("guestPhone", guestPhone);
+	    data.put("guestEmail", guestEmail);
+
+	    client.sendToServer(new Message(Commands.CREATE_RESERVATION, data));
 	}
+
 
 	/**
 	 * Sends a CANCEL_RESERVATION request.

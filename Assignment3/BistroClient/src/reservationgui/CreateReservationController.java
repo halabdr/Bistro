@@ -9,10 +9,7 @@ import entities.Reservation;
 import entities.User;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.StackPane;
@@ -23,8 +20,12 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 /**
- * Controller for creating a reservation.
+ * Controller for creating a reservation confirmation screen.
  * Supports both subscribers and walk-in customers.
+ *
+ * Walk-in policy:
+ * - MUST provide BOTH phone and email
+ * - phone and email formats are validated
  */
 public class CreateReservationController implements MessageListener {
 
@@ -33,6 +34,7 @@ public class CreateReservationController implements MessageListener {
     @FXML private Label timeValue;
     @FXML private Label guestsValue;
     @FXML private Label subscriberValue;
+
     @FXML private TextArea notesArea;
     @FXML private Label statusLabel;
 
@@ -41,16 +43,22 @@ public class CreateReservationController implements MessageListener {
     @FXML private TextField phoneField;
     @FXML private TextField emailField;
 
-    // Success overlay (popup)
+    // ⚠ icons + inline errors
+    @FXML private Label phoneWarnIcon;
+    @FXML private Label emailWarnIcon;
+    @FXML private Label phoneErrorLabel;
+    @FXML private Label emailErrorLabel;
+
+    // Success overlay
     @FXML private StackPane successOverlay;
     @FXML private Label confirmationCodeLabel;
     @FXML private Label reservationIdLabel;
     @FXML private Label copiedLabel;
 
-    // Buttons
+    // Button
     @FXML private Button confirmBtn;
 
-    private String lastConfirmationCode = null;
+    private String lastConfirmationCode;
 
     private entities.Subscriber subscriber;
     private ClientController controller;
@@ -58,15 +66,6 @@ public class CreateReservationController implements MessageListener {
     private String hhmm;
     private int guests;
 
-    /**
-     * Initializes the controller with reservation details.
-     *
-     * @param controller shared client controller
-     * @param subscriber logged-in subscriber (null for walk-in)
-     * @param date reservation date
-     * @param hhmm reservation time in HH:mm format
-     * @param guests number of guests
-     */
     public void init(ClientController controller, entities.Subscriber subscriber,
                      LocalDate date, String hhmm, int guests) {
 
@@ -82,17 +81,14 @@ public class CreateReservationController implements MessageListener {
         timeValue.setText(hhmm);
         guestsValue.setText(String.valueOf(guests));
 
-        // Show/hide fields based on customer type
         if (subscriber != null) {
             subscriberValue.setText(subscriber.getSubscriberNumber());
-            // Hide guest info box for subscribers
             if (guestInfoBox != null) {
                 guestInfoBox.setVisible(false);
                 guestInfoBox.setManaged(false);
             }
         } else {
             subscriberValue.setText("Walk-in Customer");
-            // Show guest info box for walk-in customers
             if (guestInfoBox != null) {
                 guestInfoBox.setVisible(true);
                 guestInfoBox.setManaged(true);
@@ -101,56 +97,73 @@ public class CreateReservationController implements MessageListener {
 
         statusLabel.setText("");
         hideSuccessOverlay();
+
+        clearGuestErrors();
+
+        // Remove error UI when user types
+        if (phoneField != null) {
+            phoneField.textProperty().addListener((obs, o, n) -> clearPhoneErrorUI());
+        }
+        if (emailField != null) {
+            emailField.textProperty().addListener((obs, o, n) -> clearEmailErrorUI());
+        }
     }
 
-    /**
-     * Navigates back to the reservation search screen.
-     */
     @FXML
     private void onBack() throws Exception {
         ConnectApp.showReservationSearch(subscriber);
     }
 
-    /**
-     * Sends CREATE_RESERVATION request.
-     */
     @FXML
     private void onConfirm() {
         try {
+            // Always clear previous global status
+            statusLabel.setText("");
+
             String subNumber = null;
             String guestPhone = null;
             String guestEmail = null;
 
             if (subscriber != null) {
-                // Subscriber reservation
                 subNumber = subscriber.getSubscriberNumber();
                 if (subNumber == null || subNumber.isBlank()) {
                     statusLabel.setText("Missing subscriber number.");
                     return;
                 }
+
+                // subscribers shouldn't show errors for walk-in fields
+                clearGuestErrors();
+
             } else {
-                // Walk-in customer - need phone or email
-                if (phoneField != null) {
-                    guestPhone = phoneField.getText() != null ? phoneField.getText().trim() : "";
-                }
-                if (emailField != null) {
-                    guestEmail = emailField.getText() != null ? emailField.getText().trim() : "";
-                }
+                // Walk-in: MUST provide BOTH phone and email
+                guestPhone = (phoneField != null && phoneField.getText() != null)
+                        ? phoneField.getText().trim()
+                        : "";
+                guestEmail = (emailField != null && emailField.getText() != null)
+                        ? emailField.getText().trim()
+                        : "";
 
-                if (guestPhone.isEmpty() && guestEmail.isEmpty()) {
-                    statusLabel.setText("Please enter your phone number or email.");
+                clearGuestErrors();
+
+                boolean phoneMissing = guestPhone.isEmpty();
+                boolean emailMissing = guestEmail.isEmpty();
+
+                if (phoneMissing || emailMissing) {
+                    statusLabel.setText("Please enter BOTH phone number and email.");
+                    if (phoneMissing) setPhoneErrorUI("Phone number is required.");
+                    if (emailMissing) setEmailErrorUI("Email address is required.");
                     return;
                 }
 
-                // Validate phone format if provided
-                if (!guestPhone.isEmpty() && !User.isValidPhone(guestPhone)) {
+                if (!User.isValidPhone(guestPhone)) {
                     statusLabel.setText("Invalid phone format. Use: 05X-XXXXXXX");
+                    setPhoneErrorUI("Invalid format. Example: 050-1234567");
                     return;
                 }
 
-                // Validate email format if provided
-                if (!guestEmail.isEmpty() && !User.isValidEmail(guestEmail)) {
+                if (!User.isValidEmail(guestEmail)) {
                     statusLabel.setText("Invalid email format.");
+                    setEmailErrorUI("Please enter a valid email (e.g., name@gmail.com)");
                     return;
                 }
             }
@@ -160,7 +173,10 @@ public class CreateReservationController implements MessageListener {
 
             LocalTime time = LocalTime.parse(hhmm);
 
-            // Send reservation request
+            // normalize empty -> null
+            if (guestPhone != null && guestPhone.isBlank()) guestPhone = null;
+            if (guestEmail != null && guestEmail.isBlank()) guestEmail = null;
+
             controller.createReservation(date, time, guests, subNumber, guestPhone, guestEmail);
 
         } catch (IOException e) {
@@ -173,11 +189,6 @@ public class CreateReservationController implements MessageListener {
         }
     }
 
-    /**
-     * Handles server response for reservation creation.
-     *
-     * @param m message from server
-     */
     @Override
     public void onMessage(Message m) {
         if (m == null) return;
@@ -198,7 +209,7 @@ public class CreateReservationController implements MessageListener {
                 confirmationCodeLabel.setText(r.getConfirmationCode());
                 reservationIdLabel.setText("Reservation ID: #" + r.getReservationId());
 
-                copiedLabel.setText("");
+                if (copiedLabel != null) copiedLabel.setText("");
                 showSuccessOverlay();
 
                 statusLabel.setText("");
@@ -210,9 +221,6 @@ public class CreateReservationController implements MessageListener {
 
     // ===== Popup actions =====
 
-    /**
-     * Copies the confirmation code to clipboard.
-     */
     @FXML
     private void onCopyCode() {
         if (lastConfirmationCode == null || lastConfirmationCode.isBlank()) return;
@@ -224,9 +232,6 @@ public class CreateReservationController implements MessageListener {
         if (copiedLabel != null) copiedLabel.setText("Copied ✅");
     }
 
-    /**
-     * Closes the success popup and navigates appropriately.
-     */
     @FXML
     private void onCloseSuccess() {
         try {
@@ -235,7 +240,6 @@ public class CreateReservationController implements MessageListener {
             if (subscriber != null) {
                 ConnectApp.showViewReservations(subscriber);
             } else {
-                // Walk-in customer - go back to welcome
                 ConnectApp.showWelcome();
             }
         } catch (Exception e) {
@@ -253,5 +257,75 @@ public class CreateReservationController implements MessageListener {
         if (successOverlay == null) return;
         successOverlay.setVisible(false);
         successOverlay.setManaged(false);
+    }
+
+    // ===== Error UI helpers =====
+
+    private void markError(TextField field, boolean hasError) {
+        if (field == null) return;
+        if (hasError) {
+            if (!field.getStyleClass().contains("input-error")) {
+                field.getStyleClass().add("input-error");
+            }
+        } else {
+            field.getStyleClass().remove("input-error");
+        }
+    }
+
+    private void setPhoneErrorUI(String msg) {
+        markError(phoneField, true);
+        if (phoneWarnIcon != null) {
+            phoneWarnIcon.setVisible(true);
+            phoneWarnIcon.setManaged(true);
+        }
+        if (phoneErrorLabel != null) {
+            phoneErrorLabel.setText(msg);
+            phoneErrorLabel.setVisible(true);
+            phoneErrorLabel.setManaged(true);
+        }
+    }
+
+    private void setEmailErrorUI(String msg) {
+        markError(emailField, true);
+        if (emailWarnIcon != null) {
+            emailWarnIcon.setVisible(true);
+            emailWarnIcon.setManaged(true);
+        }
+        if (emailErrorLabel != null) {
+            emailErrorLabel.setText(msg);
+            emailErrorLabel.setVisible(true);
+            emailErrorLabel.setManaged(true);
+        }
+    }
+
+    private void clearPhoneErrorUI() {
+        markError(phoneField, false);
+        if (phoneWarnIcon != null) {
+            phoneWarnIcon.setVisible(false);
+            phoneWarnIcon.setManaged(false);
+        }
+        if (phoneErrorLabel != null) {
+            phoneErrorLabel.setText("");
+            phoneErrorLabel.setVisible(false);
+            phoneErrorLabel.setManaged(false);
+        }
+    }
+
+    private void clearEmailErrorUI() {
+        markError(emailField, false);
+        if (emailWarnIcon != null) {
+            emailWarnIcon.setVisible(false);
+            emailWarnIcon.setManaged(false);
+        }
+        if (emailErrorLabel != null) {
+            emailErrorLabel.setText("");
+            emailErrorLabel.setVisible(false);
+            emailErrorLabel.setManaged(false);
+        }
+    }
+
+    private void clearGuestErrors() {
+        clearPhoneErrorUI();
+        clearEmailErrorUI();
     }
 }

@@ -19,85 +19,157 @@
             <Label text="Review your details, then confirm your booking" styleClass="action-header-subtitle"/>
         </VBox>
 
-        <!-- Content Area -->
-        <VBox styleClass="action-content" VBox.vgrow="ALWAYS" alignment="CENTER">
+        <!-- Scrollable Content Area -->
+        <ScrollPane fitToWidth="true"
+                    pannable="true"
+                    hbarPolicy="NEVER"
+                    vbarPolicy="AS_NEEDED"
+                    styleClass="page-scroll"
+                    VBox.vgrow="ALWAYS">
 
-            <!-- Summary Card -->
-            <VBox styleClass="action-card" spacing="18" maxWidth="550">
-                <Label text="Reservation Summary" styleClass="action-section-title"/>
+            <content>
+                <VBox fx:id="contentRoot"
+                      styleClass="action-content"
+                      alignment="TOP_CENTER"
+                      spacing="26"
+                      fillWidth="true">
+                    <padding>
+                        <Insets top="26" right="0" bottom="26" left="0"/>
+                    </padding>
 
-                <!-- Summary Details -->
-                <VBox spacing="12"
-                      style="-fx-background-color: #f8fafc; -fx-background-radius: 12; -fx-padding: 18; -fx-border-color: #e2e8f0; -fx-border-radius: 12;">
-                    <HBox spacing="12">
-                        <Label text="Date:" prefWidth="100" style="-fx-text-fill: #64748b; -fx-font-weight: 600;"/>
-                        <Label fx:id="dateValue" text="-" style="-fx-text-fill: #0f172a; -fx-font-weight: 700;"/>
+                    <HBox alignment="CENTER">
+                        <VBox styleClass="action-card"
+                              spacing="20"
+                              maxWidth="680"
+                              prefWidth="680">
+
+                            <Label text="Reservation Summary" styleClass="action-section-title"/>
+
+                            <!-- Summary -->
+                            <VBox spacing="12"
+                                  style="-fx-background-color: #f8fafc;
+                                         -fx-background-radius: 12;
+                                         -fx-padding: 18;
+                                         -fx-border-color: #e2e8f0;
+                                         -fx-border-radius: 12;">
+                                <HBox spacing="12">
+                                    <Label text="Date:" prefWidth="100" style="-fx-text-fill: #64748b; -fx-font-weight: 600;"/>
+                                    <Label fx:id="dateValue" text="-" style="-fx-text-fill: #0f172a; -fx-font-weight: 700;"/>
+                                </HBox>
+                                <HBox spacing="12">
+                                    <Label text="Time:" prefWidth="100" style="-fx-text-fill: #64748b; -fx-font-weight: 600;"/>
+                                    <Label fx:id="timeValue" text="-" style="-fx-text-fill: #0f172a; -fx-font-weight: 700;"/>
+                                </HBox>
+                                <HBox spacing="12">
+                                    <Label text="Guests:" prefWidth="100" style="-fx-text-fill: #64748b; -fx-font-weight: 600;"/>
+                                    <Label fx:id="guestsValue" text="-" style="-fx-text-fill: #0f172a; -fx-font-weight: 700;"/>
+                                </HBox>
+                                <HBox spacing="12">
+                                    <Label text="Customer:" prefWidth="100" style="-fx-text-fill: #64748b; -fx-font-weight: 600;"/>
+                                    <Label fx:id="subscriberValue" text="-" style="-fx-text-fill: #0f172a; -fx-font-weight: 700;"/>
+                                </HBox>
+                            </VBox>
+
+                            <!-- Walk-in Contact Info -->
+                            <VBox fx:id="guestInfoBox" spacing="12" visible="false" managed="false">
+                                <Separator style="-fx-background-color: #e2e8f0;"/>
+                                <Label text="Contact Information" styleClass="action-section-title"/>
+                                <Label text="Please provide BOTH phone number and email"
+                                       style="-fx-text-fill: #64748b; -fx-font-size: 12px;"/>
+
+                                <!-- Phone -->
+                                <VBox spacing="6">
+                                    <Label text="Phone Number" styleClass="action-form-label"/>
+
+                                    <HBox spacing="8" alignment="CENTER_LEFT">
+                                        <TextField fx:id="phoneField"
+                                                   promptText="05X-XXXXXXX"
+                                                   HBox.hgrow="ALWAYS"
+                                                   style="-fx-background-radius: 10;
+                                                          -fx-border-radius: 10;
+                                                          -fx-border-color: #cbd5e1;
+                                                          -fx-padding: 10;"/>
+
+                                        <!-- ⚠️ icon (hidden by default) -->
+                                        <Label fx:id="phoneWarnIcon"
+                                               text="⚠"
+                                               visible="false" managed="false"
+                                               styleClass="warn-icon"/>
+                                    </HBox>
+
+                                    <!-- inline error -->
+                                    <Label fx:id="phoneErrorLabel"
+                                           text=""
+                                           visible="false" managed="false"
+                                           styleClass="inline-error"/>
+                                </VBox>
+
+                                <!-- Email -->
+                                <VBox spacing="6">
+                                    <Label text="Email Address" styleClass="action-form-label"/>
+
+                                    <HBox spacing="8" alignment="CENTER_LEFT">
+                                        <TextField fx:id="emailField"
+                                                   promptText="your@email.com"
+                                                   HBox.hgrow="ALWAYS"
+                                                   style="-fx-background-radius: 10;
+                                                          -fx-border-radius: 10;
+                                                          -fx-border-color: #cbd5e1;
+                                                          -fx-padding: 10;"/>
+
+                                        <!-- ⚠️ icon (hidden by default) -->
+                                        <Label fx:id="emailWarnIcon"
+                                               text="⚠"
+                                               visible="false" managed="false"
+                                               styleClass="warn-icon"/>
+                                    </HBox>
+
+                                    <!-- inline error -->
+                                    <Label fx:id="emailErrorLabel"
+                                           text=""
+                                           visible="false" managed="false"
+                                           styleClass="inline-error"/>
+                                </VBox>
+                            </VBox>
+
+                            <Separator style="-fx-background-color: #e2e8f0;"/>
+
+                            <!-- Notes -->
+                            <Label text="Notes (optional)" styleClass="action-form-label"/>
+                            <TextArea fx:id="notesArea"
+                                      promptText="Any requests? (e.g., birthday, quiet table...)"
+                                      wrapText="true"
+                                      prefRowCount="3"
+                                      style="-fx-background-radius: 10;
+                                             -fx-border-radius: 10;
+                                             -fx-border-color: #cbd5e1;"/>
+
+                            <!-- Global status/error -->
+                            <Label fx:id="statusLabel"
+                                   text=""
+                                   styleClass="action-status-error"/>
+                        </VBox>
                     </HBox>
-                    <HBox spacing="12">
-                        <Label text="Time:" prefWidth="100" style="-fx-text-fill: #64748b; -fx-font-weight: 600;"/>
-                        <Label fx:id="timeValue" text="-" style="-fx-text-fill: #0f172a; -fx-font-weight: 700;"/>
-                    </HBox>
-                    <HBox spacing="12">
-                        <Label text="Guests:" prefWidth="100" style="-fx-text-fill: #64748b; -fx-font-weight: 600;"/>
-                        <Label fx:id="guestsValue" text="-" style="-fx-text-fill: #0f172a; -fx-font-weight: 700;"/>
-                    </HBox>
-                    <HBox spacing="12">
-                        <Label text="Customer:" prefWidth="100" style="-fx-text-fill: #64748b; -fx-font-weight: 600;"/>
-                        <Label fx:id="subscriberValue" text="-" style="-fx-text-fill: #0f172a; -fx-font-weight: 700;"/>
-                    </HBox>
+
                 </VBox>
+            </content>
+        </ScrollPane>
 
-                <!-- Guest Contact Info (for walk-in customers) -->
-                <VBox fx:id="guestInfoBox" spacing="12" visible="false" managed="false">
-                    <Separator style="-fx-background-color: #e2e8f0;"/>
-                    <Label text="Contact Information" styleClass="action-section-title"/>
-                    <Label text="Please provide at least one contact method" 
-                           style="-fx-text-fill: #64748b; -fx-font-size: 12px;"/>
-                    
-                    <VBox spacing="6">
-                        <Label text="Phone Number" styleClass="action-form-label"/>
-                        <TextField fx:id="phoneField" 
-                                   promptText="05X-XXXXXXX"
-                                   style="-fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #cbd5e1; -fx-padding: 10;"/>
-                    </VBox>
-                    
-                    <VBox spacing="6">
-                        <Label text="Email Address" styleClass="action-form-label"/>
-                        <TextField fx:id="emailField" 
-                                   promptText="your@email.com"
-                                   style="-fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #cbd5e1; -fx-padding: 10;"/>
-                    </VBox>
-                </VBox>
-
-                <Separator style="-fx-background-color: #e2e8f0;"/>
-
-                <!-- Notes -->
-                <Label text="Notes (optional)" styleClass="action-form-label"/>
-                <TextArea fx:id="notesArea"
-                          promptText="Any requests? (e.g., birthday, quiet table...)"
-                          wrapText="true"
-                          prefRowCount="3"
-                          style="-fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #cbd5e1;"/>
-
-                <Label fx:id="statusLabel"
-                       text=""
-                       styleClass="action-status-label"/>
-            </VBox>
-
-            <!-- Buttons -->
-            <HBox spacing="15" alignment="CENTER" maxWidth="550">
+        <!-- Bottom Buttons -->
+        <HBox alignment="CENTER" styleClass="action-bottom-bar">
+            <HBox spacing="14" alignment="CENTER" maxWidth="560" styleClass="action-bottom-inner">
                 <Button text="Back"
                         onAction="#onBack"
                         styleClass="action-secondary-button"
                         prefWidth="180"/>
+
                 <Button fx:id="confirmBtn"
                         text="Confirm Reservation"
                         onAction="#onConfirm"
                         styleClass="action-success-button"
-                        prefWidth="220"/>
+                        prefWidth="240"/>
             </HBox>
-
-        </VBox>
+        </HBox>
 
     </VBox>
 
@@ -123,7 +195,6 @@
             <Label text="Show this code at the entrance terminal"
                    style="-fx-text-fill: rgba(255,255,255,0.75); -fx-font-size: 14px;"/>
 
-            <!-- Confirmation Code -->
             <Label fx:id="confirmationCodeLabel"
                    text="--------"
                    style="-fx-text-fill: white;

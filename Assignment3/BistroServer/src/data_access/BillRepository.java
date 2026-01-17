@@ -121,8 +121,9 @@ public class BillRepository {
             Connection conn = pConn.getConnection();
 
             // First, check reservations table
-            String resSql = "SELECT reservation_id, booking_date, booking_time, reservation_status, table_number, subscriber_number " +
-                           "FROM reservations WHERE confirmation_code = ?";
+            String resSql = "SELECT reservation_id, booking_date, booking_time, reservation_status, " +
+                    "assigned_table_number AS table_number, subscriber_number " +
+                    "FROM reservations WHERE confirmation_code = ?";
             PreparedStatement resPs = conn.prepareStatement(resSql);
             resPs.setString(1, confirmationCode);
             ResultSet resRs = resPs.executeQuery();
@@ -249,7 +250,9 @@ public class BillRepository {
             Connection conn = pConn.getConnection();
             
             // Find reservation by confirmation code
-            String resSql = "SELECT table_number, reservation_status FROM reservations WHERE confirmation_code = ?";
+            // Use alias to keep existing code that expects "table_number"
+            String resSql = "SELECT assigned_table_number AS table_number, reservation_status " +
+                    "FROM reservations WHERE confirmation_code = ?";
             PreparedStatement resPs = conn.prepareStatement(resSql);
             resPs.setString(1, confirmationCode);
             ResultSet resRs = resPs.executeQuery();
@@ -290,6 +293,7 @@ public class BillRepository {
             billPs.close();
             
             // Release the table (mark as AVAILABLE)
+            // Use alias to keep existing code that expects "table_number"
             String releaseSql = "UPDATE tables_info SET table_status = 'AVAILABLE', " +
                                "reservation_start = NULL, reservation_end = NULL " +
                                "WHERE table_number = ?";

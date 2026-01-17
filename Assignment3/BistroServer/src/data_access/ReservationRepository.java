@@ -4,6 +4,7 @@ import connection.PooledConnection;
 import common.Message;
 import entities.Reservation;
 import entities.Table;
+import entities.User;
 import entities.OpeningHours;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -168,11 +169,13 @@ public class ReservationRepository {
     }
 
     /**
-     * Creates a new reservation with transaction support to prevent race conditions.
-     * Uses database transaction to ensure atomicity between availability check and insert.
+     * Creates a new reservation in the system.
+     *
+     * <p>
+     * This method supports both subscriber reservations and walk-in reservations.
      * 
-     * @param request Message containing reservation details
-     * @return Message with created Reservation object if successful
+     * @param request a common.Message containing reservation data
+     * @return common.Message with command CREATE_RESERVATION
      */
     public Message createReservation(Message request) {
         MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
@@ -181,7 +184,7 @@ public class ReservationRepository {
         try {
             @SuppressWarnings("unchecked")
             Map<String, Object> data = (Map<String, Object>) request.getData();
-            
+
             LocalDate bookingDate = LocalDate.parse((String) data.get("bookingDate"));
             LocalTime bookingTime = LocalTime.parse((String) data.get("bookingTime"));
             int guestCount = (Integer) data.get("guestCount");
@@ -189,34 +192,76 @@ public class ReservationRepository {
             String guestPhone = (String) data.get("guestPhone");
             String guestEmail = (String) data.get("guestEmail");
 
+            // Determine customer type
+            boolean isSubscriber =
+                    subscriberNumber != null && !subscriberNumber.trim().isEmpty();
+
+            String phone = guestPhone == null ? "" : guestPhone.trim();
+            String email = guestEmail == null ? "" : guestEmail.trim();
+
+            // Walk-in validation: BOTH phone and email are mandatory
+            if (!isSubscriber) {
+                if (phone.isEmpty() || email.isEmpty()) {
+                    return Message.fail(
+                            "CREATE_RESERVATION",
+                            "Walk-in must provide BOTH phone and email."
+                    );
+                }
+                if (!User.isValidPhone(phone)) {
+                    return Message.fail(
+                            "CREATE_RESERVATION",
+                            "Invalid phone format."
+                    );
+                }
+                if (!User.isValidEmail(email)) {
+                    return Message.fail(
+                            "CREATE_RESERVATION",
+                            "Invalid email format."
+                    );
+                }
+                guestPhone = phone;
+                guestEmail = email;
+                subscriberNumber = null;
+            } else {
+                // Subscriber: ignore walk-in fields
+                guestPhone = null;
+                guestEmail = null;
+            }
+
             pConn = pool.getConnection();
             if (pConn == null) {
-                return Message.fail("CREATE_RESERVATION", "Database connection failed");
+                return Message.fail(
+                        "CREATE_RESERVATION",
+                        "Database connection failed"
+                );
             }
 
             Connection conn = pConn.getConnection();
-            
-            // Start transaction to prevent race conditions
             conn.setAutoCommit(false);
-            
+
             try {
-                // Check if slot is still available (inside transaction)
-                LocalDateTime requestedDateTime = LocalDateTime.of(bookingDate, bookingTime);
+                LocalDateTime requestedDateTime =
+                        LocalDateTime.of(bookingDate, bookingTime);
+
                 if (!isSlotAvailable(requestedDateTime, guestCount, conn)) {
                     conn.rollback();
-                    return Message.fail("CREATE_RESERVATION", "Selected time slot is no longer available");
+                    return Message.fail(
+                            "CREATE_RESERVATION",
+                            "Selected time slot is no longer available"
+                    );
                 }
 
-                // Generate unique confirmation code
                 String confirmationCode = generateConfirmationCode();
 
-                // Insert reservation (without table_number - will be assigned at check-in)
-                String sql = "INSERT INTO reservations (booking_date, booking_time, guest_count, " +
-                            "confirmation_code, reservation_status, subscriber_number, " +
-                            "walk_in_phone, walk_in_email) " +
-                            "VALUES (?, ?, ?, ?, 'ACTIVE', ?, ?, ?)";
-                
-                PreparedStatement ps = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
+                String sql =
+                        "INSERT INTO reservations (" +
+                        "booking_date, booking_time, guest_count, confirmation_code, " +
+                        "reservation_status, subscriber_number, walk_in_phone, walk_in_email) " +
+                        "VALUES (?, ?, ?, ?, 'ACTIVE', ?, ?, ?)";
+
+                PreparedStatement ps =
+                        conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
+
                 ps.setDate(1, Date.valueOf(bookingDate));
                 ps.setTime(2, Time.valueOf(bookingTime));
                 ps.setInt(3, guestCount);
@@ -224,7 +269,7 @@ public class ReservationRepository {
                 ps.setString(5, subscriberNumber);
                 ps.setString(6, guestPhone);
                 ps.setString(7, guestEmail);
-                
+
                 ps.executeUpdate();
 
                 ResultSet rs = ps.getGeneratedKeys();
@@ -232,36 +277,37 @@ public class ReservationRepository {
                 if (rs.next()) {
                     reservationId = rs.getInt(1);
                 }
+
                 rs.close();
                 ps.close();
-                
-                // Commit transaction - both check and insert succeeded
                 conn.commit();
 
-                // Create and return Reservation object
                 Reservation reservation = new Reservation();
                 reservation.setReservationId(reservationId);
                 reservation.setBookingDate(bookingDate);
                 reservation.setBookingTime(bookingTime);
                 reservation.setGuestCount(guestCount);
                 reservation.setConfirmationCode(confirmationCode);
-                reservation.setReservationStatus(Reservation.ReservationStatus.ACTIVE);
+                reservation.setReservationStatus(
+                        Reservation.ReservationStatus.ACTIVE
+                );
                 reservation.setSubscriberNumber(subscriberNumber);
 
                 return Message.ok("CREATE_RESERVATION", reservation);
-                
+
             } catch (SQLException e) {
-                // Rollback on any error
                 conn.rollback();
                 throw e;
             } finally {
-                // Restore auto-commit mode
                 conn.setAutoCommit(true);
             }
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-            return Message.fail("CREATE_RESERVATION", "Database error: " + e.getMessage());
+            return Message.fail(
+                    "CREATE_RESERVATION",
+                    "Database error: " + e.getMessage()
+            );
         } finally {
             pool.releaseConnection(pConn);
         }

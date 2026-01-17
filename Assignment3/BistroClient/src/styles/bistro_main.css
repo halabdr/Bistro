@@ -425,3 +425,11 @@
 .table-row-cell:selected {
     -fx-background-color: #A8D5E2;
 }
+
+/* Large login input fields (Staff Login) */
+.login-input-field-lg {
+    -fx-padding: 16 16;
+    -fx-font-size: 15px;
+    -fx-pref-height: 46px;
+    -fx-min-width: 380px;
+}
