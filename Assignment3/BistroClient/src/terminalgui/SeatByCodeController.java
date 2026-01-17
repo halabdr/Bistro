@@ -6,6 +6,7 @@ import client.MessageListener;
 import clientgui.ConnectApp;
 import common.Message;
 import entities.Reservation;
+import entities.Subscriber;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -19,19 +20,29 @@ import java.util.List;
 
 /**
  * Terminal screen controller for seating customers.
- * Supports two methods:
+ * Supports three methods:
  * 1. By confirmation code (for all customers)
- * 2. By membership card scan (for subscribers - loads their reservations)
+ * 2. By membership card scan (for subscribers)
+ * 3. By login with email and password (for subscribers)
  */
 public class SeatByCodeController implements MessageListener {
 
-    // --- Confirmation Code Section ---
+    // --- Confirmation Code Section (Left) ---
     @FXML private TextField codeField;
     @FXML private Label statusLabel;
     @FXML private Label resultLabel;
 
-    // --- Subscriber Section ---
+    // --- Subscriber Section (Right) ---
+    @FXML private TabPane subscriberTabPane;
+    
+    // Tab 1: Membership Card
     @FXML private TextField memberCardField;
+    
+    // Tab 2: Login
+    @FXML private TextField loginEmailField;
+    @FXML private PasswordField loginPasswordField;
+    
+    // Reservations Table
     @FXML private TableView<Reservation> reservationsTable;
     @FXML private TableColumn<Reservation, String> dateCol;
     @FXML private TableColumn<Reservation, String> timeCol;
@@ -42,6 +53,7 @@ public class SeatByCodeController implements MessageListener {
     @FXML private Label statusLabel2;
 
     private ClientController controller;
+    private String loggedInSubscriberNumber;  // Store subscriber number after login
 
     private final ObservableList<Reservation> reservations = FXCollections.observableArrayList();
 
@@ -70,7 +82,6 @@ public class SeatByCodeController implements MessageListener {
         resultLabel.setText("");
     }
 
-    
     /**
      * Initializes the controller.
      *
@@ -79,6 +90,7 @@ public class SeatByCodeController implements MessageListener {
     public void init(ClientController controller) {
         this.controller = controller;
         this.controller.setListener(this);
+        this.loggedInSubscriberNumber = null;
 
         // Clear UI
         resultLabel.setText("");
@@ -188,6 +200,36 @@ public class SeatByCodeController implements MessageListener {
     }
 
     /**
+     * Logs in the subscriber and loads their reservations.
+     */
+    @FXML
+    private void onLoginAndLoad() {
+        try {
+            String email = loginEmailField.getText() == null ? "" : loginEmailField.getText().trim();
+            String password = loginPasswordField.getText() == null ? "" : loginPasswordField.getText();
+
+            if (email.isEmpty()) {
+                statusLabel2.setText("Please enter your email.");
+                return;
+            }
+            if (password.isEmpty()) {
+                statusLabel2.setText("Please enter your password.");
+                return;
+            }
+
+            reservations.clear();
+            selectedCodeLabel.setText("—");
+            statusLabel2.setText("Logging in...");
+
+            // Send login request
+            controller.login(email, password);
+
+        } catch (Exception e) {
+            statusLabel2.setText("Error: " + e.getMessage());
+        }
+    }
+
+    /**
      * Seats customer by confirmation code.
      */
     @FXML
@@ -234,7 +276,7 @@ public class SeatByCodeController implements MessageListener {
      */
     @FXML
     private void onForgotCode() throws Exception {
-        ConnectApp.showTerminalLostCodeFromSeatByCode();
+        ConnectApp.showTerminalLostCode();
     }
 
     /**
@@ -249,8 +291,20 @@ public class SeatByCodeController implements MessageListener {
         Platform.runLater(() -> {
             String cmd = m.getCommand();
 
+            // Handle login response
+            if (Commands.LOGIN.equals(cmd)) {
+                handleLoginResponse(m);
+                return;
+            }
+
             // Handle reservations list response (by membership card)
             if (Commands.GET_RESERVATIONS_BY_CARD.equals(cmd)) {
+                handleReservationsResponse(m);
+                return;
+            }
+
+            // Handle reservations list response (by subscriber number after login)
+            if (Commands.GET_USER_RESERVATIONS.equals(cmd)) {
                 handleReservationsResponse(m);
                 return;
             }
@@ -261,6 +315,37 @@ public class SeatByCodeController implements MessageListener {
                 return;
             }
         });
+    }
+
+    /**
+     * Handles the login response.
+     */
+    private void handleLoginResponse(Message m) {
+        if (!m.isSuccess()) {
+            statusLabel2.setText("Login failed: " + m.getError());
+            return;
+        }
+
+        Object data = m.getData();
+        
+        // Check if this is a Subscriber
+        if (data instanceof Subscriber subscriber) {
+            loggedInSubscriberNumber = subscriber.getSubscriberNumber();
+            statusLabel2.setText("Login successful! Loading reservations...");
+            
+            // Clear password field for security
+            loginPasswordField.clear();
+            
+            // Now load reservations for this subscriber
+            try {
+                controller.getUserReservations(loggedInSubscriberNumber);
+            } catch (IOException e) {
+                statusLabel2.setText("Failed to load reservations: " + e.getMessage());
+            }
+        } else {
+            // Not a subscriber (maybe staff?) - can't use this feature
+            statusLabel2.setText("This login is for subscribers only.");
+        }
     }
 
     /**
@@ -303,7 +388,7 @@ public class SeatByCodeController implements MessageListener {
         reservations.setAll(list);
 
         if (reservations.isEmpty()) {
-            statusLabel2.setText("No active reservations found for this card.");
+            statusLabel2.setText("No active reservations found.");
         } else {
             statusLabel2.setText("Found " + reservations.size() + " active reservation(s). Select one to seat.");
         }
@@ -331,6 +416,14 @@ public class SeatByCodeController implements MessageListener {
                 setStatus.accept("Please Wait");
                 resultLabel.setText("");
                 showWaitPopup(waitMessage);
+                return;
+            }
+
+            // Too early response - show as alert
+            if (error != null && error.contains("Too early")) {
+                setStatus.accept("");
+                resultLabel.setText("");
+                showTooEarlyAlert(error);
                 return;
             }
 
@@ -366,8 +459,11 @@ public class SeatByCodeController implements MessageListener {
 
         if (lastSeatSource == SeatSource.RIGHT_SELECTED) {
             memberCardField.clear();
+            loginEmailField.clear();
+            loginPasswordField.clear();
             reservations.clear();
             selectedCodeLabel.setText("—");
+            loggedInSubscriberNumber = null;
         }
     }
 
@@ -390,6 +486,17 @@ public class SeatByCodeController implements MessageListener {
         alert.setTitle("Please Wait");
         alert.setHeaderText("No Table Available Right Now");
         alert.setContentText(message + "\n\nYou will be notified when a table is ready.");
+        alert.showAndWait();
+    }
+
+    /**
+     * Shows alert when customer arrives too early.
+     */
+    private void showTooEarlyAlert(String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING, "", ButtonType.OK);
+        alert.setTitle("Too Early");
+        alert.setHeaderText("You've arrived too early");
+        alert.setContentText(message + "\n\nPlease come back closer to your reservation time.");
         alert.showAndWait();
     }
 

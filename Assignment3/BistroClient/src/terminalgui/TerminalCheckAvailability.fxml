@@ -74,11 +74,13 @@
 
                 <!-- Subscriber Section -->
                 <VBox fx:id="subscriberBox" spacing="10">
-                    <Label text="Subscriber Number" style="-fx-font-weight: 600; -fx-font-size: 13px; -fx-text-fill: #334155;"/>
+                    <Label text="Membership Card" style="-fx-font-weight: 600; -fx-font-size: 13px; -fx-text-fill: #334155;"/>
                     <TextField fx:id="subscriberField"
-                               promptText="Enter subscriber number (e.g., SUB001)"
+                               promptText="Scan your membership card (QR code)"
                                prefHeight="46"
                                style="-fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #cbd5e1; -fx-padding: 0 14;"/>
+                    <Label text="* Scan or enter your membership card code"
+                           style="-fx-text-fill: #94a3b8; -fx-font-size: 12px;"/>
                 </VBox>
 
                 <!-- Guest Section -->
@@ -101,7 +103,8 @@
                 <Pane VBox.vgrow="ALWAYS"/>
 
                 <!-- Action Button -->
-                <Button text="🔍  Check Availability"
+                <Button fx:id="checkButton"
+                        text="🔍  Check Availability"
                         onAction="#onCheckAvailability"
                         styleClass="btn-primary"
                         prefHeight="52"
@@ -133,7 +136,7 @@
                 </VBox>
 
                 <!-- Code/Table Display -->
-                <VBox spacing="10"
+                <VBox fx:id="resultBox" spacing="10" visible="false" managed="false"
                       style="-fx-background-color: linear-gradient(to bottom right, #f0f9ff, #e0f2fe); 
                              -fx-background-radius: 16; -fx-padding: 20; 
                              -fx-border-color: #bae6fd; -fx-border-radius: 16;">
@@ -142,6 +145,22 @@
                     <Label fx:id="codeLabel"
                            text="—"
                            style="-fx-text-fill: #0c4a6e; -fx-font-weight: 900; -fx-font-size: 28px; -fx-font-family: 'Consolas';"/>
+                </VBox>
+
+                <!-- Join Waitlist Button (initially hidden) -->
+                <VBox fx:id="joinWaitlistBox" spacing="12" visible="false" managed="false"
+                      style="-fx-background-color: #fffbeb; -fx-background-radius: 12; -fx-padding: 20;
+                             -fx-border-color: #fef08a; -fx-border-radius: 12;">
+                    <Label text="No table available right now"
+                           style="-fx-text-fill: #92400e; -fx-font-size: 14px; -fx-font-weight: 600;"/>
+                    <Label text="Would you like to join the waitlist? You'll be notified when a table is ready."
+                           wrapText="true"
+                           style="-fx-text-fill: #a16207; -fx-font-size: 13px;"/>
+                    <Button text="✓ Yes, Join Waitlist"
+                            onAction="#onJoinWaitlist"
+                            styleClass="btn-warning"
+                            prefHeight="46"
+                            maxWidth="Infinity"/>
                 </VBox>
 
                 <Separator style="-fx-background-color: #e2e8f0;"/>

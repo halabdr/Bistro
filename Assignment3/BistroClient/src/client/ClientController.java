@@ -320,6 +320,19 @@ public class ClientController {
 		data.put("guestEmail", guestEmail);
 		client.sendToServer(new Message(Commands.JOIN_WAITLIST, data));
 	}
+	/**
+	 * Terminal: Join waitlist after checking availability.
+	 */
+	public void joinWaitlistTerminal(int diners, String membershipCard, 
+	        String phone, String email) throws IOException {
+	    Map<String, Object> data = new java.util.HashMap<>();
+	    data.put("numberOfDiners", diners);
+	    data.put("membershipCard", membershipCard);
+	    data.put("guestPhone", phone);
+	    data.put("guestEmail", email);
+	    
+	    client.sendToServer(new Message(Commands.JOIN_WAITLIST, data));
+	}
 
 	/**
 	 * Sends a LEAVE_WAITLIST request.
@@ -334,22 +347,24 @@ public class ClientController {
 	}
 
 	/**
-	 * Checks table availability at terminal for immediate seating or waitlist.
-	 *
-	 * @param numberOfDiners   number of diners
-	 * @param subscriberNumber subscriber number (null if guest)
-	 * @param guestPhone       guest phone (null if subscriber)
-	 * @param guestEmail       guest email (null if subscriber)
-	 * @throws IOException if sending fails
+	 * Terminal: Check availability and join waitlist if needed.
 	 */
-	public void checkAvailabilityTerminal(int numberOfDiners, String subscriberNumber, String guestPhone,
-			String guestEmail) throws IOException {
-		Map<String, Object> data = new HashMap<>();
-		data.put("numberOfDiners", numberOfDiners);
-		data.put("subscriberNumber", subscriberNumber);
-		data.put("guestPhone", guestPhone);
-		data.put("guestEmail", guestEmail);
-		client.sendToServer(new Message(Commands.CHECK_AVAILABILITY_TERMINAL, data));
+	public void checkAvailabilityTerminal(int diners, String subscriberOrCard, 
+	        String phone, String email, boolean isSubscriber) throws IOException {
+	    Map<String, Object> data = new java.util.HashMap<>();
+	    data.put("numberOfDiners", diners);
+	    
+	    if (isSubscriber) {
+	        data.put("membershipCard", subscriberOrCard);  // Send as membership card
+	        data.put("subscriberNumber", null);
+	    } else {
+	        data.put("membershipCard", null);
+	        data.put("subscriberNumber", null);
+	        data.put("guestPhone", phone);
+	        data.put("guestEmail", email);
+	    }
+	    
+	    client.sendToServer(new Message(Commands.CHECK_AVAILABILITY_TERMINAL, data));
 	}
 
 	// Tables

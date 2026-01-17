@@ -23,9 +23,10 @@ public class WaitlistRepository {
 	/**
 	 * Terminal flow: checks if a table is available right now.
 	 * If available, marks the table as OCCUPIED and returns the table number.
-	 * Otherwise, inserts a waitlist entry and returns an entry code.
+	 * If NOT available, returns a message but does NOT add to waitlist automatically.
+	 * User must explicitly choose to join waitlist.
 	 *
-	 * @param request Message containing "numberOfDiners" and optional "subscriberNumber", "guestPhone", "guestEmail"
+	 * @param request Message containing "numberOfDiners" and optional "membershipCard", "guestPhone", "guestEmail"
 	 * @return Message with command CHECK_AVAILABILITY_TERMINAL
 	 */
 	public Message checkAvailabilityTerminal(Message request) {
@@ -37,9 +38,7 @@ public class WaitlistRepository {
 	        Map<String, Object> data = (Map<String, Object>) request.getData();
 
 	        int numberOfDiners = (Integer) data.get("numberOfDiners");
-	        String subscriberNumber = (String) data.get("subscriberNumber");
-	        String guestPhone = (String) data.get("guestPhone");
-	        String guestEmail = (String) data.get("guestEmail");
+	        String membershipCard = (String) data.get("membershipCard");
 
 	        pConn = pool.getConnection();
 	        if (pConn == null) {
@@ -48,7 +47,27 @@ public class WaitlistRepository {
 
 	        Connection conn = pConn.getConnection();
 
-	        //Check if a table is immediately available
+	        // If membership card provided, look up subscriber_number (for validation)
+	        String subscriberNumber = null;
+	        if (membershipCard != null && !membershipCard.trim().isEmpty()) {
+	            String lookupSql = "SELECT subscriber_number FROM subscribers WHERE membership_card = ?";
+	            PreparedStatement lookupPs = conn.prepareStatement(lookupSql);
+	            lookupPs.setString(1, membershipCard.trim());
+	            ResultSet lookupRs = lookupPs.executeQuery();
+
+	            if (!lookupRs.next()) {
+	                lookupRs.close();
+	                lookupPs.close();
+	                return Message.fail("CHECK_AVAILABILITY_TERMINAL", 
+	                    "Membership card not found. Please check your card or contact staff.");
+	            }
+
+	            subscriberNumber = lookupRs.getString("subscriber_number");
+	            lookupRs.close();
+	            lookupPs.close();
+	        }
+
+	        // Check if a table is immediately available
 	        String checkTableSql =
 	                "SELECT table_number, seat_capacity FROM tables_info " +
 	                "WHERE table_status = 'AVAILABLE' AND seat_capacity >= ? " +
@@ -75,13 +94,12 @@ public class WaitlistRepository {
 	            occPs.close();
 
 	            if (updated == 0) {
-	                return Message.fail("CHECK_AVAILABILITY_TERMINAL", "No table available now");
+	                return Message.fail("CHECK_AVAILABILITY_TERMINAL", "Table was just taken. Please try again.");
 	            }
 
 	            Map<String, Object> resp = new java.util.HashMap<>();
 	            resp.put("availableNow", true);
 	            resp.put("tableNumber", tableNumber);
-	            resp.put("entryCode", null);
 	            resp.put("text", "Table " + tableNumber + " is available now! Please proceed to be seated.");
 	            return Message.ok("CHECK_AVAILABILITY_TERMINAL", resp);
 	        }
@@ -89,33 +107,11 @@ public class WaitlistRepository {
 	        tableRs.close();
 	        checkPs.close();
 
-	        //No immediate table: add to waitlist
-	        String entryCode = generateEntryCode();
-
-	        String sql =
-	                "INSERT INTO waiting_list (number_of_diners, entry_code, subscriber_number, " +
-	                "walk_in_phone, walk_in_email) VALUES (?, ?, ?, ?, ?)";
-
-	        PreparedStatement ps = conn.prepareStatement(sql);
-	        ps.setInt(1, numberOfDiners);
-	        ps.setString(2, entryCode);
-	        ps.setString(3, subscriberNumber);
-	        ps.setString(4, guestPhone);
-	        ps.setString(5, guestEmail);
-	        ps.executeUpdate();
-
-	        //Log to tags for subscribers (for reports)
-	        if (subscriberNumber != null && !subscriberNumber.trim().isEmpty()) {
-	            TagRepository.logWaitlistJoin(conn, subscriberNumber, entryCode, numberOfDiners);
-	        }
-
-	        ps.close();
-
+	        // No immediate table available - return message WITHOUT adding to waitlist
 	        Map<String, Object> resp = new java.util.HashMap<>();
 	        resp.put("availableNow", false);
 	        resp.put("tableNumber", null);
-	        resp.put("entryCode", entryCode);
-	        resp.put("text", "No table available now. You were added to the waitlist. Your code: " + entryCode);
+	        resp.put("text", "No table available at the moment. Would you like to join the waitlist?");
 
 	        return Message.ok("CHECK_AVAILABILITY_TERMINAL", resp);
 
@@ -128,104 +124,77 @@ public class WaitlistRepository {
 	}
 	
 	/**
-     * Adds a customer to the waitlist, or assigns a table immediately if available.
-     * 
-     * @param request Message containing "numberOfDiners" and optional "subscriberNumber",
-     *                "guestPhone", "guestEmail"
-     * @return Message with WaitlistEntry or immediate table assignment
-     */
-    public Message joinWaitlist(Message request) {
-        MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
-        PooledConnection pConn = null;
+	 * Adds a customer to the waitlist.
+	 */
+	public Message joinWaitlist(Message request) {
+	    MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+	    PooledConnection pConn = null;
 
-        try {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> data = (Map<String, Object>) request.getData();
-            
-            int numberOfDiners = (Integer) data.get("numberOfDiners");
-            String subscriberNumber = (String) data.get("subscriberNumber");
-            String guestPhone = (String) data.get("guestPhone");
-            String guestEmail = (String) data.get("guestEmail");
+	    try {
+	        @SuppressWarnings("unchecked")
+	        Map<String, Object> data = (Map<String, Object>) request.getData();
+	        
+	        int numberOfDiners = (Integer) data.get("numberOfDiners");
+	        String membershipCard = (String) data.get("membershipCard");
+	        String guestPhone = (String) data.get("guestPhone");
+	        String guestEmail = (String) data.get("guestEmail");
 
-            pConn = pool.getConnection();
-            if (pConn == null) {
-                return Message.fail("JOIN_WAITLIST", "Database connection failed");
-            }
+	        pConn = pool.getConnection();
+	        if (pConn == null) {
+	            return Message.fail("JOIN_WAITLIST", "Database connection failed");
+	        }
 
-            Connection conn = pConn.getConnection();
+	        Connection conn = pConn.getConnection();
 
-            // Check if a table is immediately available
-            String checkTableSql = "SELECT table_number, seat_capacity FROM tables_info " +
-                                  "WHERE table_status = 'AVAILABLE' AND seat_capacity >= ? " +
-                                  "ORDER BY seat_capacity ASC LIMIT 1";
-            PreparedStatement checkPs = conn.prepareStatement(checkTableSql);
-            checkPs.setInt(1, numberOfDiners);
-            ResultSet tableRs = checkPs.executeQuery();
+	        // If membership card provided, look up subscriber_number
+	        String subscriberNumber = null;
+	        if (membershipCard != null && !membershipCard.trim().isEmpty()) {
+	            String lookupSql = "SELECT subscriber_number FROM subscribers WHERE membership_card = ?";
+	            PreparedStatement lookupPs = conn.prepareStatement(lookupSql);
+	            lookupPs.setString(1, membershipCard.trim());
+	            ResultSet lookupRs = lookupPs.executeQuery();
 
-            if (tableRs.next()) {
-                // Table is immediately available - don't add to waitlist
-                int tableNumber = tableRs.getInt("table_number");
-                tableRs.close();
-                checkPs.close();
+	            if (lookupRs.next()) {
+	                subscriberNumber = lookupRs.getString("subscriber_number");
+	            }
+	            lookupRs.close();
+	            lookupPs.close();
+	        }
 
-                // Return immediate availability response
-                Map<String, Object> response = new java.util.HashMap<>();
-                response.put("immediateTable", true);
-                response.put("tableNumber", tableNumber);
-                response.put("message", "Table " + tableNumber + " is available now! Please proceed to check-in.");
-                
-                return Message.ok("JOIN_WAITLIST", response);
-            }
-            tableRs.close();
-            checkPs.close();
+	        // Generate entry code
+	        String entryCode = generateEntryCode();
 
-            // No immediate table - add to waitlist
-            String entryCode = generateEntryCode();
+	        String sql = "INSERT INTO waiting_list (number_of_diners, entry_code, subscriber_number, " +
+	                    "walk_in_phone, walk_in_email) VALUES (?, ?, ?, ?, ?)";
+	        
+	        PreparedStatement ps = conn.prepareStatement(sql);
+	        ps.setInt(1, numberOfDiners);
+	        ps.setString(2, entryCode);
+	        ps.setString(3, subscriberNumber);
+	        ps.setString(4, guestPhone);
+	        ps.setString(5, guestEmail);
+	        
+	        ps.executeUpdate();
+	        ps.close();
 
-            String sql = "INSERT INTO waiting_list (number_of_diners, entry_code, subscriber_number, " +
-                        "walk_in_phone, walk_in_email) VALUES (?, ?, ?, ?, ?)";
-            
-            PreparedStatement ps = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
-            ps.setInt(1, numberOfDiners);
-            ps.setString(2, entryCode);
-            ps.setString(3, subscriberNumber);
-            ps.setString(4, guestPhone);
-            ps.setString(5, guestEmail);
-            
-            ps.executeUpdate();
+	        // Log to tags for subscribers
+	        if (subscriberNumber != null && !subscriberNumber.trim().isEmpty()) {
+	            TagRepository.logWaitlistJoin(conn, subscriberNumber, entryCode, numberOfDiners);
+	        }
 
-            ResultSet rs = ps.getGeneratedKeys();
-            int entryId = 0;
-            if (rs.next()) {
-                entryId = rs.getInt(1);
-            }
-            rs.close();
-            ps.close();
+	        Map<String, Object> response = new java.util.HashMap<>();
+	        response.put("entryCode", entryCode);
+	        response.put("message", "You've been added to the waitlist! Your code: " + entryCode);
+	        
+	        return Message.ok("JOIN_WAITLIST", response);
 
-            // Log to tags for subscribers (for reports)
-            if (subscriberNumber != null && !subscriberNumber.trim().isEmpty()) {
-                TagRepository.logWaitlistJoin(conn, subscriberNumber, entryCode, numberOfDiners);
-            }
-
-            // Create and return WaitlistEntry object
-            WaitlistEntry entry = new WaitlistEntry();
-            entry.setEntryId(entryId);
-            entry.setNumberOfDiners(numberOfDiners);
-            entry.setEntryCode(entryCode);
-            entry.setSubscriberNumber(subscriberNumber);
-            entry.setWalkInPhone(guestPhone);
-            entry.setWalkInEmail(guestEmail);
-            entry.setRequestTime(LocalDateTime.now());
-
-            return Message.ok("JOIN_WAITLIST", entry);
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return Message.fail("JOIN_WAITLIST", "Database error: " + e.getMessage());
-        } finally {
-            pool.releaseConnection(pConn);
-        }
-    }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        return Message.fail("JOIN_WAITLIST", "Database error: " + e.getMessage());
+	    } finally {
+	        pool.releaseConnection(pConn);
+	    }
+	}
 
     /**
      * Removes a customer from the waitlist by entry code.

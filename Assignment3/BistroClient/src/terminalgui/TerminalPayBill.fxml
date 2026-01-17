@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="terminalgui.TerminalPayBillController"
+            stylesheets="@/styles/terminal.css"
+            styleClass="terminal-bg"
+            prefWidth="1100" prefHeight="720">
+
+    <!-- Top bar -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="12" styleClass="terminal-topbar">
+            <padding>
+                <Insets top="18" right="26" bottom="18" left="26"/>
+            </padding>
+
+            <VBox spacing="4">
+                <Label text="Pay Your Bill" styleClass="terminal-title"/>
+                <Label text="Complete your payment" styleClass="terminal-subtitle"/>
+            </VBox>
+
+            <Pane HBox.hgrow="ALWAYS"/>
+
+            <Button text="← Back" onAction="#onBack" styleClass="btn-secondary" prefHeight="42" prefWidth="100"/>
+        </HBox>
+    </top>
+
+    <!-- Center -->
+    <center>
+        <StackPane alignment="CENTER">
+            <padding>
+                <Insets top="30" right="50" bottom="40" left="50"/>
+            </padding>
+
+            <VBox styleClass="terminal-card"
+                  alignment="CENTER"
+                  spacing="24"
+                  maxWidth="500"
+                  prefWidth="500">
+                <padding>
+                    <Insets top="40" right="40" bottom="40" left="40"/>
+                </padding>
+
+                <!-- Header -->
+                <VBox spacing="8" alignment="CENTER">
+                    <Label text="💳 Payment" 
+                           style="-fx-font-size: 24px; -fx-font-weight: 700; -fx-text-fill: #1e293b;"/>
+                    <Label text="Enter your confirmation code to view and pay your bill"
+                           style="-fx-text-fill: #64748b; -fx-font-size: 13px;"
+                           wrapText="true" alignment="CENTER"/>
+                </VBox>
+
+                <Separator style="-fx-background-color: #e2e8f0;"/>
+
+                <!-- Code Input -->
+                <VBox spacing="10">
+                    <Label text="Confirmation Code" style="-fx-font-weight: 600; -fx-font-size: 13px; -fx-text-fill: #334155;"/>
+                    <HBox spacing="12">
+                        <TextField fx:id="confirmationCodeField"
+                                   promptText="e.g. RES12345678"
+                                   prefHeight="46"
+                                   HBox.hgrow="ALWAYS"
+                                   style="-fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #cbd5e1; -fx-padding: 0 14; -fx-font-size: 14px;"/>
+                        <Button fx:id="fetchBillButton"
+                                text="Get Bill"
+                                onAction="#onFetchBill"
+                                styleClass="btn-primary"
+                                prefHeight="46"
+                                prefWidth="100"/>
+                    </HBox>
+                </VBox>
+
+                <!-- Bill Details Box (initially hidden) -->
+                <VBox fx:id="billDetailsBox" spacing="16" visible="false" managed="false"
+                      style="-fx-background-color: #f8fafc; -fx-background-radius: 12; -fx-padding: 20;
+                             -fx-border-color: #e2e8f0; -fx-border-radius: 12;">
+                    
+                    <Label text="Bill Details" style="-fx-font-weight: 700; -fx-font-size: 15px; -fx-text-fill: #1e293b;"/>
+                    
+                    <!-- Table Number -->
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="Table:" style="-fx-text-fill: #64748b; -fx-font-size: 13px;" prefWidth="120"/>
+                        <Label fx:id="tableNumberLabel" text="-" 
+                               style="-fx-font-weight: 600; -fx-text-fill: #1e293b; -fx-font-size: 14px;"/>
+                    </HBox>
+
+                    <!-- Total Amount -->
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="Total Amount:" style="-fx-text-fill: #64748b; -fx-font-size: 13px;" prefWidth="120"/>
+                        <Label fx:id="totalAmountLabel" text="-" 
+                               style="-fx-font-weight: 600; -fx-text-fill: #1e293b; -fx-font-size: 14px;"/>
+                    </HBox>
+
+                    <Separator style="-fx-background-color: #e2e8f0;"/>
+
+                    <!-- Final Amount -->
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="To Pay:" style="-fx-text-fill: #166534; -fx-font-size: 14px; -fx-font-weight: 600;" prefWidth="120"/>
+                        <Label fx:id="finalAmountLabel" text="-" 
+                               style="-fx-font-weight: 900; -fx-text-fill: #166534; -fx-font-size: 20px;"/>
+                    </HBox>
+
+                    <!-- Discount Note (for subscribers) -->
+                    <Label fx:id="discountNoteLabel" text=""
+                           style="-fx-text-fill: #0369a1; -fx-font-size: 11px;"
+                           wrapText="true"/>
+                </VBox>
+
+                <!-- Pay Button -->
+                <Button fx:id="payButton"
+                        text="Pay Now"
+                        onAction="#onPay"
+                        styleClass="btn-success"
+                        prefHeight="50"
+                        maxWidth="Infinity"
+                        disable="true"/>
+
+                <!-- Status Label -->
+                <Label fx:id="statusLabel"
+                       text=""
+                       wrapText="true"
+                       alignment="CENTER"
+                       maxWidth="Infinity"
+                       style="-fx-font-size: 13px;"/>
+
+            </VBox>
+        </StackPane>
+    </center>
+</BorderPane>

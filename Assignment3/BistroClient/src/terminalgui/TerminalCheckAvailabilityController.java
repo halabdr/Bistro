@@ -34,8 +34,17 @@ public class TerminalCheckAvailabilityController implements MessageListener {
 
     @FXML private Label statusLabel;
     @FXML private Label codeLabel;
+    @FXML private VBox resultBox;
+    @FXML private VBox joinWaitlistBox;
+    @FXML private Button checkButton;
 
     private ClientController controller;
+    
+    // Store data for joining waitlist
+    private int pendingDiners;
+    private String pendingSubscriberNumber;
+    private String pendingPhone;
+    private String pendingEmail;
 
     /**
      * Initializes the controller with the client controller.
@@ -61,8 +70,7 @@ public class TerminalCheckAvailabilityController implements MessageListener {
 
         tg.selectedToggleProperty().addListener((obs, oldT, newT) -> updateModeUI());
 
-        statusLabel.setText("Enter your details and click 'Check Availability'");
-        codeLabel.setText("—");
+        resetResultUI();
     }
 
     /**
@@ -77,8 +85,21 @@ public class TerminalCheckAvailabilityController implements MessageListener {
         guestBox.setVisible(!isSubscriber);
         guestBox.setManaged(!isSubscriber);
 
+        resetResultUI();
+    }
+
+    /**
+     * Resets the result UI to initial state.
+     */
+    private void resetResultUI() {
         statusLabel.setText("Enter your details and click 'Check Availability'");
         codeLabel.setText("—");
+        
+        resultBox.setVisible(false);
+        resultBox.setManaged(false);
+        
+        joinWaitlistBox.setVisible(false);
+        joinWaitlistBox.setManaged(false);
     }
 
     /**
@@ -87,8 +108,7 @@ public class TerminalCheckAvailabilityController implements MessageListener {
      */
     @FXML
     private void onCheckAvailability() {
-        statusLabel.setText("");
-        codeLabel.setText("—");
+        resetResultUI();
 
         Integer diners = dinersSpinner.getValue();
         if (diners == null) {
@@ -98,14 +118,14 @@ public class TerminalCheckAvailabilityController implements MessageListener {
 
         boolean isSubscriber = subscriberRadio.isSelected();
 
-        String subscriberNumber = null;
+        String membershipCard = null;
         String phone = null;
         String email = null;
 
         if (isSubscriber) {
-            subscriberNumber = safeTrim(subscriberField.getText());
-            if (subscriberNumber.isEmpty()) {
-                statusLabel.setText("Please enter subscriber number.");
+            membershipCard = safeTrim(subscriberField.getText());
+            if (membershipCard.isEmpty()) {
+                statusLabel.setText("Please scan or enter your membership card.");
                 return;
             }
         } else {
@@ -117,7 +137,7 @@ public class TerminalCheckAvailabilityController implements MessageListener {
                 return;
             }
             if (!User.isValidPhone(phone)) {
-                statusLabel.setText("Invalid phone format. Use: 05X-XXXXXXX");
+                statusLabel.setText("Invalid phone format. Use: 05XXXXXXXX");
                 return;
             }
             if (!User.isValidEmail(email)) {
@@ -126,13 +146,36 @@ public class TerminalCheckAvailabilityController implements MessageListener {
             }
         }
 
+        // Store data for potential waitlist join
+        pendingDiners = diners;
+        pendingSubscriberNumber = membershipCard; // Will be resolved on server
+        pendingPhone = phone;
+        pendingEmail = email;
+
         statusLabel.setText("Checking availability...");
 
         try {
-            controller.checkAvailabilityTerminal(diners, subscriberNumber, phone, email);
-
+            controller.checkAvailabilityTerminal(diners, membershipCard, phone, email, isSubscriber);
         } catch (IOException e) {
             statusLabel.setText("Failed to send request: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handles the join waitlist button click.
+     */
+    @FXML
+    private void onJoinWaitlist() {
+        statusLabel.setText("Joining waitlist...");
+        joinWaitlistBox.setVisible(false);
+        joinWaitlistBox.setManaged(false);
+
+        try {
+            controller.joinWaitlistTerminal(pendingDiners, pendingSubscriberNumber, pendingPhone, pendingEmail);
+        } catch (IOException e) {
+            statusLabel.setText("Failed to join waitlist: " + e.getMessage());
+            joinWaitlistBox.setVisible(true);
+            joinWaitlistBox.setManaged(true);
         }
     }
 
@@ -145,45 +188,92 @@ public class TerminalCheckAvailabilityController implements MessageListener {
     public void onMessage(Message message) {
         if (message == null) return;
 
-        if (!Commands.CHECK_AVAILABILITY_TERMINAL.equals(message.getCommand())) return;
-
         Platform.runLater(() -> {
-            try {
-                if (!message.isSuccess()) {
-                    statusLabel.setText("Failed: " + String.valueOf(message.getError()));
-                    codeLabel.setText("—");
-                    return;
-                }
-
-                Object payload = message.getData();
-
-                if (payload instanceof Map<?, ?> rawMap) {
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> map = (Map<String, Object>) rawMap;
-
-                    boolean availableNow = Boolean.TRUE.equals(map.get("availableNow"));
-                    Integer tableNumber = (map.get("tableNumber") instanceof Integer i) ? i : null;
-                    String entryCode = (map.get("entryCode") instanceof String s) ? s : null;
-                    String text = (map.get("text") instanceof String t) ? t : "";
-
-                    statusLabel.setText(text);
-
-                    if (availableNow && tableNumber != null) {
-                        codeLabel.setText("Table #" + tableNumber);
-                    } else if (entryCode != null && !entryCode.isBlank()) {
-                        codeLabel.setText(entryCode);
-                    } else {
-                        codeLabel.setText("—");
-                    }
-                } else {
-                    statusLabel.setText("Received response.");
-                    codeLabel.setText(String.valueOf(payload));
-                }
-            } catch (Exception ex) {
-                statusLabel.setText("Failed to parse server response: " + ex.getMessage());
-                codeLabel.setText("—");
+            String command = message.getCommand();
+            
+            if (Commands.CHECK_AVAILABILITY_TERMINAL.equals(command)) {
+                handleCheckAvailabilityResponse(message);
+            } else if (Commands.JOIN_WAITLIST.equals(command)) {
+                handleJoinWaitlistResponse(message);
             }
         });
+    }
+
+    /**
+     * Handles the check availability response.
+     */
+    private void handleCheckAvailabilityResponse(Message message) {
+        if (!message.isSuccess()) {
+            statusLabel.setText("Error: " + String.valueOf(message.getError()));
+            return;
+        }
+
+        Object payload = message.getData();
+
+        if (payload instanceof Map<?, ?> rawMap) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> map = (Map<String, Object>) rawMap;
+
+            boolean availableNow = Boolean.TRUE.equals(map.get("availableNow"));
+            Integer tableNumber = (map.get("tableNumber") instanceof Integer i) ? i : null;
+            String text = (map.get("text") instanceof String t) ? t : "";
+
+            statusLabel.setText(text);
+
+            if (availableNow && tableNumber != null) {
+                // Table available - show table number
+                codeLabel.setText("Table #" + tableNumber);
+                resultBox.setVisible(true);
+                resultBox.setManaged(true);
+                joinWaitlistBox.setVisible(false);
+                joinWaitlistBox.setManaged(false);
+            } else {
+                // No table available - show "Join Waitlist" button
+                resultBox.setVisible(false);
+                resultBox.setManaged(false);
+                joinWaitlistBox.setVisible(true);
+                joinWaitlistBox.setManaged(true);
+            }
+        } else {
+            statusLabel.setText("Unexpected response from server.");
+        }
+    }
+
+    /**
+     * Handles the join waitlist response.
+     */
+    private void handleJoinWaitlistResponse(Message message) {
+        if (!message.isSuccess()) {
+            statusLabel.setText("Failed to join waitlist: " + message.getError());
+            joinWaitlistBox.setVisible(true);
+            joinWaitlistBox.setManaged(true);
+            return;
+        }
+
+        Object payload = message.getData();
+
+        if (payload instanceof Map<?, ?> rawMap) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> map = (Map<String, Object>) rawMap;
+
+            String entryCode = (map.get("entryCode") instanceof String s) ? s : null;
+            String text = (map.get("message") instanceof String t) ? t : "You've been added to the waitlist!";
+
+            statusLabel.setText(text);
+
+            if (entryCode != null && !entryCode.isBlank()) {
+                codeLabel.setText(entryCode);
+                resultBox.setVisible(true);
+                resultBox.setManaged(true);
+            }
+
+            joinWaitlistBox.setVisible(false);
+            joinWaitlistBox.setManaged(false);
+        } else {
+            statusLabel.setText("Added to waitlist successfully!");
+            joinWaitlistBox.setVisible(false);
+            joinWaitlistBox.setManaged(false);
+        }
     }
 
     /**

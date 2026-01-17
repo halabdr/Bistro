@@ -20,138 +20,113 @@
 
             <VBox spacing="4">
                 <Label text="Terminal Check-In" styleClass="terminal-title"/>
-                <Label text="Quick actions at the restaurant" styleClass="terminal-subtitle"/>
+                <Label text="Welcome to Bistro Restaurant" styleClass="terminal-subtitle"/>
             </VBox>
 
             <Pane HBox.hgrow="ALWAYS"/>
 
-            <Button text="Back" onAction="#onBack" styleClass="btn-danger" prefHeight="42"/>
+            <Button text="Exit" onAction="#onBack" styleClass="btn-danger" prefHeight="42" prefWidth="100"/>
         </HBox>
     </top>
 
-    <!-- Center (bigger centered card) -->
+    <!-- Center -->
     <center>
         <StackPane alignment="CENTER">
             <padding>
-                <Insets top="20" right="30" bottom="30" left="30"/>
+                <Insets top="30" right="50" bottom="40" left="50"/>
             </padding>
 
             <VBox styleClass="terminal-card"
-                  alignment="TOP_LEFT"
-                  spacing="22"
-                  maxWidth="980"
-                  prefWidth="980"
-                  minHeight="520">
+                  alignment="CENTER"
+                  spacing="30"
+                  maxWidth="850"
+                  prefWidth="850">
                 <padding>
-                    <Insets top="40" right="40" bottom="40" left="40"/>
+                    <Insets top="50" right="50" bottom="50" left="50"/>
                 </padding>
 
-                <!-- Card header -->
-                <VBox spacing="8">
-                    <Label text="Choose an action" styleClass="section-title"/>
-                    <Separator opacity="0.18"/>
+                <!-- Header -->
+                <VBox spacing="8" alignment="CENTER">
+                    <Label text="How can we help you today?" 
+                           style="-fx-font-size: 28px; -fx-font-weight: 700; -fx-text-fill: #1e293b;"/>
+                    <Label text="Select an option below"
+                           style="-fx-text-fill: #64748b; -fx-font-size: 15px;"/>
                 </VBox>
 
-                <!-- Actions grid -->
-                <GridPane hgap="26" vgap="26">
+                <Separator style="-fx-background-color: #e2e8f0;" opacity="0.5"/>
+
+                <!-- Main Actions - 2x2 Grid -->
+                <GridPane hgap="24" vgap="24" alignment="CENTER">
                     <columnConstraints>
-                        <ColumnConstraints percentWidth="50"/>
-                        <ColumnConstraints percentWidth="50"/>
+                        <ColumnConstraints prefWidth="360"/>
+                        <ColumnConstraints prefWidth="360"/>
                     </columnConstraints>
 
-                    <!-- 1) No reservation -->
-                    <VBox spacing="10" GridPane.rowIndex="0" GridPane.columnIndex="0">
-                        <Label text="No reservation?" styleClass="action-question"/>
+                    <!-- 1) Check Availability -->
+                    <VBox spacing="8" GridPane.rowIndex="0" GridPane.columnIndex="0"
+                          style="-fx-background-color: #f0f9ff; -fx-background-radius: 16; -fx-padding: 20;
+                                 -fx-border-color: #bae6fd; -fx-border-radius: 16;">
+                        <Label text="No reservation?" style="-fx-text-fill: #0369a1; -fx-font-size: 13px; -fx-font-weight: 600;"/>
                         <Button onAction="#onCheckAvailability"
-                                text="Check Availability"
+                                text="🔎  Check Availability"
                                 styleClass="btn-primary"
-                                prefHeight="70"
-                                maxWidth="1.7976931348623157E308">
-                            <graphic>
-                                <Label text="🔎" style="-fx-font-size: 20px; -fx-padding: 0 12 0 0;"/>
-                            </graphic>
-                        </Button>
+                                prefHeight="60"
+                                maxWidth="Infinity"/>
+                        <Label text="Check if a table is available now" 
+                               style="-fx-text-fill: #64748b; -fx-font-size: 11px;"/>
                     </VBox>
 
-                    <!-- 2) Have reservation -->
-                    <VBox spacing="10" GridPane.rowIndex="0" GridPane.columnIndex="1">
-                        <Label text="Have a reservation?" styleClass="action-question"/>
+                    <!-- 2) Seat by Code -->
+                    <VBox spacing="8" GridPane.rowIndex="0" GridPane.columnIndex="1"
+                          style="-fx-background-color: #f0fdf4; -fx-background-radius: 16; -fx-padding: 20;
+                                 -fx-border-color: #bbf7d0; -fx-border-radius: 16;">
+                        <Label text="Have a reservation?" style="-fx-text-fill: #166534; -fx-font-size: 13px; -fx-font-weight: 600;"/>
                         <Button onAction="#onSeatByCode"
-                                text="Seat by Code"
-                                styleClass="btn-primary"
-                                prefHeight="70"
-                                maxWidth="1.7976931348623157E308">
-                            <graphic>
-                                <Label text="🎟️" style="-fx-font-size: 20px; -fx-padding: 0 12 0 0;"/>
-                            </graphic>
-                        </Button>
+                                text="🎟️  Get Your Table"
+                                styleClass="btn-success"
+                                prefHeight="60"
+                                maxWidth="Infinity"/>
+                        <Label text="Check in with your confirmation code" 
+                               style="-fx-text-fill: #64748b; -fx-font-size: 11px;"/>
                     </VBox>
 
-                    <!-- 3) Cancel reservation -->
-                    <VBox spacing="10" GridPane.rowIndex="1" GridPane.columnIndex="0">
-                        <Label text="Need to cancel?" styleClass="action-question"/>
-                        <Button onAction="#onCancelReservation"
-                                text="Cancel Reservation"
-                                styleClass="btn-danger"
-                                prefHeight="70"
-                                maxWidth="1.7976931348623157E308">
-                            <graphic>
-                                <Label text="❌" style="-fx-font-size: 20px; -fx-padding: 0 12 0 0;"/>
-                            </graphic>
-                        </Button>
+                    <!-- 3) Pay Bill -->
+                    <VBox spacing="8" GridPane.rowIndex="1" GridPane.columnIndex="0"
+                          style="-fx-background-color: #fefce8; -fx-background-radius: 16; -fx-padding: 20;
+                                 -fx-border-color: #fef08a; -fx-border-radius: 16;">
+                        <Label text="Finished dining?" style="-fx-text-fill: #a16207; -fx-font-size: 13px; -fx-font-weight: 600;"/>
+                        <Button onAction="#onPayBill"
+                                text="💳  Pay Bill"
+                                styleClass="btn-warning"
+                                prefHeight="60"
+                                maxWidth="Infinity"/>
+                        <Label text="Pay your bill and free up the table" 
+                               style="-fx-text-fill: #64748b; -fx-font-size: 11px;"/>
                     </VBox>
 
-                    <!-- 4) Leave waitlist -->
-                    <VBox spacing="10" GridPane.rowIndex="1" GridPane.columnIndex="1">
-                        <Label text="Already on the waitlist?" styleClass="action-question"/>
-                        <Button onAction="#onLeaveWaitlist"
-                                text="Leave Waitlist"
+                    <!-- 4) More Options -->
+                    <VBox spacing="8" GridPane.rowIndex="1" GridPane.columnIndex="1"
+                          style="-fx-background-color: #f8fafc; -fx-background-radius: 16; -fx-padding: 20;
+                                 -fx-border-color: #e2e8f0; -fx-border-radius: 16;">
+                        <Label text="Need something else?" style="-fx-text-fill: #475569; -fx-font-size: 13px; -fx-font-weight: 600;"/>
+                        <Button onAction="#onMoreOptions"
+                                text="⚙️  More Options"
                                 styleClass="btn-secondary"
-                                prefHeight="70"
-                                maxWidth="1.7976931348623157E308">
-                            <graphic>
-                                <Label text="🚪" style="-fx-font-size: 20px; -fx-padding: 0 12 0 0;"/>
-                            </graphic>
-                        </Button>
+                                prefHeight="60"
+                                maxWidth="Infinity"/>
+                        <Label text="Cancel, leave waitlist, lost code" 
+                               style="-fx-text-fill: #64748b; -fx-font-size: 11px;"/>
                     </VBox>
 
-                    <!-- 5) Lost code -->
-                    <VBox spacing="10" GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="2">
-                        <Label text="Forgot your code?" styleClass="action-question"/>
-                        <Button onAction="#onLostCode"
-                                text="Lost Code"
-                                styleClass="btn-secondary"
-                                prefHeight="70"
-                                maxWidth="1.7976931348623157E308">
-                            <graphic>
-                                <Label text="❓" style="-fx-font-size: 20px; -fx-padding: 0 12 0 0;"/>
-                            </graphic>
-                        </Button>
-                    </VBox>
-                    
-                    <!-- 6) Pay Bill -->
-                    <VBox spacing="10" GridPane.rowIndex="3" GridPane.columnIndex="0" GridPane.columnSpan="2">
-    					<Label text="Ready to pay?" styleClass="action-question"/>
-    					<Button onAction="#onPayBill"
-            					text="Pay Bill"
-            					styleClass="btn-primary"
-            					prefHeight="70"
-            					maxWidth="1.7976931348623157E308">
-        					<graphic>
-            					<Label text="💳" style="-fx-font-size: 20px; -fx-padding: 0 12 0 0;"/>
-        					</graphic>
-    					</Button>
-					</VBox>
-                    
                 </GridPane>
 
                 <Pane VBox.vgrow="ALWAYS"/>
 
                 <!-- Hint -->
-                <Label text="Tip: If you were notified your table is ready, use 'Seat by Code'."
+                <Label text="💡 Tip: Subscribers can also identify using their membership card"
                        wrapText="true"
-                       styleClass="terminal-hint"
-                       maxWidth="880"/>
+                       style="-fx-text-fill: #64748b; -fx-font-size: 12px;"
+                       maxWidth="700"/>
             </VBox>
         </StackPane>
     </center>

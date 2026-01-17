@@ -18,6 +18,7 @@ import walkingui.WalkInMenuController;
 import walkingui.WalkInCancelReservationController;
 import walkingui.WalkInLeaveWaitlistController;
 import walkingui.WalkInPayBillController;
+import terminalgui.TerminalPayBillController;
 
 public final class ConnectApp {
 
@@ -169,14 +170,29 @@ public final class ConnectApp {
 
     public static void showTerminalMenu() throws Exception {
         FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/terminalgui/TerminalMenu.fxml"));
-        Scene scene = new Scene(loader.load());
-
-        terminalgui.TerminalMenuController c = loader.getController();
-        c.init(controller);
-
-        primaryStage.setScene(scene);
+        Parent root = loader.load();
+        primaryStage.getScene().setRoot(root);
         primaryStage.setTitle("Terminal - Bistro");
-        primaryStage.show();
+    }
+    
+    /**
+     * Shows the Terminal More Options screen.
+     */
+    public static void showTerminalMoreOptions() throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/terminalgui/TerminalMoreOptions.fxml"));
+        Parent root = loader.load();
+        primaryStage.getScene().setRoot(root);
+    }
+    
+    /**
+     * Shows the Terminal Pay Bill screen.
+     */
+    public static void showTerminalPayBill() throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/terminalgui/TerminalPayBill.fxml"));
+        Parent root = loader.load();
+        TerminalPayBillController c = loader.getController();
+        c.init(controller);
+        primaryStage.getScene().setRoot(root);
     }
 
     public static void showTerminalSeatByCode() throws Exception {

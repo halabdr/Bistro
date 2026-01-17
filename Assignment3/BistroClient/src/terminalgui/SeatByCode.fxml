@@ -9,48 +9,45 @@
             fx:controller="terminalgui.SeatByCodeController"
             stylesheets="@/styles/terminal.css"
             styleClass="terminal-bg"
-            prefWidth="1100" prefHeight="720">
+            prefWidth="1100" prefHeight="750">
 
     <!-- Top bar -->
     <top>
         <HBox alignment="CENTER_LEFT" spacing="12" styleClass="terminal-topbar">
             <padding>
-                <Insets top="18" right="30" bottom="18" left="30"/>
+                <Insets top="18" right="26" bottom="18" left="26"/>
             </padding>
 
             <VBox spacing="4">
-                <Label text="Seat by Code" styleClass="terminal-title"/>
-                <Label text="Check in to your reserved table" styleClass="terminal-subtitle"/>
+                <Label text="Get Your Table" styleClass="terminal-title"/>
+                <Label text="Check in with your reservation" styleClass="terminal-subtitle"/>
             </VBox>
 
             <Pane HBox.hgrow="ALWAYS"/>
 
-            <Button text="← Back" onAction="#onBack" styleClass="btn-danger" prefHeight="42" prefWidth="100"/>
+            <Button text="← Back" onAction="#onBack" styleClass="btn-secondary" prefHeight="42" prefWidth="100"/>
         </HBox>
     </top>
 
     <!-- Center -->
     <center>
-        <HBox alignment="CENTER" spacing="30">
+        <HBox alignment="CENTER" spacing="24">
             <padding>
-                <Insets top="20" right="40" bottom="40" left="40"/>
+                <Insets top="20" right="30" bottom="30" left="30"/>
             </padding>
 
-            <!-- Left Card: Confirmation Code -->
-            <VBox styleClass="terminal-card" spacing="20" prefWidth="480" minHeight="520">
+            <!-- LEFT CARD: Enter Code Manually (for everyone) -->
+            <VBox styleClass="terminal-card" spacing="20" prefWidth="320" minHeight="580">
                 <padding>
-                    <Insets top="28" right="32" bottom="28" left="32"/>
+                    <Insets top="28" right="28" bottom="28" left="28"/>
                 </padding>
 
                 <!-- Header -->
-                <HBox spacing="14" alignment="CENTER_LEFT">
-                    <Label text="🎟️" style="-fx-font-size: 32px;"/>
-                    <VBox spacing="4">
-                        <Label text="Have a Confirmation Code?" styleClass="section-title"/>
-                        <Label text="Enter the code you received when booking"
-                               style="-fx-text-fill: #64748b; -fx-font-size: 13px;"/>
-                    </VBox>
-                </HBox>
+                <VBox spacing="6">
+                    <Label text="🎟️ Enter Code" style="-fx-font-size: 20px; -fx-font-weight: 700; -fx-text-fill: #1e293b;"/>
+                    <Label text="For all customers"
+                           style="-fx-text-fill: #64748b; -fx-font-size: 12px;"/>
+                </VBox>
 
                 <Separator style="-fx-background-color: #e2e8f0;"/>
 
@@ -58,115 +55,159 @@
                 <VBox spacing="10">
                     <Label text="Confirmation Code" style="-fx-font-weight: 600; -fx-font-size: 13px; -fx-text-fill: #334155;"/>
                     <TextField fx:id="codeField"
-                               promptText="Enter code (e.g., RES12345678)"
+                               promptText="e.g. RES12345678"
                                prefHeight="50"
-                               style="-fx-font-size: 16px; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #cbd5e1; -fx-padding: 0 16;"/>
+                               style="-fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #cbd5e1; -fx-padding: 0 14; -fx-font-size: 16px;"/>
                 </VBox>
 
-                <!-- Action Button -->
-                <Button text="🪑  Seat Me"
+                <!-- Seat Button -->
+                <Button text="Seat Me"
                         onAction="#onSeat"
                         styleClass="btn-primary"
-                        prefHeight="54"
+                        prefHeight="50"
                         maxWidth="Infinity"/>
 
-                <!-- Forgot Code Link -->
-                <HBox alignment="CENTER">
-                    <Hyperlink text="Forgot your code? Click here"
-                               onAction="#onForgotCode"
-                               style="-fx-text-fill: #2563eb; -fx-font-size: 13px;"/>
-                </HBox>
+                <!-- Status -->
+                <Label fx:id="statusLabel"
+                       text="Enter your confirmation code above"
+                       wrapText="true"
+                       style="-fx-text-fill: #64748b; -fx-font-size: 12px;"/>
 
                 <Pane VBox.vgrow="ALWAYS"/>
 
-                <!-- Status Area -->
+                <!-- Result Display -->
                 <VBox spacing="8"
-                      style="-fx-background-color: #f8fafc; -fx-background-radius: 12; -fx-padding: 16; -fx-border-color: #e2e8f0; -fx-border-radius: 12;">
-                    <Label text="Status" style="-fx-font-weight: 600; -fx-font-size: 12px; -fx-text-fill: #64748b;"/>
-                    <Label fx:id="statusLabel" text="Enter your confirmation code above"
-                           wrapText="true" style="-fx-text-fill: #334155; -fx-font-size: 13px;"/>
-                    <Label fx:id="resultLabel" text="" wrapText="true"
-                           style="-fx-text-fill: #0369a1; -fx-font-weight: 700; -fx-font-size: 14px;"/>
+                      style="-fx-background-color: linear-gradient(to bottom right, #f0fdf4, #dcfce7); 
+                             -fx-background-radius: 12; -fx-padding: 20; 
+                             -fx-border-color: #bbf7d0; -fx-border-radius: 12;">
+                    <Label text="Your Table"
+                           style="-fx-text-fill: #166534; -fx-font-size: 12px; -fx-font-weight: 600;"/>
+                    <Label fx:id="resultLabel"
+                           text=""
+                           style="-fx-text-fill: #14532d; -fx-font-weight: 900; -fx-font-size: 26px;"/>
                 </VBox>
+
+                <!-- Forgot Code Link -->
+                <Hyperlink text="Forgot your code?" onAction="#onForgotCode"
+                           style="-fx-text-fill: #0369a1; -fx-font-size: 12px;"/>
             </VBox>
 
-            <!-- Right Card: Subscriber -->
-            <VBox styleClass="terminal-card" spacing="18" prefWidth="520" minHeight="520">
+            <!-- RIGHT CARD: Subscriber Options (Card or Login) -->
+            <VBox styleClass="terminal-card" spacing="14" prefWidth="520" minHeight="580">
                 <padding>
-                    <Insets top="28" right="32" bottom="28" left="32"/>
+                    <Insets top="24" right="24" bottom="24" left="24"/>
                 </padding>
 
                 <!-- Header -->
-                <HBox spacing="14" alignment="CENTER_LEFT">
-                    <Label text="💳" style="-fx-font-size: 32px;"/>
-                    <VBox spacing="4">
-                        <Label text="Subscriber? Scan Your Card" styleClass="section-title"/>
-                        <Label text="Enter or scan your membership card code"
-                               style="-fx-text-fill: #64748b; -fx-font-size: 13px;"/>
-                    </VBox>
-                </HBox>
+                <VBox spacing="4">
+                    <Label text="👤 Subscriber Check-In" style="-fx-font-size: 20px; -fx-font-weight: 700; -fx-text-fill: #1e293b;"/>
+                    <Label text="Identify yourself to see your reservations"
+                           style="-fx-text-fill: #64748b; -fx-font-size: 12px;"/>
+                </VBox>
 
                 <Separator style="-fx-background-color: #e2e8f0;"/>
 
-                <!-- Card Code Input -->
-                <VBox spacing="10">
-                    <Label text="Membership Card Code (QR/Barcode)" style="-fx-font-weight: 600; -fx-font-size: 13px; -fx-text-fill: #334155;"/>
-                    <HBox spacing="12">
-                        <TextField fx:id="memberCardField"
-                                   promptText="Scan or enter card code (e.g., CARD001)"
-                                   prefHeight="50"
-                                   HBox.hgrow="ALWAYS"
-                                   style="-fx-font-size: 14px; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #cbd5e1; -fx-padding: 0 16;"/>
-                        <Button text="📷 Scan"
-                                onAction="#onLoadReservations"
-                                styleClass="btn-secondary"
-                                prefHeight="50"
-                                prefWidth="100"/>
-                    </HBox>
-                </VBox>
+                <!-- TabPane for Card / Login -->
+                <TabPane fx:id="subscriberTabPane" tabClosingPolicy="UNAVAILABLE" 
+                         style="-fx-background-color: transparent;" prefHeight="170">
+                    
+                    <!-- TAB 1: Membership Card -->
+                    <Tab text="📇 Membership Card">
+                        <VBox spacing="12" style="-fx-padding: 14 0 0 0;">
+                            <Label text="Scan or enter your membership card code"
+                                   style="-fx-text-fill: #64748b; -fx-font-size: 12px;"/>
+                            
+                            <VBox spacing="6">
+                                <Label text="Card Code" style="-fx-font-weight: 600; -fx-font-size: 13px; -fx-text-fill: #334155;"/>
+                                <TextField fx:id="memberCardField"
+                                           promptText="e.g. QR-XXXXXXXX"
+                                           prefHeight="44"
+                                           style="-fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #cbd5e1; -fx-padding: 0 14; -fx-font-size: 14px;"/>
+                            </VBox>
 
-                <!-- Reservations List -->
+                            <Button text="Load My Reservations"
+                                    onAction="#onLoadReservations"
+                                    styleClass="btn-secondary"
+                                    prefHeight="42"
+                                    maxWidth="Infinity"/>
+                        </VBox>
+                    </Tab>
+
+                    <!-- TAB 2: Login -->
+                    <Tab text="🔐 Login">
+                        <VBox spacing="10" style="-fx-padding: 14 0 0 0;">
+                            <Label text="Login with your account credentials"
+                                   style="-fx-text-fill: #64748b; -fx-font-size: 12px;"/>
+                            
+                            <HBox spacing="12">
+                                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                    <Label text="Email" style="-fx-font-weight: 600; -fx-font-size: 12px; -fx-text-fill: #334155;"/>
+                                    <TextField fx:id="loginEmailField"
+                                               promptText="your@email.com"
+                                               prefHeight="40"
+                                               style="-fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #cbd5e1; -fx-padding: 0 12; -fx-font-size: 13px;"/>
+                                </VBox>
+
+                                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                    <Label text="Password" style="-fx-font-weight: 600; -fx-font-size: 12px; -fx-text-fill: #334155;"/>
+                                    <PasswordField fx:id="loginPasswordField"
+                                                   promptText="••••••••"
+                                                   prefHeight="40"
+                                                   style="-fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #cbd5e1; -fx-padding: 0 12; -fx-font-size: 13px;"/>
+                                </VBox>
+                            </HBox>
+
+                            <Button text="Login &amp; Load Reservations"
+                                    onAction="#onLoginAndLoad"
+                                    styleClass="btn-secondary"
+                                    prefHeight="40"
+                                    maxWidth="Infinity"/>
+                        </VBox>
+                    </Tab>
+                </TabPane>
+
+                <!-- Reservations Table - LARGER -->
                 <VBox spacing="8" VBox.vgrow="ALWAYS">
-                    <Label text="Your Reservations" style="-fx-font-weight: 600; -fx-font-size: 13px; -fx-text-fill: #334155;"/>
-                    <TableView fx:id="reservationsTable" prefHeight="200" VBox.vgrow="ALWAYS"
-                               style="-fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #e2e8f0;">
+                    <Label text="Your Reservations" style="-fx-font-weight: 700; -fx-font-size: 14px; -fx-text-fill: #334155;"/>
+                    <TableView fx:id="reservationsTable" VBox.vgrow="ALWAYS" minHeight="180"
+                               style="-fx-background-radius: 8; -fx-border-radius: 8; -fx-border-color: #e2e8f0; -fx-font-size: 13px;">
                         <columns>
-                            <TableColumn fx:id="dateCol" text="Date" prefWidth="95"/>
-                            <TableColumn fx:id="timeCol" text="Time" prefWidth="70"/>
-                            <TableColumn fx:id="guestsCol" text="Guests" prefWidth="60"/>
-                            <TableColumn fx:id="codeCol" text="Code" prefWidth="120"/>
-                            <TableColumn fx:id="statusCol" text="Status" prefWidth="85"/>
+                            <TableColumn fx:id="dateCol" text="Date" prefWidth="95" style="-fx-alignment: CENTER;"/>
+                            <TableColumn fx:id="timeCol" text="Time" prefWidth="70" style="-fx-alignment: CENTER;"/>
+                            <TableColumn fx:id="guestsCol" text="Guests" prefWidth="60" style="-fx-alignment: CENTER;"/>
+                            <TableColumn fx:id="codeCol" text="Code" prefWidth="130" style="-fx-alignment: CENTER;"/>
+                            <TableColumn fx:id="statusCol" text="Status" prefWidth="90" style="-fx-alignment: CENTER;"/>
                         </columns>
                         <placeholder>
-                            <Label text="Scan your card to view reservations"
-                                   style="-fx-text-fill: #94a3b8;"/>
+                            <Label text="No reservations loaded" style="-fx-text-fill: #94a3b8; -fx-font-size: 14px;"/>
                         </placeholder>
                     </TableView>
                 </VBox>
 
-                <!-- Selected & Action -->
-                <VBox spacing="12"
-                      style="-fx-background-color: linear-gradient(to right, #f0fdf4, #dcfce7); 
-                             -fx-background-radius: 12; -fx-padding: 16; 
-                             -fx-border-color: #86efac; -fx-border-radius: 12;">
-                    <HBox spacing="10" alignment="CENTER_LEFT">
-                        <Label text="Selected:" style="-fx-font-weight: 600; -fx-text-fill: #166534;"/>
-                        <Label fx:id="selectedCodeLabel" text="—"
-                               style="-fx-font-weight: 800; -fx-font-size: 16px; -fx-text-fill: #15803d; -fx-font-family: 'Consolas';"/>
-                        <Pane HBox.hgrow="ALWAYS"/>
-                        <Button text="Seat Selected"
-                                onAction="#onSeatSelected"
-                                style="-fx-background-color: #16a34a; -fx-text-fill: white; -fx-font-weight: 700; 
-                                       -fx-font-size: 14px; -fx-background-radius: 10; -fx-padding: 12 24; -fx-cursor: hand;"/>
-                    </HBox>
-                </VBox>
+                <!-- Selected Code Display -->
+                <HBox spacing="12" alignment="CENTER_LEFT" 
+                      style="-fx-background-color: #f0f9ff; -fx-background-radius: 8; -fx-padding: 12;
+                             -fx-border-color: #bae6fd; -fx-border-radius: 8;">
+                    <Label text="Selected Code:" style="-fx-font-weight: 600; -fx-text-fill: #0369a1; -fx-font-size: 14px;"/>
+                    <Label fx:id="selectedCodeLabel" text="—"
+                           style="-fx-text-fill: #0c4a6e; -fx-font-weight: 700; -fx-font-size: 18px; -fx-font-family: 'Consolas';"/>
+                </HBox>
 
-                <!-- Status -->
-                <Label fx:id="statusLabel2" text=""
-                       style="-fx-text-fill: #64748b; -fx-font-size: 13px;"/>
+                <!-- Seat Selected Button -->
+                <Button text="✓ Seat with Selected Reservation"
+                        onAction="#onSeatSelected"
+                        styleClass="btn-success"
+                        prefHeight="48"
+                        maxWidth="Infinity"
+                        style="-fx-font-size: 15px;"/>
+
+                <!-- Status Label -->
+                <Label fx:id="statusLabel2"
+                       text=""
+                       wrapText="true"
+                       style="-fx-text-fill: #64748b; -fx-font-size: 12px;"/>
             </VBox>
 
         </HBox>
     </center>
-
 </BorderPane>
