@@ -210,6 +210,10 @@ public class BistroServer extends AbstractServer {
             	response = reservationRepository.seatByCode(request);
                 safeSend(client, response);
             }
+            case "GET_RESERVATIONS_BY_CARD" -> {
+                response = reservationRepository.getReservationsByMembershipCard(request);
+                safeSend(client, response);
+            }
 
             // Waitlist Management
             case "JOIN_WAITLIST" -> {

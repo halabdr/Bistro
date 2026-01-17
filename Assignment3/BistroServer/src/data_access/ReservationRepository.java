@@ -567,6 +567,76 @@ public class ReservationRepository {
     }
     
     /**
+     * Gets reservations for a subscriber by their membership card code.
+     * First looks up the subscriber_number from the membership card,
+     * then retrieves all reservations for that subscriber.
+     * 
+     * @param request Message containing "membershipCard"
+     * @return Message with List of Reservation objects
+     */
+    public Message getReservationsByMembershipCard(Message request) {
+        MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+        PooledConnection pConn = null;
+
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> data = (Map<String, Object>) request.getData();
+            String membershipCard = (String) data.get("membershipCard");
+
+            if (membershipCard == null || membershipCard.trim().isEmpty()) {
+                return Message.fail("GET_RESERVATIONS_BY_CARD", "Please enter your membership card code.");
+            }
+
+            pConn = pool.getConnection();
+            if (pConn == null) {
+                return Message.fail("GET_RESERVATIONS_BY_CARD", "Database connection failed");
+            }
+
+            Connection conn = pConn.getConnection();
+
+            // First, look up subscriber_number by membership_card
+            String lookupSql = "SELECT subscriber_number FROM subscribers WHERE membership_card = ?";
+            PreparedStatement lookupPs = conn.prepareStatement(lookupSql);
+            lookupPs.setString(1, membershipCard.trim());
+            ResultSet lookupRs = lookupPs.executeQuery();
+
+            if (!lookupRs.next()) {
+                lookupRs.close();
+                lookupPs.close();
+                return Message.fail("GET_RESERVATIONS_BY_CARD", "Membership card not found. Please check your card code.");
+            }
+
+            String subscriberNumber = lookupRs.getString("subscriber_number");
+            lookupRs.close();
+            lookupPs.close();
+
+            // Now get reservations for this subscriber
+            String sql = "SELECT * FROM reservations WHERE subscriber_number = ? " +
+                        "ORDER BY booking_date DESC, booking_time DESC";
+            
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, subscriberNumber);
+            ResultSet rs = ps.executeQuery();
+
+            List<Reservation> reservations = new ArrayList<>();
+            while (rs.next()) {
+                reservations.add(extractReservationFromResultSet(rs));
+            }
+
+            rs.close();
+            ps.close();
+
+            return Message.ok("GET_RESERVATIONS_BY_CARD", reservations);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return Message.fail("GET_RESERVATIONS_BY_CARD", "Database error: " + e.getMessage());
+        } finally {
+            pool.releaseConnection(pConn);
+        }
+    }
+    
+    /**
      * Retrieves a lost reservation confirmation code using a user identifier.
      * The identifier can be either a phone number or an email address.
      * 

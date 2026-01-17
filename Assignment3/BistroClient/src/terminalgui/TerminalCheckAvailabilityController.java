@@ -14,6 +14,10 @@ import entities.User;
 import java.io.IOException;
 import java.util.Map;
 
+/**
+ * Controller for Terminal Check Availability screen.
+ * Allows customers to check table availability and join waitlist.
+ */
 public class TerminalCheckAvailabilityController implements MessageListener {
 
     @FXML private Spinner<Integer> dinersSpinner;
@@ -33,6 +37,11 @@ public class TerminalCheckAvailabilityController implements MessageListener {
 
     private ClientController controller;
 
+    /**
+     * Initializes the controller with the client controller.
+     *
+     * @param controller the client controller
+     */
     public void init(ClientController controller) {
         this.controller = controller;
         this.controller.setListener(this);
@@ -52,10 +61,13 @@ public class TerminalCheckAvailabilityController implements MessageListener {
 
         tg.selectedToggleProperty().addListener((obs, oldT, newT) -> updateModeUI());
 
-        statusLabel.setText("");
-        codeLabel.setText("");
+        statusLabel.setText("Enter your details and click 'Check Availability'");
+        codeLabel.setText("—");
     }
 
+    /**
+     * Updates the UI based on selected customer type.
+     */
     private void updateModeUI() {
         boolean isSubscriber = subscriberRadio.isSelected();
 
@@ -65,18 +77,22 @@ public class TerminalCheckAvailabilityController implements MessageListener {
         guestBox.setVisible(!isSubscriber);
         guestBox.setManaged(!isSubscriber);
 
-        statusLabel.setText("");
-        codeLabel.setText("");
+        statusLabel.setText("Enter your details and click 'Check Availability'");
+        codeLabel.setText("—");
     }
 
+    /**
+     * Handles the check availability button click.
+     * Validates input and sends request to server.
+     */
     @FXML
     private void onCheckAvailability() {
         statusLabel.setText("");
-        codeLabel.setText("");
+        codeLabel.setText("—");
 
         Integer diners = dinersSpinner.getValue();
         if (diners == null) {
-            statusLabel.setText("Please choose party size.");
+            statusLabel.setText("Please select the number of guests.");
             return;
         }
 
@@ -96,15 +112,15 @@ public class TerminalCheckAvailabilityController implements MessageListener {
             phone = safeTrim(phoneField.getText());
             email = safeTrim(emailField.getText());
 
-            if (phone.isEmpty() && email.isEmpty()) {
-                statusLabel.setText("Please enter at least one contact: phone or email.");
+            if (phone.isEmpty() || email.isEmpty()) {
+                statusLabel.setText("Please enter both phone number and email.");
                 return;
             }
-            if (!phone.isEmpty() && !User.isValidPhone(phone)) {
+            if (!User.isValidPhone(phone)) {
                 statusLabel.setText("Invalid phone format. Use: 05X-XXXXXXX");
                 return;
             }
-            if (!email.isEmpty() && !User.isValidEmail(email)) {
+            if (!User.isValidEmail(email)) {
                 statusLabel.setText("Invalid email format.");
                 return;
             }
@@ -113,8 +129,6 @@ public class TerminalCheckAvailabilityController implements MessageListener {
         statusLabel.setText("Checking availability...");
 
         try {
-            // This method must exist in ClientController:
-            // checkAvailabilityTerminal(int diners, String subscriberNumber, String guestPhone, String guestEmail)
             controller.checkAvailabilityTerminal(diners, subscriberNumber, phone, email);
 
         } catch (IOException e) {
@@ -122,33 +136,27 @@ public class TerminalCheckAvailabilityController implements MessageListener {
         }
     }
 
+    /**
+     * Handles server response messages.
+     *
+     * @param message the message from server
+     */
     @Override
     public void onMessage(Message message) {
         if (message == null) return;
 
-        // We expect the server to respond with the SAME command
         if (!Commands.CHECK_AVAILABILITY_TERMINAL.equals(message.getCommand())) return;
 
         Platform.runLater(() -> {
-            // If your Message class uses different method names, adapt here.
-            // Expected:
-            // - isSuccess()
-            // - getError()
-            // - getData()
             try {
                 if (!message.isSuccess()) {
                     statusLabel.setText("Failed: " + String.valueOf(message.getError()));
-                    codeLabel.setText("");
+                    codeLabel.setText("—");
                     return;
                 }
 
                 Object payload = message.getData();
 
-                // Expected payload: Map<String,Object> with:
-                // "availableNow" (Boolean)
-                // "tableNumber" (Integer or null)
-                // "entryCode" (String or null)
-                // "text" (String)
                 if (payload instanceof Map<?, ?> rawMap) {
                     @SuppressWarnings("unchecked")
                     Map<String, Object> map = (Map<String, Object>) rawMap;
@@ -163,22 +171,24 @@ public class TerminalCheckAvailabilityController implements MessageListener {
                     if (availableNow && tableNumber != null) {
                         codeLabel.setText("Table #" + tableNumber);
                     } else if (entryCode != null && !entryCode.isBlank()) {
-                        codeLabel.setText("Your code: " + entryCode);
+                        codeLabel.setText(entryCode);
                     } else {
-                        codeLabel.setText("");
+                        codeLabel.setText("—");
                     }
                 } else {
-                    // Fallback: show raw payload
                     statusLabel.setText("Received response.");
                     codeLabel.setText(String.valueOf(payload));
                 }
             } catch (Exception ex) {
                 statusLabel.setText("Failed to parse server response: " + ex.getMessage());
-                codeLabel.setText("");
+                codeLabel.setText("—");
             }
         });
     }
 
+    /**
+     * Handles back button click - returns to Terminal Menu.
+     */
     @FXML
     private void onBack() {
         try {
@@ -188,6 +198,12 @@ public class TerminalCheckAvailabilityController implements MessageListener {
         }
     }
 
+    /**
+     * Safely trims a string, returning empty string if null.
+     *
+     * @param s the string to trim
+     * @return trimmed string or empty string
+     */
     private static String safeTrim(String s) {
         return s == null ? "" : s.trim();
     }

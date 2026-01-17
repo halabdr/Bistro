@@ -170,13 +170,14 @@ public class ReservationSearchController implements MessageListener {
         }
     }
 
-    /**
-     * Navigates back to the customer menu.
-     */
     @FXML
     public void onBack() {
         try {
-            ConnectApp.showSubscriberMenu(subscriber);
+            if (subscriber != null) {
+                ConnectApp.showSubscriberMenu(subscriber);
+            } else {
+                ConnectApp.showWelcome();
+            }
         } catch (Exception e) {
             resultLabel.setText("Navigation error: " + e.getMessage());
         }

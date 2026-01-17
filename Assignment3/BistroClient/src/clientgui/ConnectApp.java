@@ -277,4 +277,15 @@ public final class ConnectApp {
         primaryStage.setScene(scene);
         primaryStage.setTitle("Update Personal Info - Bistro");
     }
+    
+    public static void showStaffLogin() throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/staffgui/StaffLogin.fxml"));
+        Scene scene = new Scene(loader.load());
+
+        staffgui.StaffLoginController c = loader.getController();
+        c.init(controller);
+
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("Staff Login - Bistro");
+    }
 }

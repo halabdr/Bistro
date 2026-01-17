@@ -3,158 +3,166 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.image.*?>
 
 <StackPane xmlns="http://javafx.com/javafx/17"
            xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="reservationgui.CreateReservationController"
-           styleClass="login-split-container"
-           stylesheets="@/styles/bistro_main.css"
-           prefHeight="700" prefWidth="1000">
+           stylesheets="@/styles/bistro_action.css"
+           prefHeight="700" prefWidth="1050">
 
-    <!-- ===== Your existing layout (unchanged) ===== -->
-    <HBox>
+    <!-- Main Content -->
+    <VBox styleClass="action-container">
 
-        <!-- Left panel -->
-        <VBox styleClass="login-left-panel" prefWidth="450" alignment="CENTER" spacing="25">
-            <Region VBox.vgrow="ALWAYS"/>
-
-            <ImageView fitHeight="200" fitWidth="200" preserveRatio="true">
-                <image><Image url="@/styles/bistro_logo.png"/></image>
-            </ImageView>
-
-            <Label text="BISTRO" styleClass="welcome-logo-text"/>
-            <Label text="Confirm Reservation" styleClass="welcome-subtitle"/>
-
-            <Label text="Review your details, then confirm"
-                   style="-fx-text-fill: rgba(255,255,255,0.9); -fx-font-size: 16px; -fx-font-weight: 500;"/>
-
-            <Region VBox.vgrow="ALWAYS"/>
-
-            <Label text="© 2026 Bistro Restaurant"
-                   style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 11px;"/>
+        <!-- Header Section -->
+        <VBox styleClass="action-header-enhanced">
+            <Label text="Confirm Reservation" styleClass="action-header-title-large"/>
+            <Label text="Review your details, then confirm your booking" styleClass="action-header-subtitle"/>
         </VBox>
 
-        <!-- Right panel -->
-        <VBox styleClass="menu-page" prefWidth="550" alignment="CENTER" spacing="16" HBox.hgrow="ALWAYS">
-            <Region VBox.vgrow="ALWAYS"/>
+        <!-- Content Area -->
+        <VBox styleClass="action-content" VBox.vgrow="ALWAYS" alignment="CENTER">
 
-            <VBox maxWidth="520" styleClass="form-box" spacing="12">
-                <Label text="Reservation Summary" styleClass="login-title"/>
+            <!-- Summary Card -->
+            <VBox styleClass="action-card" spacing="18" maxWidth="550">
+                <Label text="Reservation Summary" styleClass="action-section-title"/>
 
-                <!-- Summary "card" -->
-                <VBox spacing="10"
-                      style="-fx-background-color: #f8fafc; -fx-background-radius: 14; -fx-padding: 16; -fx-border-color: #e2e8f0; -fx-border-radius: 14;">
-                    <HBox spacing="10">
-                        <Label text="Date:" style="-fx-text-fill: #334155; -fx-font-weight: 700;"/>
+                <!-- Summary Details -->
+                <VBox spacing="12"
+                      style="-fx-background-color: #f8fafc; -fx-background-radius: 12; -fx-padding: 18; -fx-border-color: #e2e8f0; -fx-border-radius: 12;">
+                    <HBox spacing="12">
+                        <Label text="Date:" prefWidth="100" style="-fx-text-fill: #64748b; -fx-font-weight: 600;"/>
                         <Label fx:id="dateValue" text="-" style="-fx-text-fill: #0f172a; -fx-font-weight: 700;"/>
                     </HBox>
-                    <HBox spacing="10">
-                        <Label text="Time:" style="-fx-text-fill: #334155; -fx-font-weight: 700;"/>
+                    <HBox spacing="12">
+                        <Label text="Time:" prefWidth="100" style="-fx-text-fill: #64748b; -fx-font-weight: 600;"/>
                         <Label fx:id="timeValue" text="-" style="-fx-text-fill: #0f172a; -fx-font-weight: 700;"/>
                     </HBox>
-                    <HBox spacing="10">
-                        <Label text="Guests:" style="-fx-text-fill: #334155; -fx-font-weight: 700;"/>
+                    <HBox spacing="12">
+                        <Label text="Guests:" prefWidth="100" style="-fx-text-fill: #64748b; -fx-font-weight: 600;"/>
                         <Label fx:id="guestsValue" text="-" style="-fx-text-fill: #0f172a; -fx-font-weight: 700;"/>
                     </HBox>
-                    <HBox spacing="10">
-                        <Label text="Subscriber:" style="-fx-text-fill: #334155; -fx-font-weight: 700;"/>
+                    <HBox spacing="12">
+                        <Label text="Customer:" prefWidth="100" style="-fx-text-fill: #64748b; -fx-font-weight: 600;"/>
                         <Label fx:id="subscriberValue" text="-" style="-fx-text-fill: #0f172a; -fx-font-weight: 700;"/>
                     </HBox>
                 </VBox>
 
-                <Separator/>
+                <!-- Guest Contact Info (for walk-in customers) -->
+                <VBox fx:id="guestInfoBox" spacing="12" visible="false" managed="false">
+                    <Separator style="-fx-background-color: #e2e8f0;"/>
+                    <Label text="Contact Information" styleClass="action-section-title"/>
+                    <Label text="Please provide at least one contact method" 
+                           style="-fx-text-fill: #64748b; -fx-font-size: 12px;"/>
+                    
+                    <VBox spacing="6">
+                        <Label text="Phone Number" styleClass="action-form-label"/>
+                        <TextField fx:id="phoneField" 
+                                   promptText="05X-XXXXXXX"
+                                   style="-fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #cbd5e1; -fx-padding: 10;"/>
+                    </VBox>
+                    
+                    <VBox spacing="6">
+                        <Label text="Email Address" styleClass="action-form-label"/>
+                        <TextField fx:id="emailField" 
+                                   promptText="your@email.com"
+                                   style="-fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #cbd5e1; -fx-padding: 10;"/>
+                    </VBox>
+                </VBox>
 
-                <!-- Optional note -->
-                <Label text="Notes (optional)" styleClass="form-label-text"/>
+                <Separator style="-fx-background-color: #e2e8f0;"/>
+
+                <!-- Notes -->
+                <Label text="Notes (optional)" styleClass="action-form-label"/>
                 <TextArea fx:id="notesArea"
                           promptText="Any requests? (e.g., birthday, quiet table...)"
                           wrapText="true"
                           prefRowCount="3"
-                          style="-fx-background-radius: 12; -fx-border-radius: 12;"/>
+                          style="-fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #cbd5e1;"/>
 
                 <Label fx:id="statusLabel"
                        text=""
-                       style="-fx-text-fill: #718096; -fx-font-size: 12px;"/>
+                       styleClass="action-status-label"/>
             </VBox>
 
-            <HBox spacing="12" alignment="CENTER">
+            <!-- Buttons -->
+            <HBox spacing="15" alignment="CENTER" maxWidth="550">
                 <Button text="Back"
                         onAction="#onBack"
-                        styleClass="welcome-action-button-secondary"
-                        style="-fx-min-width: 200px;"/>
+                        styleClass="action-secondary-button"
+                        prefWidth="180"/>
                 <Button fx:id="confirmBtn"
-                        text="Confirm"
+                        text="Confirm Reservation"
                         onAction="#onConfirm"
-                        styleClass="welcome-action-button"
-                        style="-fx-min-width: 200px;"/>
+                        styleClass="action-success-button"
+                        prefWidth="220"/>
             </HBox>
 
-            <Region VBox.vgrow="ALWAYS"/>
         </VBox>
 
-    </HBox>
+    </VBox>
 
-    <!-- ===== Success Popup Overlay ===== -->
+    <!-- Success Popup Overlay -->
     <StackPane fx:id="successOverlay"
                visible="false" managed="false"
                style="-fx-background-color: rgba(0,0,0,0.55);">
 
-        <VBox alignment="CENTER" spacing="12"
-              maxWidth="520"
-              style="-fx-background-color: rgba(15, 23, 42, 0.92);
-                     -fx-background-radius: 18;
-                     -fx-border-radius: 18;
-                     -fx-border-color: rgba(255,255,255,0.18);
-                     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.55), 22, 0.25, 0, 10);">
+        <VBox alignment="CENTER" spacing="14"
+              maxWidth="480"
+              style="-fx-background-color: rgba(15, 23, 42, 0.95);
+                     -fx-background-radius: 16;
+                     -fx-border-radius: 16;
+                     -fx-border-color: rgba(255,255,255,0.15);
+                     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 20, 0.2, 0, 8);">
             <padding>
-                <Insets top="18" right="18" bottom="18" left="18"/>
+                <Insets top="24" right="28" bottom="24" left="28"/>
             </padding>
 
-            <Label text="Reservation Confirmed ✅"
-                   style="-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: 800;"/>
+            <Label text="✅ Reservation Confirmed"
+                   style="-fx-text-fill: white; -fx-font-size: 22px; -fx-font-weight: 800;"/>
 
             <Label text="Show this code at the entrance terminal"
-                   style="-fx-text-fill: rgba(255,255,255,0.80); -fx-font-size: 13px;"/>
+                   style="-fx-text-fill: rgba(255,255,255,0.75); -fx-font-size: 14px;"/>
 
-            <!-- Big code -->
+            <!-- Confirmation Code -->
             <Label fx:id="confirmationCodeLabel"
                    text="--------"
                    style="-fx-text-fill: white;
-                          -fx-font-size: 28px;
+                          -fx-font-size: 32px;
                           -fx-font-weight: 900;
                           -fx-font-family: 'Consolas';
-                          -fx-background-color: rgba(255,255,255,0.10);
-                          -fx-background-radius: 12;
-                          -fx-padding: 12 18;
-                          -fx-border-color: rgba(255,255,255,0.18);
-                          -fx-border-radius: 12;"/>
+                          -fx-background-color: rgba(255,255,255,0.08);
+                          -fx-background-radius: 10;
+                          -fx-padding: 14 24;
+                          -fx-border-color: rgba(255,255,255,0.12);
+                          -fx-border-radius: 10;"/>
 
             <Label fx:id="reservationIdLabel"
                    text="Reservation ID: #"
-                   style="-fx-text-fill: rgba(255,255,255,0.75); -fx-font-size: 12px;"/>
+                   style="-fx-text-fill: rgba(255,255,255,0.6); -fx-font-size: 12px;"/>
 
-            <HBox spacing="10" alignment="CENTER">
+            <HBox spacing="12" alignment="CENTER">
                 <Button text="Copy Code" onAction="#onCopyCode"
-                        style="-fx-background-radius: 10;
+                        style="-fx-background-radius: 8;
                                -fx-font-size: 14px;
-                               -fx-font-weight: bold;
-                               -fx-padding: 10 22;
-                               -fx-background-color: rgba(255,255,255,0.14);
-                               -fx-text-fill: white;"/>
+                               -fx-font-weight: 600;
+                               -fx-padding: 10 20;
+                               -fx-background-color: rgba(255,255,255,0.12);
+                               -fx-text-fill: white;
+                               -fx-cursor: hand;"/>
 
                 <Button text="Done" onAction="#onCloseSuccess"
-                        style="-fx-background-radius: 10;
+                        style="-fx-background-radius: 8;
                                -fx-font-size: 14px;
-                               -fx-font-weight: bold;
-                               -fx-padding: 10 26;
+                               -fx-font-weight: 700;
+                               -fx-padding: 10 28;
                                -fx-background-color: #22c55e;
-                               -fx-text-fill: #06210f;"/>
+                               -fx-text-fill: white;
+                               -fx-cursor: hand;"/>
             </HBox>
 
             <Label fx:id="copiedLabel"
                    text=""
-                   style="-fx-text-fill: rgba(34,197,94,0.95); -fx-font-size: 12px;"/>
+                   style="-fx-text-fill: #4ade80; -fx-font-size: 12px;"/>
         </VBox>
     </StackPane>
 

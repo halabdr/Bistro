@@ -67,4 +67,5 @@ public final class Commands {
     
     // Waitlist -> Terminal
     public static final String CHECK_AVAILABILITY_TERMINAL = "CHECK_AVAILABILITY_TERMINAL";
+    public static final String GET_RESERVATIONS_BY_CARD = "GET_RESERVATIONS_BY_CARD";
 }

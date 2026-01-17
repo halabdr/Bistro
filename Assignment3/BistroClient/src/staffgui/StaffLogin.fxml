@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
+
+<HBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="staffgui.StaffLoginController"
+      styleClass="login-split-container"
+      stylesheets="@/styles/bistro_main.css"
+      prefHeight="700" prefWidth="1000">
+
+    <!-- Left Panel - Branding -->
+    <VBox styleClass="login-left-panel" prefWidth="450" alignment="CENTER" spacing="25">
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <ImageView fitHeight="200" fitWidth="200" preserveRatio="true">
+            <image><Image url="@/styles/bistro_logo.png"/></image>
+        </ImageView>
+
+        <Label text="BISTRO" styleClass="welcome-logo-text"/>
+        <Label text="Staff Portal" styleClass="welcome-subtitle"/>
+
+        <Label text="Access your dashboard"
+               style="-fx-text-fill: rgba(255,255,255,0.9); -fx-font-size: 16px; -fx-font-weight: 500;"/>
+
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <Label text="© 2026 Bistro Restaurant"
+               style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 11px;"/>
+    </VBox>
+
+    <!-- Right Panel - Login Form -->
+    <VBox styleClass="menu-page" prefWidth="550" alignment="CENTER" spacing="16" HBox.hgrow="ALWAYS">
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <VBox maxWidth="400" styleClass="form-box" spacing="20">
+            <Label text="Staff Login" styleClass="login-title"/>
+
+            <VBox spacing="8">
+                <Label text="Email Address" styleClass="form-label-text"/>
+                <TextField fx:id="emailField"
+                           promptText="Enter your email"
+                           styleClass="form-field"/>
+            </VBox>
+
+            <VBox spacing="8">
+                <Label text="Password" styleClass="form-label-text"/>
+                <PasswordField fx:id="passwordField"
+                               promptText="Enter your password"
+                               styleClass="form-field"/>
+            </VBox>
+
+            <Label fx:id="statusLabel" text="" 
+                   style="-fx-text-fill: #E53E3E; -fx-font-size: 13px;"/>
+
+            <Button fx:id="loginBtn"
+                    text="Login"
+                    onAction="#handleLogin"
+                    styleClass="welcome-action-button"
+                    style="-fx-min-width: 380px;"/>
+        </VBox>
+
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <Button text="Back"
+                onAction="#handleBack"
+                styleClass="welcome-action-button-secondary"
+                style="-fx-min-width: 180px;">
+            <VBox.margin>
+                <Insets bottom="40"/>
+            </VBox.margin>
+        </Button>
+    </VBox>
+
+</HBox>
