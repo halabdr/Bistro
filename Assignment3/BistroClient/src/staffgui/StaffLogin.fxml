@@ -36,21 +36,23 @@
     <VBox styleClass="menu-page" prefWidth="550" alignment="CENTER" spacing="16" HBox.hgrow="ALWAYS">
         <Region VBox.vgrow="ALWAYS"/>
 
-        <VBox maxWidth="420" styleClass="form-box" spacing="20">
+        <VBox maxWidth="480" styleClass="form-box" spacing="22">
             <Label text="Staff Login" styleClass="login-title"/>
 
             <VBox spacing="8">
                 <Label text="Email Address" styleClass="form-label-text"/>
                 <TextField fx:id="emailField"
                            promptText="Enter your email"
-                           styleClass="login-input-field login-input-field-lg"/>
+                           styleClass="login-input-field"
+                           style="-fx-min-width: 420px; -fx-font-size: 15px;"/>
             </VBox>
 
             <VBox spacing="8">
                 <Label text="Password" styleClass="form-label-text"/>
                 <PasswordField fx:id="passwordField"
                                promptText="Enter your password"
-                               styleClass="login-input-field login-input-field-lg"/>
+                               styleClass="login-input-field"
+                               style="-fx-min-width: 420px; -fx-font-size: 15px;"/>
             </VBox>
 
             <Label fx:id="statusLabel" text=""
@@ -60,7 +62,7 @@
                     text="Login"
                     onAction="#handleLogin"
                     styleClass="welcome-action-button"
-                    style="-fx-min-width: 380px;"/>
+                    style="-fx-min-width: 420px;"/>
         </VBox>
 
         <Region VBox.vgrow="ALWAYS"/>

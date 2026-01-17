@@ -97,14 +97,14 @@ public class ViewReservationsController implements MessageListener {
         if (statusCol != null) {
             statusCol.setCellValueFactory(cellData ->
                     new javafx.beans.property.SimpleStringProperty(
-                            formatStatus(cellData.getValue().getStatus())));
+                            formatStatus(cellData.getValue())));
         }
-
-       
     }
 
     /**
-     * Sets up the Actions column with Cancel buttons for each active reservation.
+     * Sets up the Actions column with Cancel and Pay Bill buttons.
+     * - Cancel: shown for ACTIVE reservations without assigned table
+     * - Pay Bill: shown for ACTIVE reservations WITH assigned table (customer is seated)
      */
     private void setupActionsColumn() {
         if (actionsCol == null) {
@@ -113,14 +113,16 @@ public class ViewReservationsController implements MessageListener {
 
         actionsCol.setCellFactory(col -> new TableCell<Reservation, Void>() {
             private final Button cancelBtn = new Button("Cancel");
+            private final Button payBillBtn = new Button("Pay Bill");
 
             {
+                // Cancel button style
                 cancelBtn.setStyle(
                     "-fx-background-color: #FC8181; " +
                     "-fx-text-fill: white; " +
-                    "-fx-font-size: 12px; " +
+                    "-fx-font-size: 11px; " +
                     "-fx-font-weight: 600; " +
-                    "-fx-padding: 6 16; " +
+                    "-fx-padding: 5 10; " +
                     "-fx-background-radius: 6; " +
                     "-fx-cursor: hand;"
                 );
@@ -129,9 +131,9 @@ public class ViewReservationsController implements MessageListener {
                     cancelBtn.setStyle(
                         "-fx-background-color: #F56565; " +
                         "-fx-text-fill: white; " +
-                        "-fx-font-size: 12px; " +
+                        "-fx-font-size: 11px; " +
                         "-fx-font-weight: 600; " +
-                        "-fx-padding: 6 16; " +
+                        "-fx-padding: 5 10; " +
                         "-fx-background-radius: 6; " +
                         "-fx-cursor: hand;"
                     )
@@ -141,9 +143,9 @@ public class ViewReservationsController implements MessageListener {
                     cancelBtn.setStyle(
                         "-fx-background-color: #FC8181; " +
                         "-fx-text-fill: white; " +
-                        "-fx-font-size: 12px; " +
+                        "-fx-font-size: 11px; " +
                         "-fx-font-weight: 600; " +
-                        "-fx-padding: 6 16; " +
+                        "-fx-padding: 5 10; " +
                         "-fx-background-radius: 6; " +
                         "-fx-cursor: hand;"
                     )
@@ -152,6 +154,46 @@ public class ViewReservationsController implements MessageListener {
                 cancelBtn.setOnAction(event -> {
                     Reservation reservation = getTableView().getItems().get(getIndex());
                     handleCancelReservation(reservation);
+                });
+
+                // Pay Bill button style
+                payBillBtn.setStyle(
+                    "-fx-background-color: #48BB78; " +
+                    "-fx-text-fill: white; " +
+                    "-fx-font-size: 11px; " +
+                    "-fx-font-weight: 600; " +
+                    "-fx-padding: 5 10; " +
+                    "-fx-background-radius: 6; " +
+                    "-fx-cursor: hand;"
+                );
+
+                payBillBtn.setOnMouseEntered(e -> 
+                    payBillBtn.setStyle(
+                        "-fx-background-color: #38A169; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-font-size: 11px; " +
+                        "-fx-font-weight: 600; " +
+                        "-fx-padding: 5 10; " +
+                        "-fx-background-radius: 6; " +
+                        "-fx-cursor: hand;"
+                    )
+                );
+
+                payBillBtn.setOnMouseExited(e -> 
+                    payBillBtn.setStyle(
+                        "-fx-background-color: #48BB78; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-font-size: 11px; " +
+                        "-fx-font-weight: 600; " +
+                        "-fx-padding: 5 10; " +
+                        "-fx-background-radius: 6; " +
+                        "-fx-cursor: hand;"
+                    )
+                );
+
+                payBillBtn.setOnAction(event -> {
+                    Reservation reservation = getTableView().getItems().get(getIndex());
+                    handlePayBill(reservation);
                 });
             }
 
@@ -165,21 +207,43 @@ public class ViewReservationsController implements MessageListener {
                 }
 
                 Reservation reservation = getTableView().getItems().get(getIndex());
-                
-                // Only show Cancel button for ACTIVE reservations
+                HBox container = new HBox(8);
+                container.setAlignment(Pos.CENTER);
+
+                // Check reservation status and table assignment
                 if (reservation.getStatus() == Reservation.ReservationStatus.ACTIVE) {
-                    HBox container = new HBox(cancelBtn);
-                    container.setAlignment(Pos.CENTER);
+                    if (reservation.hasTableAssigned()) {
+                        // Customer is seated - show Pay Bill button only
+                        container.getChildren().add(payBillBtn);
+                    } else {
+                        // Not seated yet - show Cancel button only
+                        container.getChildren().add(cancelBtn);
+                    }
                     setGraphic(container);
                 } else {
+                    // Not active - show dash
                     Label statusLabel = new Label("-");
                     statusLabel.setStyle("-fx-text-fill: #A0AEC0; -fx-font-size: 12px;");
-                    HBox container = new HBox(statusLabel);
-                    container.setAlignment(Pos.CENTER);
+                    container.getChildren().add(statusLabel);
                     setGraphic(container);
                 }
             }
         });
+    }
+
+    /**
+     * Handles the Pay Bill button click.
+     * Navigates to PayBill screen with the confirmation code.
+     * 
+     * @param reservation the reservation to pay for
+     */
+    private void handlePayBill(Reservation reservation) {
+        try {
+            ConnectApp.showPayBillWithCode(subscriber, reservation.getConfirmationCode());
+        } catch (Exception e) {
+            statusLabel.setText("Error opening payment: " + e.getMessage());
+            showErrorAlert("Error", "Could not open payment screen: " + e.getMessage());
+        }
     }
 
     /**
@@ -307,13 +371,21 @@ public class ViewReservationsController implements MessageListener {
 
     /**
      * Formats reservation status for display.
+     * Shows "Seated (Table X)" if customer has been seated.
      * 
-     * @param status reservation status enum
+     * @param reservation the reservation
      * @return formatted status string
      */
-    private String formatStatus(Reservation.ReservationStatus status) {
-        if (status == null) {
+    private String formatStatus(Reservation reservation) {
+        if (reservation == null || reservation.getStatus() == null) {
             return "UNKNOWN";
+        }
+        
+        Reservation.ReservationStatus status = reservation.getStatus();
+        
+        // If active and has table assigned, show "Seated"
+        if (status == Reservation.ReservationStatus.ACTIVE && reservation.hasTableAssigned()) {
+            return "Seated (Table " + reservation.getAssignedTableNumber() + ")";
         }
         
         return switch (status) {

@@ -11,7 +11,7 @@ import javafx.scene.Parent;
 import java.io.IOException;
 import java.nio.file.*;
 import java.time.LocalDate;
-
+import subscribergui.PayBillController;
 import subscribergui.SubscriberLeaveWaitlistController;
 import terminalgui.TerminalCancelReservationController;
 
@@ -355,5 +355,23 @@ public final class ConnectApp {
             System.err.println("[WARN] ensureDevResourcesCopied failed:");
             e.printStackTrace();
         }
+    }
+    
+    /**
+     * Shows the PayBill screen with a pre-filled confirmation code.
+     * 
+     * @param subscriber the logged-in subscriber
+     * @param confirmationCode the confirmation code to pre-fill
+     */
+    public static void showPayBillWithCode(Subscriber subscriber, String confirmationCode) throws Exception {
+        FXMLLoader loader = new FXMLLoader(ConnectApp.class.getResource("/subscribergui/PayBill.fxml"));
+        Parent root = loader.load();
+        
+        PayBillController c = loader.getController();
+        c.init(controller, subscriber);
+        c.setConfirmationCode(confirmationCode);
+        
+        primaryStage.getScene().setRoot(root);
+        primaryStage.setTitle("Bistro - Pay Bill");
     }
 }

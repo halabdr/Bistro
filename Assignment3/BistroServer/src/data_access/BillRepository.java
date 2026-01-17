@@ -10,7 +10,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Date;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -95,7 +94,7 @@ public class BillRepository {
 
     /**
      * Gets bill details by confirmation code.
-     * Validates that the customer is currently seated before allowing bill access.
+     * Customer must be seated (ACTIVE status with assigned_table_number) to get bill.
      * 
      * @param request Message containing "confirmationCode"
      * @return Message with bill data if found and customer is seated
@@ -122,7 +121,7 @@ public class BillRepository {
 
             // First, check reservations table
             String resSql = "SELECT reservation_id, booking_date, booking_time, reservation_status, " +
-                    "assigned_table_number AS table_number, subscriber_number " +
+                    "assigned_table_number, subscriber_number " +
                     "FROM reservations WHERE confirmation_code = ?";
             PreparedStatement resPs = conn.prepareStatement(resSql);
             resPs.setString(1, confirmationCode);
@@ -132,24 +131,28 @@ public class BillRepository {
                 String status = resRs.getString("reservation_status");
                 LocalDate bookingDate = resRs.getDate("booking_date").toLocalDate();
                 String bookingTime = resRs.getTime("booking_time").toString().substring(0, 5);
-                Integer tableNumber = resRs.getObject("table_number") != null ? resRs.getInt("table_number") : null;
+                Integer tableNumber = resRs.getObject("assigned_table_number") != null 
+                        ? resRs.getInt("assigned_table_number") : null;
                 String subscriberNumber = resRs.getString("subscriber_number");
                 resRs.close();
                 resPs.close();
 
                 // Check reservation status
-                if ("ACTIVE".equals(status)) {
-                    // Future reservation - not seated yet
-                    return Message.fail("GET_BILL", 
-                        "Payment is only available after you've been seated.\n" +
-                        "Your reservation is scheduled for " + bookingDate + " at " + bookingTime + ".");
-                } else if ("CANCELLED".equals(status)) {
+                if ("CANCELLED".equals(status)) {
                     return Message.fail("GET_BILL", "This reservation has been cancelled.");
                 } else if ("NO_SHOW".equals(status)) {
                     return Message.fail("GET_BILL", "This reservation was marked as no-show.");
                 } else if ("COMPLETED".equals(status)) {
-                    // Customer was seated - find bill
-                    return findBillForTable(conn, tableNumber, subscriberNumber);
+                    return Message.fail("GET_BILL", "This reservation has already been paid.");
+                } else if ("ACTIVE".equals(status)) {
+                    // Check if customer is seated (has assigned table)
+                    if (tableNumber == null) {
+                        return Message.fail("GET_BILL", 
+                            "Payment is only available after you've been seated.\n" +
+                            "Your reservation is scheduled for " + bookingDate + " at " + bookingTime + ".");
+                    }
+                    // Customer is seated - find/create bill
+                    return findOrCreateBillForTable(conn, tableNumber, subscriberNumber);
                 }
             }
             resRs.close();
@@ -186,45 +189,90 @@ public class BillRepository {
     }
 
     /**
-     * Finds the bill for a specific table.
+     * Finds an existing bill or creates a new one for the table.
      */
-    private Message findBillForTable(Connection conn, Integer tableNumber, String subscriberNumber) throws SQLException {
+    private Message findOrCreateBillForTable(Connection conn, Integer tableNumber, String subscriberNumber) throws SQLException {
         if (tableNumber == null) {
             return Message.fail("GET_BILL", "No table assigned to this reservation.");
         }
 
-        // Find the most recent bill for this table
-        String billSql = "SELECT * FROM bills WHERE table_number = ? ORDER BY payment_date DESC LIMIT 1";
+        // Find existing bill for this table (today's date)
+        String billSql = "SELECT * FROM bills WHERE table_number = ? AND payment_date = CURDATE() ORDER BY bill_number DESC LIMIT 1";
         PreparedStatement billPs = conn.prepareStatement(billSql);
         billPs.setInt(1, tableNumber);
         ResultSet billRs = billPs.executeQuery();
 
-        if (billRs.next()) {
-            Map<String, Object> billData = new HashMap<>();
-            billData.put("billNumber", billRs.getInt("bill_number"));
-            billData.put("tableNumber", tableNumber);
-            billData.put("totalPrice", billRs.getBigDecimal("total_price"));
-            billData.put("discountValue", billRs.getBigDecimal("discount_value"));
-            
-            BigDecimal total = billRs.getBigDecimal("total_price");
-            BigDecimal discount = billRs.getBigDecimal("discount_value");
-            BigDecimal finalAmount = total.subtract(discount);
-            billData.put("finalAmount", finalAmount);
+        BigDecimal totalPrice;
+        BigDecimal discountValue;
+        int billNumber;
 
+        if (billRs.next()) {
+            // Bill exists
+            billNumber = billRs.getInt("bill_number");
+            totalPrice = billRs.getBigDecimal("total_price");
+            discountValue = billRs.getBigDecimal("discount_value");
             billRs.close();
             billPs.close();
-            return Message.ok("GET_BILL", billData);
+        } else {
+            billRs.close();
+            billPs.close();
+            
+            // Create a new bill with sample amount (in real system, this would come from orders)
+            totalPrice = new BigDecimal("150.00"); // Sample total
+            discountValue = BigDecimal.ZERO;
+            
+            // Calculate discount for subscribers (10%)
+            if (subscriberNumber != null && !subscriberNumber.trim().isEmpty()) {
+                discountValue = totalPrice.multiply(SUBSCRIBER_DISCOUNT);
+            }
+            
+            // Generate bill number
+            billNumber = generateBillNumber(conn);
+            
+            // Insert new bill
+            String insertSql = "INSERT INTO bills (bill_number, total_price, discount_value, payment_date, " +
+                              "table_number, subscriber_number) VALUES (?, ?, ?, CURDATE(), ?, ?)";
+            PreparedStatement insertPs = conn.prepareStatement(insertSql);
+            insertPs.setInt(1, billNumber);
+            insertPs.setBigDecimal(2, totalPrice);
+            insertPs.setBigDecimal(3, discountValue);
+            insertPs.setInt(4, tableNumber);
+            insertPs.setString(5, subscriberNumber);
+            insertPs.executeUpdate();
+            insertPs.close();
         }
 
-        billRs.close();
-        billPs.close();
-        return Message.fail("GET_BILL", 
-            "No bill found for your table.\n" +
-            "Please contact a staff member for assistance.");
+        Map<String, Object> billData = new HashMap<>();
+        billData.put("billNumber", billNumber);
+        billData.put("tableNumber", tableNumber);
+        billData.put("totalPrice", totalPrice);
+        billData.put("discountValue", discountValue);
+        
+        BigDecimal finalAmount = totalPrice.subtract(discountValue);
+        billData.put("finalAmount", finalAmount);
+
+        return Message.ok("GET_BILL", billData);
+    }
+
+    /**
+     * Generates a new unique bill number.
+     */
+    private int generateBillNumber(Connection conn) throws SQLException {
+        String sql = "SELECT COALESCE(MAX(bill_number), 0) + 1 FROM bills";
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ResultSet rs = ps.executeQuery();
+        int billNumber = 1;
+        if (rs.next()) {
+            billNumber = rs.getInt(1);
+        }
+        rs.close();
+        ps.close();
+        return billNumber;
     }
 
     /**
      * Processes bill payment and releases the table.
+     * Updates reservation status to COMPLETED.
      * 
      * @param request Message containing confirmationCode
      * @return Message with payment details
@@ -250,8 +298,7 @@ public class BillRepository {
             Connection conn = pConn.getConnection();
             
             // Find reservation by confirmation code
-            // Use alias to keep existing code that expects "table_number"
-            String resSql = "SELECT assigned_table_number AS table_number, reservation_status " +
+            String resSql = "SELECT reservation_id, assigned_table_number, reservation_status, subscriber_number " +
                     "FROM reservations WHERE confirmation_code = ?";
             PreparedStatement resPs = conn.prepareStatement(resSql);
             resPs.setString(1, confirmationCode);
@@ -263,21 +310,27 @@ public class BillRepository {
                 return Message.fail("PAY_BILL", "Confirmation code not found.");
             }
 
+            int reservationId = resRs.getInt("reservation_id");
             String status = resRs.getString("reservation_status");
-            Integer tableNumber = resRs.getObject("table_number") != null ? resRs.getInt("table_number") : null;
+            Integer tableNumber = resRs.getObject("assigned_table_number") != null 
+                    ? resRs.getInt("assigned_table_number") : null;
+            String subscriberNumber = resRs.getString("subscriber_number");
             resRs.close();
             resPs.close();
 
-            if (!"COMPLETED".equals(status)) {
+            // Validate status - must be ACTIVE and have a table assigned
+            if ("COMPLETED".equals(status)) {
+                return Message.fail("PAY_BILL", "This bill has already been paid.");
+            }
+            if (!"ACTIVE".equals(status)) {
+                return Message.fail("PAY_BILL", "Cannot pay for this reservation (status: " + status + ").");
+            }
+            if (tableNumber == null) {
                 return Message.fail("PAY_BILL", "Payment is only available after you've been seated.");
             }
 
-            if (tableNumber == null) {
-                return Message.fail("PAY_BILL", "No table assigned. Please contact staff.");
-            }
-
             // Find bill for this table
-            String billSql = "SELECT * FROM bills WHERE table_number = ? ORDER BY payment_date DESC LIMIT 1";
+            String billSql = "SELECT * FROM bills WHERE table_number = ? AND payment_date = CURDATE() ORDER BY bill_number DESC LIMIT 1";
             PreparedStatement billPs = conn.prepareStatement(billSql);
             billPs.setInt(1, tableNumber);
             ResultSet billRs = billPs.executeQuery();
@@ -292,8 +345,14 @@ public class BillRepository {
             billRs.close();
             billPs.close();
             
+            // Update reservation status to COMPLETED
+            String updateResSql = "UPDATE reservations SET reservation_status = 'COMPLETED' WHERE reservation_id = ?";
+            PreparedStatement updateResPs = conn.prepareStatement(updateResSql);
+            updateResPs.setInt(1, reservationId);
+            updateResPs.executeUpdate();
+            updateResPs.close();
+            
             // Release the table (mark as AVAILABLE)
-            // Use alias to keep existing code that expects "table_number"
             String releaseSql = "UPDATE tables_info SET table_status = 'AVAILABLE', " +
                                "reservation_start = NULL, reservation_end = NULL " +
                                "WHERE table_number = ?";
@@ -323,7 +382,8 @@ public class BillRepository {
         }
     }
 
-    // Helper Method
+    // Helper Methods
+    
     /**
      * Checks if a bill number already exists in the database.
      */

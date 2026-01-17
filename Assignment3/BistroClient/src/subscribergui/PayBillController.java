@@ -239,6 +239,20 @@ public class PayBillController implements MessageListener {
             return "₪" + value.toString();
         }
     }
+    
+    /**
+     * Sets the confirmation code and automatically fetches the bill.
+     * Used when navigating from ViewReservations with a specific reservation.
+     * 
+     * @param code the confirmation code
+     */
+    public void setConfirmationCode(String code) {
+        if (code != null && !code.trim().isEmpty()) {
+            confirmationCodeField.setText(code);
+            // Automatically fetch the bill
+            onFetchBill();
+        }
+    }
 
     /**
      * Sets the status message with styling based on type.

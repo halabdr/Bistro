@@ -34,6 +34,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.Map;
 import javafx.scene.layout.HBox;
+import javafx.scene.control.Alert;
 
 /**
  * Controller for the Staff Dashboard screen.
@@ -1089,8 +1090,19 @@ public class StaffDashboardController implements MessageListener {
 
                 case Commands.REGISTER_SUBSCRIBER -> {
                     status("Subscriber registered successfully!");
-                    showRegistrationResult(pendingSubscriberNumber, pendingQRCode);
                     
+                    // Show alert with subscriber details
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Registration Successful");
+                    alert.setHeaderText("New Subscriber Registered Successfully!");
+                    alert.setContentText(
+                        "Subscriber Number: " + pendingSubscriberNumber + "\n\n" +
+                        "Membership Card: " + pendingQRCode + "\n\n" +
+                        "Please provide these details to the customer."
+                    );
+                    alert.showAndWait();
+                    
+                    // Clear form fields
                     if (regNameField != null) regNameField.clear();
                     if (regEmailField != null) regEmailField.clear();
                     if (regPhoneField != null) regPhoneField.clear();
