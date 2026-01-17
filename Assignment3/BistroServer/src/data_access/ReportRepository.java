@@ -337,7 +337,7 @@ public class ReportRepository {
             walkInResRow.put("value", String.valueOf(walkInRes));
             reportData.add(walkInResRow);
 
-            // 4. Waitlist usage (from tags for subscribers)
+         // 4. Waitlist usage (from tags for subscribers)
             String waitlistSql = "SELECT COUNT(*) AS wl_sub FROM tags " +
                                 "WHERE activity_details LIKE '%\"type\":\"WAITLIST_JOIN\"%' " +
                                 "AND YEAR(created_at) = ? AND MONTH(created_at) = ?";

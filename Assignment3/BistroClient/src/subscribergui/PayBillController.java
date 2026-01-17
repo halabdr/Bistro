@@ -102,6 +102,7 @@ public class PayBillController implements MessageListener {
         setStatus("Fetching bill details...", StatusType.INFO);
 
         try {
+        	controller.setListener(this);
             controller.getBillByCode(currentConfirmationCode);
         } catch (IOException e) {
             setStatus("Failed to fetch bill: " + e.getMessage(), StatusType.ERROR);
@@ -121,6 +122,7 @@ public class PayBillController implements MessageListener {
         setStatus("Processing payment...", StatusType.INFO);
 
         try {
+        	controller.setListener(this);
             controller.payBillByCode(currentConfirmationCode);
         } catch (IOException e) {
             setStatus("Payment failed: " + e.getMessage(), StatusType.ERROR);

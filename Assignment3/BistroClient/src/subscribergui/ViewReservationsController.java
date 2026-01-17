@@ -274,6 +274,7 @@ public class ViewReservationsController implements MessageListener {
         
         if (result.isPresent() && result.get() == yesButton) {
             try {
+            	controller.setListener(this);
                 statusLabel.setText("Cancelling reservation...");
                 controller.cancelReservation(reservation.getConfirmationCode());
             } catch (IOException e) {
@@ -304,6 +305,7 @@ public class ViewReservationsController implements MessageListener {
         }
 
         try {
+        	controller.setListener(this);
             statusLabel.setText("Loading reservations...");
             controller.getUserReservations(subscriber.getSubscriberNumber());
         } catch (Exception e) {

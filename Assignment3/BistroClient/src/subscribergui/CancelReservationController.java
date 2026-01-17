@@ -45,6 +45,7 @@ public class CancelReservationController implements MessageListener {
         }
 
         try {
+        	controller.setListener(this);
             resultLabel.setText("Sending...");
             controller.cancelReservation(code);
         } catch (IOException e) {

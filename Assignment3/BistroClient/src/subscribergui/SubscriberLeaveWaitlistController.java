@@ -51,6 +51,7 @@ public class SubscriberLeaveWaitlistController implements MessageListener {
         }
 
         try {
+        	controller.setListener(this);
             setStatus("Processing...", "-fx-text-fill: #718096;");
             controller.leaveWaitlist(code);
         } catch (Exception e) {

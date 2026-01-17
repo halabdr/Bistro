@@ -446,11 +446,12 @@ public class StaffDashboardController implements MessageListener {
         }
     }
 
-    // Refresh Actions
+ // Refresh Actions
 
     @FXML
     public void refreshReservations() {
         try {
+            controller.setListener(this);
             status("Loading reservations...");
             controller.getAllReservations();
         } catch (Exception e) {
@@ -461,16 +462,18 @@ public class StaffDashboardController implements MessageListener {
     @FXML
     public void refreshWaitlist() {
         try {
+            controller.setListener(this);
             status("Loading waitlist...");
             controller.getWaitlist();
         } catch (Exception e) {
             showError("Failed to load waitlist: " + e.getMessage());
         }
     }
-    
+
     @FXML
     public void refreshCurrentDiners() {
         try {
+            controller.setListener(this);
             status("Loading current diners...");
             controller.getCurrentDiners();
         } catch (Exception e) {
@@ -481,6 +484,7 @@ public class StaffDashboardController implements MessageListener {
     @FXML
     public void refreshTables() {
         try {
+            controller.setListener(this);
             status("Loading tables...");
             controller.getTables();
         } catch (Exception e) {
@@ -491,6 +495,7 @@ public class StaffDashboardController implements MessageListener {
     @FXML
     public void refreshOpeningHours() {
         try {
+            controller.setListener(this);
             status("Loading opening hours...");
             controller.getOpeningHours();
         } catch (Exception e) {
@@ -501,6 +506,7 @@ public class StaffDashboardController implements MessageListener {
     @FXML
     public void refreshSpecialHours() {
         try {
+            controller.setListener(this);
             status("Loading special hours...");
             controller.getSpecialHours();
         } catch (Exception e) {
@@ -523,6 +529,7 @@ public class StaffDashboardController implements MessageListener {
         }
 
         try {
+        	controller.setListener(this);
             status("Searching for subscriber...");
             controller.getSubscriberByNumber(searchTerm);
         } catch (Exception e) {
@@ -536,6 +543,7 @@ public class StaffDashboardController implements MessageListener {
     @FXML
     private void onShowAllSubscribers() {
         try {
+        	controller.setListener(this);
             status("Loading all subscribers...");
             controller.getAllSubscribers();
         } catch (Exception e) {
@@ -586,6 +594,7 @@ public class StaffDashboardController implements MessageListener {
             if (historyStatusLabel != null) {
                 historyStatusLabel.setText("Loading history...");
             }
+            controller.setListener(this);
             controller.getUserReservations(subscriberNumber);
         } catch (Exception e) {
             if (historyStatusLabel != null) {
@@ -677,6 +686,7 @@ public class StaffDashboardController implements MessageListener {
 
         d.showAndWait().ifPresent(in -> {
             try {
+            	controller.setListener(this);
                 int n = Integer.parseInt(in.number());
                 int c = Integer.parseInt(in.capacity());
                 controller.addTable(n, c, in.location());
@@ -719,6 +729,7 @@ public class StaffDashboardController implements MessageListener {
 
         d.showAndWait().ifPresent(in -> {
             try {
+            	controller.setListener(this);
                 sel.setSeatCapacity(Integer.parseInt(in.capacity()));
                 sel.setTableLocation(in.location());
                 controller.updateTable(sel);
@@ -745,6 +756,7 @@ public class StaffDashboardController implements MessageListener {
         a.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
                 try {
+                	controller.setListener(this);
                     controller.deleteTable(sel.getTableNumber());
                     status("Deleting table...");
                 } catch (Exception e) {
@@ -781,6 +793,7 @@ public class StaffDashboardController implements MessageListener {
         if (closeOpt.isEmpty()) return;
 
         try {
+        	controller.setListener(this);
             sel.setOpeningTime(LocalTime.parse(openOpt.get().trim()));
             sel.setClosingTime(LocalTime.parse(closeOpt.get().trim()));
             controller.updateOpeningHours(sel);
@@ -816,6 +829,7 @@ public class StaffDashboardController implements MessageListener {
         if (closeOpt.isEmpty()) return;
 
         try {
+        	controller.setListener(this);
             SpecialHours s = new SpecialHours();
             s.setSpecialDate(LocalDate.parse(dateOpt.get().trim()));
             s.setOpeningTime(LocalTime.parse(openOpt.get().trim()));
@@ -845,6 +859,7 @@ public class StaffDashboardController implements MessageListener {
         a.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
                 try {
+                	controller.setListener(this);
                     controller.deleteSpecialHours(sel.getSpecialDate());
                     status("Deleting special hours...");
                 } catch (Exception e) {
@@ -909,6 +924,7 @@ public class StaffDashboardController implements MessageListener {
         pendingQRCode = generateQRCode();
 
         try {
+        	controller.setListener(this);
             status("Registering subscriber...");
             controller.registerSubscriber(name, email, phone, password, pendingSubscriberNumber, pendingQRCode);
         } catch (Exception e) {

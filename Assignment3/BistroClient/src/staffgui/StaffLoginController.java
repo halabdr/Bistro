@@ -57,6 +57,7 @@ public class StaffLoginController implements MessageListener {
 
             statusLabel.setText("Logging in...");
             loginBtn.setDisable(true);
+            controller.setListener(this);
             controller.login(email, password);
 
         } catch (Exception e) {

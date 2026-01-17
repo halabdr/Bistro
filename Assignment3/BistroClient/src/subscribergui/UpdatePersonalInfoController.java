@@ -174,6 +174,7 @@ public class UpdatePersonalInfoController implements MessageListener {
 
         // Send to server
         try {
+        	controller.setListener(this);
             statusLabel.setText(summary + "...");
             statusLabel.setStyle("-fx-text-fill: #4A5568;");
             controller.sendToServer(new common.Message(Commands.UPDATE_USER, subscriber));

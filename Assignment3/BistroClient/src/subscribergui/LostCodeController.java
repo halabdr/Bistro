@@ -52,7 +52,7 @@ public class LostCodeController implements MessageListener {
 
             resultLabel.setText("");
             statusLabel.setText("Searching...");
-
+            controller.setListener(this);
             controller.lostCode(id);
 
         } catch (IOException e) {

@@ -69,7 +69,7 @@ public class SubscriberLoginController implements MessageListener {
                          "Please connect to the server first.");
                 return;
             }
-
+            controller.setListener(this);
             controller.login(email, password);
 
         } catch (Exception e) {
@@ -96,7 +96,7 @@ public class SubscriberLoginController implements MessageListener {
                          "Please connect to the server first.");
                 return;
             }
-
+            controller.setListener(this);
             controller.loginBySubscriberNumber(subscriberNumber);
 
         } catch (Exception e) {
