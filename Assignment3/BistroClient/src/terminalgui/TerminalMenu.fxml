@@ -128,6 +128,21 @@
                             </graphic>
                         </Button>
                     </VBox>
+                    
+                    <!-- 6) Pay Bill -->
+                    <VBox spacing="10" GridPane.rowIndex="3" GridPane.columnIndex="0" GridPane.columnSpan="2">
+    					<Label text="Ready to pay?" styleClass="action-question"/>
+    					<Button onAction="#onPayBill"
+            					text="Pay Bill"
+            					styleClass="btn-primary"
+            					prefHeight="70"
+            					maxWidth="1.7976931348623157E308">
+        					<graphic>
+            					<Label text="💳" style="-fx-font-size: 20px; -fx-padding: 0 12 0 0;"/>
+        					</graphic>
+    					</Button>
+					</VBox>
+                    
                 </GridPane>
 
                 <Pane VBox.vgrow="ALWAYS"/>

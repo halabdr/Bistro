@@ -3,7 +3,10 @@ package terminalgui;
 import client.ClientController;
 import clientgui.ConnectApp;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.stage.Stage;
 
 public class TerminalMenuController {
 
@@ -70,6 +73,38 @@ public class TerminalMenuController {
         try {
             System.out.println("CLICK: Back");
             ConnectApp.showWelcome();
+        } catch (Exception e) {
+            showNavError(e);
+        }
+    }
+
+    @FXML
+    private void onPayBill() {
+        try {
+            System.out.println("CLICK: Pay Bill");
+
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/subscribergui/PayBill.fxml"));
+
+            Scene scene = new Scene(loader.load());
+
+            subscribergui.PayBillController payController = loader.getController();
+
+            payController.init(ConnectApp.getController(), () -> {
+                try {
+                    ConnectApp.showTerminalMenu();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+
+            Stage stage = (Stage) javafx.stage.Stage.getWindows()
+                    .filtered(w -> w.isShowing())
+                    .get(0);
+
+            stage.setScene(scene);
+
         } catch (Exception e) {
             showNavError(e);
         }

@@ -47,7 +47,15 @@ public class PayBillController implements MessageListener {
             "Payment is only available after you've been seated";
 
     private enum StatusType { SUCCESS, ERROR, INFO }
+    
+    private Runnable backAction; // where to go when pressing "Back to Menu"
 
+    public void init(ClientController controller, Runnable backAction) {
+        init(controller);              // calls your existing init(controller)
+        this.backAction = backAction;  // sets custom back behavior
+    }
+
+    
     /**
      * Initializes the controller with the shared ClientController.
      *
@@ -287,10 +295,20 @@ public class PayBillController implements MessageListener {
     }
 
     /**
-     * Navigates back to the subscriber menu.
+     * Navigates back to the proper menu.
+     * - If opened from terminal uses backAction
+     * - Else: keeps existing behavior (subscriber/customer menus)
      */
     @FXML
     private void onBack() throws Exception {
+
+        // If this screen was opened from Terminal, go back there
+        if (backAction != null) {
+            backAction.run();
+            return;
+        }
+
+        // Otherwise keep your existing behavior
         if (subscriber != null) {
             ConnectApp.showSubscriberMenu(subscriber);
         } else {
