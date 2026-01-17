@@ -210,7 +210,7 @@ public class ReservationRepository {
                 // Generate unique confirmation code
                 String confirmationCode = generateConfirmationCode();
 
-                // Insert reservation
+                // Insert reservation (without table_number - will be assigned at check-in)
                 String sql = "INSERT INTO reservations (booking_date, booking_time, guest_count, " +
                             "confirmation_code, reservation_status, subscriber_number, " +
                             "walk_in_phone, walk_in_email) " +
@@ -402,13 +402,18 @@ public class ReservationRepository {
     }
     
     /**
-     * Gets a reservation by its confirmation code.
-     * Used when a customer (subscriber or casual) checks in with their code.
+     * Seats a customer by their confirmation code (Check-In process).
+     * This method implements the full check-in flow:
+     * 1. Validates the reservation exists and is ACTIVE
+     * 2. Validates the reservation is for today and within valid time window
+     * 3. Finds the best-fit available table (smallest table that fits guest count)
+     * 4. If table found: assigns it, marks as OCCUPIED, returns success
+     * 5. If no table available: returns special "WAIT" status
      * 
      * @param request Message containing "confirmationCode"
-     * @return Message with Reservation object if found
+     * @return Message with Reservation object (table assigned) or error/wait status
      */
-    public Message getReservationByCode(Message request) {
+    public Message seatByCode(Message request) {
         MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
         PooledConnection pConn = null;
 
@@ -418,38 +423,144 @@ public class ReservationRepository {
             String confirmationCode = (String) data.get("confirmationCode");
 
             if (confirmationCode == null || confirmationCode.trim().isEmpty()) {
-                return Message.fail("GET_RESERVATION_BY_CODE", "Confirmation code is required");
+                return Message.fail("SEAT_BY_CODE", "Confirmation code is required");
             }
 
             pConn = pool.getConnection();
             if (pConn == null) {
-                return Message.fail("GET_RESERVATION_BY_CODE", "Database connection failed");
+                return Message.fail("SEAT_BY_CODE", "Database connection failed");
             }
 
             Connection conn = pConn.getConnection();
             
-            String sql = "SELECT * FROM reservations WHERE confirmation_code = ?";
+            // Start transaction for atomic table assignment
+            conn.setAutoCommit(false);
             
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setString(1, confirmationCode);
-            ResultSet rs = ps.executeQuery();
+            try {
+                // 1. Get the reservation (with lock to prevent concurrent modifications)
+                String resSql = "SELECT * FROM reservations WHERE confirmation_code = ? FOR UPDATE";
+                PreparedStatement resPs = conn.prepareStatement(resSql);
+                resPs.setString(1, confirmationCode);
+                ResultSet resRs = resPs.executeQuery();
 
-            if (rs.next()) {
-                Reservation reservation = extractReservationFromResultSet(rs);
-                rs.close();
-                ps.close();
+                if (!resRs.next()) {
+                    resRs.close();
+                    resPs.close();
+                    conn.rollback();
+                    return Message.fail("SEAT_BY_CODE", "Reservation not found");
+                }
+
+                Reservation reservation = extractReservationFromResultSet(resRs);
+                resRs.close();
+                resPs.close();
+
+                // 2. Validate reservation status
+                if (reservation.getStatus() != Reservation.ReservationStatus.ACTIVE) {
+                    conn.rollback();
+                    return Message.fail("SEAT_BY_CODE", 
+                        "Reservation is not active (status: " + reservation.getStatus() + ")");
+                }
+
+                // 3. Check if already seated (table already assigned)
+                if (reservation.hasTableAssigned()) {
+                    conn.rollback();
+                    // Already seated, return current state
+                    return Message.ok("SEAT_BY_CODE", reservation);
+                }
+
+                // 4. Validate reservation is for today
+                LocalDate today = LocalDate.now();
+                if (!reservation.getBookingDate().equals(today)) {
+                    conn.rollback();
+                    String dateStr = reservation.getBookingDate().toString();
+                    if (reservation.getBookingDate().isBefore(today)) {
+                        return Message.fail("SEAT_BY_CODE", 
+                            "Reservation date has passed (" + dateStr + ")");
+                    } else {
+                        return Message.fail("SEAT_BY_CODE", 
+                            "Reservation is for a future date (" + dateStr + ")");
+                    }
+                }
+
+                // 5. Validate time window (allow check-in from 15 min before booking time)
+                LocalTime now = LocalTime.now();
+                LocalTime bookingTime = reservation.getBookingTime();
+                LocalTime earliestCheckIn = bookingTime.minusMinutes(15);
                 
-                return Message.ok("GET_RESERVATION_BY_CODE", reservation);
+                if (now.isBefore(earliestCheckIn)) {
+                    conn.rollback();
+                    String timeStr = earliestCheckIn.toString();
+                    if (timeStr.length() > 5) timeStr = timeStr.substring(0, 5);
+                    return Message.fail("SEAT_BY_CODE", 
+                        "Too early for check-in. Please return at " + timeStr);
+                }
+                
+                // Note: After 15 minutes late, reservation should be marked NO_SHOW by scheduler
+                // But we still allow check-in here for flexibility
+
+                // 6. Find best-fit available table (smallest table that fits guest count)
+                int guestCount = reservation.getGuestCount();
+                
+                String tableSql = "SELECT * FROM tables_info " +
+                                  "WHERE seat_capacity >= ? AND table_status = 'AVAILABLE' " +
+                                  "ORDER BY seat_capacity ASC " +
+                                  "LIMIT 1 FOR UPDATE";
+                
+                PreparedStatement tablePs = conn.prepareStatement(tableSql);
+                tablePs.setInt(1, guestCount);
+                ResultSet tableRs = tablePs.executeQuery();
+
+                if (!tableRs.next()) {
+                    // No available table - customer needs to wait
+                    tableRs.close();
+                    tablePs.close();
+                    conn.rollback();
+                    
+                    // Return special "WAIT" response (error message starts with "WAIT:")
+                    return Message.fail("SEAT_BY_CODE", 
+                        "WAIT:No table available right now. Please wait, you will be notified when a table is ready.");
+                }
+
+                // 7. Found a table - get its number
+                int tableNumber = tableRs.getInt("table_number");
+                tableRs.close();
+                tablePs.close();
+
+                // 8. Update table status to OCCUPIED
+                String updateTableSql = "UPDATE tables_info SET table_status = 'OCCUPIED', " +
+                                        "reservation_start = NOW(), " +
+                                        "reservation_end = DATE_ADD(NOW(), INTERVAL 2 HOUR) " +
+                                        "WHERE table_number = ?";
+                PreparedStatement updateTablePs = conn.prepareStatement(updateTableSql);
+                updateTablePs.setInt(1, tableNumber);
+                updateTablePs.executeUpdate();
+                updateTablePs.close();
+
+                // 9. Update reservation with assigned table
+                String updateResSql = "UPDATE reservations SET table_number = ? WHERE reservation_id = ?";
+                PreparedStatement updateResPs = conn.prepareStatement(updateResSql);
+                updateResPs.setInt(1, tableNumber);
+                updateResPs.setInt(2, reservation.getReservationId());
+                updateResPs.executeUpdate();
+                updateResPs.close();
+
+                // 10. Commit transaction
+                conn.commit();
+
+                // 11. Return updated reservation with table number
+                reservation.setAssignedTableNumber(tableNumber);
+                return Message.ok("SEAT_BY_CODE", reservation);
+
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
             }
-
-            rs.close();
-            ps.close();
-
-            return Message.fail("GET_RESERVATION_BY_CODE", "Reservation not found");
 
         } catch (SQLException e) {
             e.printStackTrace();
-            return Message.fail("GET_RESERVATION_BY_CODE", "Database error: " + e.getMessage());
+            return Message.fail("SEAT_BY_CODE", "Database error: " + e.getMessage());
         } finally {
             pool.releaseConnection(pConn);
         }

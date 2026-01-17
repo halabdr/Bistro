@@ -207,7 +207,7 @@ public class BistroServer extends AbstractServer {
                 safeSend(client, response);
             }
             case "SEAT_BY_CODE" -> {
-                response = reservationRepository.getReservationByCode(request);
+            	response = reservationRepository.seatByCode(request);
                 safeSend(client, response);
             }
 

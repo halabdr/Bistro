@@ -219,11 +219,24 @@ public class SeatByCodeController implements MessageListener {
                 return;
             }
 
-            // 2) Seat by code result (STRICT contract)
+         // 2) Seat by code result (STRICT contract)
             if (Commands.SEAT_BY_CODE.equals(cmd)) {
                 if (!m.isSuccess()) {
-                    setStatus(statusLabel, "Failed: " + m.getError(), "status-error");
-                    setStatus(statusLabel2, "Failed: " + m.getError(), "status-error");
+                    String error = m.getError();
+                    
+                    // Check for special "WAIT" response - no table available yet
+                    if (error != null && error.startsWith("WAIT:")) {
+                        String waitMessage = error.substring(5); // Remove "WAIT:" prefix
+                        setStatus(statusLabel, "Please Wait", "status-bad");
+                        setStatus(statusLabel2, "Please Wait", "status-bad");
+                        resultLabel.setText("");
+                        showWaitPopup(waitMessage);
+                        return;
+                    }
+                    
+                    // Regular error
+                    setStatus(statusLabel, "Failed: " + error, "status-error");
+                    setStatus(statusLabel2, "Failed: " + error, "status-error");
                     return;
                 }
 
@@ -278,6 +291,18 @@ public class SeatByCodeController implements MessageListener {
 
         alert.setContentText("Enjoy your meal 😊");
 
+        alert.showAndWait();
+    }
+    
+    /**
+     * Shows a popup informing the customer to wait for a table.
+     * @param message the wait message from server
+     */
+    private void showWaitPopup(String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "", ButtonType.OK);
+        alert.setTitle("Please Wait");
+        alert.setHeaderText("No Table Available Right Now");
+        alert.setContentText(message + "\n\nYou will be notified when a table is ready.");
         alert.showAndWait();
     }
 }
