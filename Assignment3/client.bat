@@ -1,0 +1,2 @@
+cd /d "C:\Users\adham\Downloads\G8_Assignment3.zip\JAR"
+java -Djava.library.path="G8_client_lib" --module-path "G8_client_lib" --add-modules javafx.controls,javafx.fxml,javafx.graphics -cp "G8_client.jar;G8_client_lib/*" client.ClientMain
