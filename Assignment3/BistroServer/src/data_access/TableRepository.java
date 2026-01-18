@@ -3,6 +3,7 @@ import connection.MySQLConnectionPool;
 import connection.PooledConnection;
 import common.Message;
 import entities.Table;
+import services.AvailabilityService;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -173,6 +174,18 @@ public class TableRepository {
 
             Connection conn = pConn.getConnection();
             
+            // Get old capacity before update
+            int oldCapacity = 0;
+            String getCapacitySql = "SELECT seat_capacity FROM tables_info WHERE table_number = ?";
+            PreparedStatement getPs = conn.prepareStatement(getCapacitySql);
+            getPs.setInt(1, table.getTableNumber());
+            ResultSet rs = getPs.executeQuery();
+            if (rs.next()) {
+                oldCapacity = rs.getInt("seat_capacity");
+            }
+            rs.close();
+            getPs.close();
+            
             String sql = "UPDATE tables_info SET seat_capacity = ?, table_location = ? WHERE table_number = ?";
             
             PreparedStatement ps = conn.prepareStatement(sql);
@@ -184,6 +197,12 @@ public class TableRepository {
             ps.close();
 
             if (rowsAffected > 0) {
+                // Check and cancel affected reservations if capacity was reduced
+                AvailabilityService.handleTableCapacityChange(
+                    table.getTableNumber(), 
+                    oldCapacity, 
+                    table.getSeatCapacity()
+                );
                 return Message.ok("UPDATE_TABLE", "Table updated successfully");
             } else {
                 return Message.fail("UPDATE_TABLE", "Table not found");
@@ -219,6 +238,18 @@ public class TableRepository {
 
             Connection conn = pConn.getConnection();
             
+            // Get table capacity before deletion
+            int capacity = 0;
+            String getCapacitySql = "SELECT seat_capacity FROM tables_info WHERE table_number = ?";
+            PreparedStatement getPs = conn.prepareStatement(getCapacitySql);
+            getPs.setInt(1, tableNumber);
+            ResultSet rs = getPs.executeQuery();
+            if (rs.next()) {
+                capacity = rs.getInt("seat_capacity");
+            }
+            rs.close();
+            getPs.close();
+            
             String sql = "DELETE FROM tables_info WHERE table_number = ?";
             
             PreparedStatement ps = conn.prepareStatement(sql);
@@ -228,6 +259,8 @@ public class TableRepository {
             ps.close();
 
             if (rowsAffected > 0) {
+                // Check and cancel affected reservations
+                AvailabilityService.handleTableDeletion(tableNumber, capacity);
                 return Message.ok("DELETE_TABLE", "Table deleted successfully");
             } else {
                 return Message.fail("DELETE_TABLE", "Table not found");

@@ -4,6 +4,7 @@ import connection.PooledConnection;
 import common.Message;
 import entities.OpeningHours;
 import entities.SpecialHours;
+import services.AvailabilityService;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -95,6 +96,12 @@ public class OpeningHoursRepository {
 			ps.close();
 
 			if (rowsAffected > 0) {
+				// Check and cancel affected reservations
+				AvailabilityService.handleOpeningHoursChange(
+					hours.getWeekday(), 
+					hours.getOpeningTime(), 
+					hours.getClosingTime()
+				);
 				return Message.ok("UPDATE_OPENING_HOURS", "Opening hours updated successfully");
 			} else {
 				return Message.fail("UPDATE_OPENING_HOURS", "Weekday not found");
@@ -200,6 +207,14 @@ public class OpeningHoursRepository {
 			ps.close();
 
 			specialHours.setSpecialId(specialId);
+
+			// Check and cancel affected reservations
+			AvailabilityService.handleSpecialHoursChange(
+				specialHours.getSpecialDate(),
+				specialHours.getOpeningTime(),
+				specialHours.getClosingTime(),
+				specialHours.getClosedFlag()
+			);
 
 			return Message.ok("ADD_SPECIAL_HOURS", specialHours);
 

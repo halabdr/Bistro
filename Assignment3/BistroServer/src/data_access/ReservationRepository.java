@@ -919,7 +919,7 @@ public class ReservationRepository {
      */
     private boolean isSlotAvailable(LocalDateTime startTime, int guestCount, Connection conn) throws SQLException {
         // Get all tables that can fit the guest count
-        String tableSql = "SELECT * FROM tables_info WHERE seat_capacity >= ? AND table_status = 'AVAILABLE'";
+        String tableSql = "SELECT * FROM tables_info WHERE seat_capacity >= ?";
         PreparedStatement tablePs = conn.prepareStatement(tableSql);
         tablePs.setInt(1, guestCount);
         ResultSet tableRs = tablePs.executeQuery();
@@ -1007,7 +1007,7 @@ public class ReservationRepository {
      * @return list of suitable tables
      */
     private List<Table> getSuitableTablesForGuests(int guestCount, Connection conn) throws SQLException {
-        String sql = "SELECT * FROM tables_info WHERE seat_capacity >= ? AND table_status = 'AVAILABLE'";
+        String sql = "SELECT * FROM tables_info WHERE seat_capacity >= ?";
         PreparedStatement ps = conn.prepareStatement(sql);
         ps.setInt(1, guestCount);
         ResultSet rs = ps.executeQuery();
